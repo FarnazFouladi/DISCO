@@ -48,6 +48,50 @@ get_npairs <- function(D) {
   crossprod(!is.na(D))
 }
 
+# Compare correlations only when both groups meet the co-occurrence threshold
+compare_eligible_correlations <- function(R1, C1, R2, C2,
+                                          cooccur, filt_threshold) {
+  eligible <- C1 >= cooccur & C2 >= cooccur
+  diag(eligible) <- FALSE
+
+  empty_matrix <- function(template) {
+    matrix(
+      NA_real_,
+      nrow = nrow(template),
+      ncol = ncol(template),
+      dimnames = dimnames(template)
+    )
+  }
+
+  P1 <- empty_matrix(R1)
+  P2 <- empty_matrix(R2)
+  pvals <- empty_matrix(R1)
+  delta_R <- empty_matrix(R1)
+
+  if (any(eligible)) {
+    P1[eligible] <- fisher_z_p(R1[eligible], C1[eligible])
+    P2[eligible] <- fisher_z_p(R2[eligible], C2[eligible])
+
+    fisher_res <- fisher_z_p_2sample(
+      R1[eligible], C1[eligible], R2[eligible], C2[eligible]
+    )
+    pvals[eligible] <- fisher_res[[1]]
+    delta_R[eligible] <- fisher_res[[2]]
+  }
+
+  # Retain eligible pairs correlated in at least one group.
+  retained <- eligible & (P1 < filt_threshold | P2 < filt_threshold)
+  retained[is.na(retained)] <- FALSE
+  pvals[!retained] <- NA_real_
+
+  list(
+    pvals = pvals,
+    delta_R = delta_R,
+    eligible = eligible,
+    retained = retained
+  )
+}
+
 # Align two groups to the same features within a modality
 align_common_features <- function(data1, data2, modality) {
   features1 <- colnames(data1)
@@ -165,27 +209,14 @@ disco_score <- function(data1, # [List] Data for group 1
   R1 <- get_corr(d_merged1)
   R2 <- get_corr(d_merged2)
 
-  # Apply cooccurrence filter
-  R1[C1 < cooccur] <- 0
-  R2[C2 < cooccur] <- 0
-
-  # Fisher's Z test for single correlations
-  P1 <- fisher_z_p(R1, C1)
-  P2 <- fisher_z_p(R2, C2)
-
-  # Filter correlations with p >= threshold in both groups
-  filt <- (P1 >= filt_threshold) & (P2 >= filt_threshold)
-  diag(filt) <- TRUE
-
-  # Fisher Z test - two sample test
-  fisher_res <- fisher_z_p_2sample(R1, C1, R2, C2)
-  pvals <- fisher_res[[1]]
-  delta_R <- fisher_res[[2]]
-  delta_R[is.na(delta_R)] <- 0
-
-  # Replace p-values with NAs for correlations that are filtered out
-  pvals_tmp <- pvals
-  pvals_tmp[filt] <- NA
+  # Test only pairs meeting the co-occurrence threshold in both groups.
+  comparison <- compare_eligible_correlations(
+    R1, C1, R2, C2,
+    cooccur = cooccur,
+    filt_threshold = filt_threshold
+  )
+  pvals_tmp <- comparison$pvals
+  delta_R <- comparison$delta_R
 
   # Create a long dataframe
   if (two_modal) {
@@ -235,22 +266,32 @@ disco_score <- function(data1, # [List] Data for group 1
   }
 
   if (two_modal) {
-    disco <- bind_rows(sapply(1:p, function(i) {
+    disco_rows <- sapply(1:p, function(i) {
       p_vect <- as.vector(na.omit(pvals_tmp[(p + 1):(p + q), i]))
       if(length(p_vect) == 0) return(NULL)
       t <- safe_tan_cauchy(p_vect)
       pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
       data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
-    }, simplify = FALSE))
+    }, simplify = FALSE)
   } else {
-    disco <- bind_rows(sapply(1:p, function(i) {
+    disco_rows <- sapply(1:p, function(i) {
       p_vect <- as.vector(na.omit(pvals_tmp[-i, i]))
       if(length(p_vect) == 0) return(NULL)
       t <- safe_tan_cauchy(p_vect)
       pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
       data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
-    }, simplify = FALSE))
+    }, simplify = FALSE)
   }
+
+  disco <- bind_rows(
+    data.frame(
+      species = character(),
+      t = numeric(),
+      p = numeric(),
+      num_corr = integer()
+    ),
+    disco_rows
+  )
 
   # Adjustment of p-values
   disco <- disco %>%
