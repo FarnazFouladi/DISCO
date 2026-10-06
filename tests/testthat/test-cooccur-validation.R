@@ -6,7 +6,7 @@ testthat::test_that("cooccur accepts integer values of at least 4", {
   }
 })
 
-testthat::test_that("disco_score rejects invalid cooccur values", {
+testthat::test_that("disco rejects invalid cooccur values", {
   invalid_values <- list(
     3,
     4.5,
@@ -20,7 +20,7 @@ testthat::test_that("disco_score rejects invalid cooccur values", {
 
   for (cooccur in invalid_values) {
     testthat::expect_error(
-      disco_score(
+      disco(
         data1 = list(),
         data2 = list(),
         cooccur = cooccur,

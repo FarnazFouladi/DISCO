@@ -35,7 +35,7 @@ testthat::test_that("zero overlap between modalities is rejected", {
   )
 })
 
-testthat::test_that("disco_score checks modality overlap before merging", {
+testthat::test_that("disco checks modality overlap before merging", {
   data1 <- list(
     matrix(
       seq_len(8),
@@ -62,7 +62,7 @@ testthat::test_that("disco_score checks modality overlap before merging", {
   )
 
   testthat::expect_error(
-    disco_score(
+    disco(
       data1,
       data2,
       output_dir = tempfile("disco-sample-overlap-"),

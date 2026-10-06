@@ -21,7 +21,7 @@ testthat::test_that("Bonett-Wright is the default correction", {
     spearman_fisher_se(R, N, correction = "bonett_wright")
   )
   testthat::expect_identical(
-    eval(formals(disco_score)$spearman_correction),
+    eval(formals(disco)$spearman_correction),
     c("bonett_wright", "fieller_1.06")
   )
 })
@@ -118,7 +118,7 @@ testthat::test_that("eligible comparisons propagate the selected correction", {
   )))
 })
 
-testthat::test_that("disco_score exposes both Spearman corrections", {
+testthat::test_that("disco exposes both Spearman corrections", {
   set.seed(2026)
   group1_a <- stats::rnorm(30)
   group2_a <- stats::rnorm(30)
@@ -132,7 +132,7 @@ testthat::test_that("disco_score exposes both Spearman corrections", {
   )
 
   invisible(utils::capture.output(
-    bonett <- disco_score(
+    bonett <- disco(
       list(data1),
       list(data2),
       cooccur = 10,
@@ -143,7 +143,7 @@ testthat::test_that("disco_score exposes both Spearman corrections", {
     )
   ))
   invisible(utils::capture.output(
-    fieller <- disco_score(
+    fieller <- disco(
       list(data1),
       list(data2),
       cooccur = 10,
@@ -156,7 +156,7 @@ testthat::test_that("disco_score exposes both Spearman corrections", {
 
   testthat::expect_gt(
     abs(
-      bonett$df_tmp$p - fieller$df_tmp$p
+      bonett$cor_diff$p - fieller$cor_diff$p
     ),
     0
   )

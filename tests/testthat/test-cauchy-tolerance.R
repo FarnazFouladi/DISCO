@@ -1,5 +1,5 @@
 testthat::test_that("DISCO uses a 1e-16 default Cauchy tolerance", {
-  testthat::expect_equal(formals(disco_score)$tol, 1e-16)
+  testthat::expect_equal(formals(disco)$tol, 1e-16)
   testthat::expect_equal(formals(safe_tan_cauchy)$tol, 1e-16)
 })
 
@@ -45,7 +45,7 @@ testthat::test_that("invalid Cauchy tolerances are rejected", {
   }
 })
 
-testthat::test_that("disco_score propagates tol to Cauchy combination", {
+testthat::test_that("disco propagates tol to Cauchy combination", {
   feature_a <- seq_len(20)
   data1 <- data.frame(a = feature_a, b = feature_a)
   data2 <- data.frame(a = feature_a, b = -feature_a)
@@ -54,7 +54,7 @@ testthat::test_that("disco_score propagates tol to Cauchy combination", {
   larger_output <- tempfile("disco-tol-larger-")
 
   invisible(utils::capture.output(
-    default_result <- disco_score(
+    default_result <- disco(
       list(data1),
       list(data2),
       cooccur = 10,
@@ -64,7 +64,7 @@ testthat::test_that("disco_score propagates tol to Cauchy combination", {
     )
   ))
   invisible(utils::capture.output(
-    larger_result <- disco_score(
+    larger_result <- disco(
       list(data1),
       list(data2),
       cooccur = 10,

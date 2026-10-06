@@ -235,8 +235,8 @@ align_common_features <- function(data1, data2, modality) {
   list(data1 = data1_aligned, data2 = data2_aligned)
 }
 
-# Main DISCO Score Function
-disco_score <- function(data1, # [List] Data for group 1
+# Main DISCO function
+disco <- function(data1, # [List] Data for group 1
                         data2, # [List] Data for group 2
                         cooccur = 10,
                         filt_threshold = 0.001,
@@ -357,7 +357,7 @@ disco_score <- function(data1, # [List] Data for group 1
     }, simplify = FALSE)
   }
 
-  disco <- bind_rows(
+  disco_results <- bind_rows(
     data.frame(
       species = character(),
       t = numeric(),
@@ -368,7 +368,7 @@ disco_score <- function(data1, # [List] Data for group 1
   )
 
   # Adjustment of p-values
-  disco <- disco %>%
+  disco_results <- disco_results %>%
     mutate(q = p.adjust(p, method = adj_method)) %>%
     arrange(q)
 
@@ -378,7 +378,11 @@ disco_score <- function(data1, # [List] Data for group 1
   # Save the results
   write.csv(df_tmp, file.path(output_dir, paste0(prefix, "_cor_diff.csv")), quote = TRUE, row.names = FALSE)
   write.csv(df_tmp_sig, file.path(output_dir, paste0(prefix, "_cor_diff_sig.csv")), quote = TRUE, row.names = FALSE)
-  write.csv(disco, file.path(output_dir, paste0(prefix, "_disco.csv")), quote = TRUE, row.names = FALSE)
+  write.csv(disco_results, file.path(output_dir, paste0(prefix, "_disco.csv")), quote = TRUE, row.names = FALSE)
 
-  return(list(cor_diff = df_tmp, cor_diff_sig = df_tmp_sig, disco = disco))
+  return(list(
+    cor_diff = df_tmp,
+    cor_diff_sig = df_tmp_sig,
+    disco = disco_results
+  ))
 }
