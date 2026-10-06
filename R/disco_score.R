@@ -144,6 +144,17 @@ add_significant_correlation_counts <- function(data, two_modal) {
   data
 }
 
+# Validate the minimum co-occurrence threshold
+validate_cooccur <- function(cooccur) {
+  if (!is.numeric(cooccur) || length(cooccur) != 1 || is.na(cooccur) ||
+      !is.finite(cooccur) || cooccur < 4 || cooccur != floor(cooccur)) {
+    stop("cooccur must be a single integer greater than or equal to 4",
+         call. = FALSE)
+  }
+
+  cooccur
+}
+
 # Validate the numerical boundary used in the Cauchy transformation
 validate_cauchy_tolerance <- function(tol) {
   if (!is.numeric(tol) || length(tol) != 1 || is.na(tol) ||
@@ -241,6 +252,7 @@ disco_score <- function(data1, # [List] Data for group 1
                         spearman_correction = c("bonett_wright",
                                                 "fieller_1.06")) {
 
+  cooccur <- validate_cooccur(cooccur)
   tol <- validate_cauchy_tolerance(tol)
   spearman_correction <- match.arg(spearman_correction)
 
@@ -256,8 +268,8 @@ disco_score <- function(data1, # [List] Data for group 1
 
   if (length(data1) == 2) {
     two_modal <- TRUE
-    p <- ncol(data1[[1]])
-    q <- ncol(data1[[2]])
+    n_feat1 <- ncol(data1[[1]])
+    n_feat2 <- ncol(data1[[2]])
 
     # Concatenating data modality 1 and data modality 2 for group 1
     d_merged1 <- merge(data1[[1]], data1[[2]], by = "row.names", all = TRUE) %>%
@@ -268,8 +280,8 @@ disco_score <- function(data1, # [List] Data for group 1
 
   } else {
     two_modal <- FALSE
-    p <- ncol(data1[[1]])
-    q <- 0
+    n_feat1 <- ncol(data1[[1]])
+    n_feat2 <- 0
     d_merged1 <- data1[[1]]
     d_merged2 <- data2[[1]]
   }
@@ -296,7 +308,10 @@ disco_score <- function(data1, # [List] Data for group 1
 
   # Create a long dataframe
   if (two_modal) {
-    inds <- as.matrix(expand.grid(row = 1:p, col = (p + 1):(p + q)))
+    inds <- as.matrix(expand.grid(
+      row = 1:n_feat1,
+      col = (n_feat1 + 1):(n_feat1 + n_feat2)
+    ))
   } else {
     inds <- which(upper.tri(R1), arr.ind = TRUE)
   }
@@ -332,15 +347,17 @@ disco_score <- function(data1, # [List] Data for group 1
 
   # Calculating disco score
   if (two_modal) {
-    disco_rows <- sapply(1:p, function(i) {
-      p_vect <- as.vector(na.omit(pvals_tmp[(p + 1):(p + q), i]))
+    disco_rows <- sapply(1:n_feat1, function(i) {
+      p_vect <- as.vector(na.omit(
+        pvals_tmp[(n_feat1 + 1):(n_feat1 + n_feat2), i]
+      ))
       if(length(p_vect) == 0) return(NULL)
       t <- safe_tan_cauchy(p_vect, tol = tol)
       pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
       data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
     }, simplify = FALSE)
   } else {
-    disco_rows <- sapply(1:p, function(i) {
+    disco_rows <- sapply(1:n_feat1, function(i) {
       p_vect <- as.vector(na.omit(pvals_tmp[-i, i]))
       if(length(p_vect) == 0) return(NULL)
       t <- safe_tan_cauchy(p_vect, tol = tol)
