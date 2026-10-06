@@ -2,8 +2,23 @@ library(dplyr)
 library(tibble)
 library(Hmisc)
 
-# Fisher's Z test for a single sample
-fisher_z_p <- function(R, N) {
+# Standard error for a Fisher-z-transformed Spearman correlation
+spearman_fisher_se <- function(R, N,
+                               correction = c("bonett_wright", "fieller_1.06")) {
+  correction <- match.arg(correction)
+
+  variance_multiplier <- switch(
+    correction,
+    bonett_wright = 1 + R^2 / 2,
+    fieller_1.06 = 1.06
+  )
+
+  sqrt(variance_multiplier / pmax(N - 3, 1))
+}
+
+# Fisher's Z test for a single Spearman correlation
+fisher_z_p <- function(R, N,
+                       correction = c("bonett_wright", "fieller_1.06")) {
   # Bound R to avoid Inf/-Inf when R is exactly 1 or -1
   #R <- pmax(pmin(R, 0.9999), -0.9999)
 
@@ -11,13 +26,14 @@ fisher_z_p <- function(R, N) {
 
   # Correct for the bias related to sample size
   Z_bc <- Z - R / (2 * (N - 1))
-  se <- 1 / sqrt(pmax(N - 3, 1))
+  se <- spearman_fisher_se(R, N, correction = correction)
 
   2 * pnorm(-abs(Z_bc / se))
 }
 
-# Fisher's Z test for two samples
-fisher_z_p_2sample <- function(R1, N1, R2, N2) {
+# Fisher's Z test for two independent Spearman correlations
+fisher_z_p_2sample <- function(R1, N1, R2, N2,
+                               correction = c("bonett_wright", "fieller_1.06")) {
   # Bound R to prevent Inf
   #R1 <- pmax(pmin(R1, 0.9999), -0.9999)
   #R2 <- pmax(pmin(R2, 0.9999), -0.9999)
@@ -29,7 +45,9 @@ fisher_z_p_2sample <- function(R1, N1, R2, N2) {
   Z1_bc <- Z1 - R1 / (2 * (N1 - 1))
   Z2_bc <- Z2 - R2 / (2 * (N2 - 1))
 
-  se <- sqrt(1 / pmax(N1 - 3, 1) + 1 / pmax(N2 - 3, 1))
+  se1 <- spearman_fisher_se(R1, N1, correction = correction)
+  se2 <- spearman_fisher_se(R2, N2, correction = correction)
+  se <- sqrt(se1^2 + se2^2)
   Z <- (Z1_bc - Z2_bc) / se
 
   pvals <- 2 * pnorm(-abs(Z))
@@ -50,7 +68,10 @@ get_npairs <- function(D) {
 
 # Compare correlations only when both groups meet the co-occurrence threshold
 compare_eligible_correlations <- function(R1, C1, R2, C2,
-                                          cooccur, filt_threshold) {
+                                          cooccur, filt_threshold,
+                                          correction = c("bonett_wright",
+                                                         "fieller_1.06")) {
+  correction <- match.arg(correction)
   eligible <- C1 >= cooccur & C2 >= cooccur
   diag(eligible) <- FALSE
 
@@ -69,11 +90,16 @@ compare_eligible_correlations <- function(R1, C1, R2, C2,
   delta_R <- empty_matrix(R1)
 
   if (any(eligible)) {
-    P1[eligible] <- fisher_z_p(R1[eligible], C1[eligible])
-    P2[eligible] <- fisher_z_p(R2[eligible], C2[eligible])
+    P1[eligible] <- fisher_z_p(
+      R1[eligible], C1[eligible], correction = correction
+    )
+    P2[eligible] <- fisher_z_p(
+      R2[eligible], C2[eligible], correction = correction
+    )
 
     fisher_res <- fisher_z_p_2sample(
-      R1[eligible], C1[eligible], R2[eligible], C2[eligible]
+      R1[eligible], C1[eligible], R2[eligible], C2[eligible],
+      correction = correction
     )
     pvals[eligible] <- fisher_res[[1]]
     delta_R[eligible] <- fisher_res[[2]]
@@ -211,9 +237,12 @@ disco_score <- function(data1, # [List] Data for group 1
                         adj_method = "BY",
                         output_dir,
                         prefix,
-                        tol = 1e-16) {
+                        tol = 1e-16,
+                        spearman_correction = c("bonett_wright",
+                                                "fieller_1.06")) {
 
   tol <- validate_cauchy_tolerance(tol)
+  spearman_correction <- match.arg(spearman_correction)
 
   if (length(data1) != length(data2) || !(length(data1) %in% c(1, 2))) {
     stop("Number of data modalities should be one or two for each group")
@@ -259,7 +288,8 @@ disco_score <- function(data1, # [List] Data for group 1
   comparison <- compare_eligible_correlations(
     R1, C1, R2, C2,
     cooccur = cooccur,
-    filt_threshold = filt_threshold
+    filt_threshold = filt_threshold,
+    correction = spearman_correction
   )
   pvals_tmp <- comparison$pvals
   delta_R <- comparison$delta_R
