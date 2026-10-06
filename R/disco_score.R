@@ -1,6 +1,5 @@
 library(dplyr)
 library(tibble)
-library(Hmisc)
 
 # Standard error for a Fisher-z-transformed Spearman correlation
 spearman_fisher_se <- function(R, N,
@@ -19,9 +18,6 @@ spearman_fisher_se <- function(R, N,
 # Fisher's Z test for a single Spearman correlation
 fisher_z_p <- function(R, N,
                        correction = c("bonett_wright", "fieller_1.06")) {
-  # Bound R to avoid Inf/-Inf when R is exactly 1 or -1
-  #R <- pmax(pmin(R, 0.9999), -0.9999)
-
   Z <- 0.5 * log((1 + R) / (1 - R))
 
   # Correct for the bias related to sample size
@@ -34,10 +30,6 @@ fisher_z_p <- function(R, N,
 # Fisher's Z test for two independent Spearman correlations
 fisher_z_p_2sample <- function(R1, N1, R2, N2,
                                correction = c("bonett_wright", "fieller_1.06")) {
-  # Bound R to prevent Inf
-  #R1 <- pmax(pmin(R1, 0.9999), -0.9999)
-  #R2 <- pmax(pmin(R2, 0.9999), -0.9999)
-
   Z1 <- 0.5 * log((1 + R1) / (1 - R1))
   Z2 <- 0.5 * log((1 + R2) / (1 - R2))
 
@@ -297,14 +289,9 @@ disco_score <- function(data1, # [List] Data for group 1
   } else {
     two_modal <- FALSE
     n_feat1 <- ncol(data1[[1]])
-    n_feat2 <- 0
     d_merged1 <- data1[[1]]
     d_merged2 <- data2[[1]]
   }
-
-  # Enforce rule: Zeros are NAs (Working with complete data)
-  #d_merged1[d_merged1 == 0] <- NA
-  #d_merged2[d_merged2 == 0] <- NA
 
   # Estimate correlations and cooccurrences
   C1 <- get_npairs(d_merged1)
