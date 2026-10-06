@@ -118,6 +118,23 @@ add_significant_correlation_counts <- function(data, two_modal) {
   data
 }
 
+# Validate the numerical boundary used in the Cauchy transformation
+validate_cauchy_tolerance <- function(tol) {
+  if (!is.numeric(tol) || length(tol) != 1 || is.na(tol) ||
+      !is.finite(tol) || tol <= 0 || tol >= 0.5) {
+    stop("tol must be a single finite number greater than 0 and less than 0.5",
+         call. = FALSE)
+  }
+
+  tol
+}
+
+# Bound p-values before applying the existing Cauchy transformation
+safe_tan_cauchy <- function(p_vect, tol = 1e-16) {
+  p_vect <- pmax(pmin(p_vect, 1 - tol), tol)
+  1 / length(p_vect) * sum(tan((0.5 - p_vect) * pi))
+}
+
 # Align two groups to the same features within a modality
 align_common_features <- function(data1, data2, modality) {
   features1 <- colnames(data1)
@@ -193,7 +210,10 @@ disco_score <- function(data1, # [List] Data for group 1
                         q_alpha = 0.2,
                         adj_method = "BY",
                         output_dir,
-                        prefix) {
+                        prefix,
+                        tol = 1e-16) {
+
+  tol <- validate_cauchy_tolerance(tol)
 
   if (length(data1) != length(data2) || !(length(data1) %in% c(1, 2))) {
     stop("Number of data modalities should be one or two for each group")
@@ -281,17 +301,11 @@ disco_score <- function(data1, # [List] Data for group 1
   cat("Number of significant pairwise correlations:", nrow(df_tmp_sig), "\n")
 
   # Calculating disco score
-  # Helper to prevent tan(pi/2) resulting in Inf
-  safe_tan_cauchy <- function(p_vect) {
-    p_vect <- pmax(pmin(p_vect, 1 - 1e-7), 1e-7)
-    1 / length(p_vect) * sum(tan((0.5 - p_vect) * pi))
-  }
-
   if (two_modal) {
     disco_rows <- sapply(1:p, function(i) {
       p_vect <- as.vector(na.omit(pvals_tmp[(p + 1):(p + q), i]))
       if(length(p_vect) == 0) return(NULL)
-      t <- safe_tan_cauchy(p_vect)
+      t <- safe_tan_cauchy(p_vect, tol = tol)
       pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
       data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
     }, simplify = FALSE)
@@ -299,7 +313,7 @@ disco_score <- function(data1, # [List] Data for group 1
     disco_rows <- sapply(1:p, function(i) {
       p_vect <- as.vector(na.omit(pvals_tmp[-i, i]))
       if(length(p_vect) == 0) return(NULL)
-      t <- safe_tan_cauchy(p_vect)
+      t <- safe_tan_cauchy(p_vect, tol = tol)
       pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
       data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
     }, simplify = FALSE)
