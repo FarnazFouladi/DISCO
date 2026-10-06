@@ -1,6 +1,3 @@
-library(dplyr)
-library(tibble)
-
 # Standard error for a Fisher-z-transformed Spearman correlation
 spearman_fisher_se <- function(R, N,
                                correction = c("bonett_wright", "fieller_1.06")) {
@@ -235,20 +232,56 @@ align_common_features <- function(data1, data2, modality) {
   list(data1 = data1_aligned, data2 = data2_aligned)
 }
 
-# Main DISCO function
-disco <- function(data1, # [List] Data for group 1
-                        data2, # [List] Data for group 2
-                        cooccur = 10,
-                        filt_threshold = 0.001,
-                        diff_threshold = 0.3,
-                        p_alpha = 0.01,
-                        q_alpha = 0.2,
-                        adj_method = "BY",
-                        output_dir,
-                        prefix,
-                        tol = 1e-16,
-                        spearman_correction = c("bonett_wright",
-                                                "fieller_1.06")) {
+#' Calculate DISruption in COrrelations (DISCO)
+#'
+#' Quantifies feature-specific changes in Spearman correlation patterns between
+#' two groups. Inputs may contain one data modality or two data modalities.
+#' Corresponding modalities are aligned to their common features before the
+#' correlations are compared.
+#'
+#' @param data1 A list containing one or two numeric matrices or data frames for
+#'   the first group. Rows represent samples and columns represent features.
+#' @param data2 A list with the same number of modalities as `data1`, containing
+#'   data for the second group. Rows represent samples and columns represent
+#'   features.
+#' @param cooccur A single integer greater than or equal to 4. A feature pair is
+#'   tested only when both groups have at least this many pairwise non-missing
+#'   observations.
+#' @param filt_threshold Single-group correlation p-value threshold. A pair is
+#'   retained when its correlation is significant in at least one group at this
+#'   threshold.
+#' @param diff_threshold Minimum absolute difference between the two raw
+#'   Spearman correlations used to identify significant disrupted pairs.
+#' @param p_alpha Two-sample correlation-test p-value threshold.
+#' @param q_alpha Adjusted two-sample correlation-test p-value threshold.
+#' @param adj_method Multiple-testing adjustment method passed to
+#'   [stats::p.adjust()].
+#' @param output_dir Directory in which result CSV files are written. The
+#'   directory is created when it does not exist.
+#' @param prefix Character prefix used for result filenames.
+#' @param tol Numerical boundary used to constrain p-values before the Cauchy
+#'   transformation. It must be greater than 0 and less than 0.5.
+#' @param spearman_correction Standard-error correction for Fisher-transformed
+#'   Spearman correlations. Either `"bonett_wright"` or `"fieller_1.06"`.
+#'
+#' @return A list with three data frames: `cor_diff` contains retained pairwise
+#'   comparisons, `cor_diff_sig` contains significant disrupted pairs, and
+#'   `disco` contains feature-level DISCO results. The same tables are written
+#'   to CSV files in `output_dir`.
+#' @export
+disco <- function(data1,
+                  data2,
+                  cooccur = 10,
+                  filt_threshold = 0.001,
+                  diff_threshold = 0.3,
+                  p_alpha = 0.01,
+                  q_alpha = 0.2,
+                  adj_method = "BY",
+                  output_dir,
+                  prefix,
+                  tol = 1e-16,
+                  spearman_correction = c("bonett_wright",
+                                          "fieller_1.06")) {
 
   cooccur <- validate_cooccur(cooccur)
   tol <- validate_cauchy_tolerance(tol)

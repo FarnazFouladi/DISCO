@@ -76,9 +76,11 @@ testthat::test_that("each modality is aligned independently", {
   )
 
   aligned <- lapply(seq_along(group1), function(i) {
+    result <- NULL
     testthat::expect_warning(
-      align_common_features(group1[[i]], group2[[i]], modality = i)
+      result <- align_common_features(group1[[i]], group2[[i]], modality = i)
     )
+    result
   })
 
   testthat::expect_identical(colnames(aligned[[1]]$data1), c("a", "b"))
