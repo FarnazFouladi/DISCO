@@ -92,6 +92,32 @@ compare_eligible_correlations <- function(R1, C1, R2, C2,
   )
 }
 
+# Count significant correlations for the features represented by each row
+add_significant_correlation_counts <- function(data, two_modal) {
+  if (nrow(data) == 0) {
+    data$num_sig_corr_t1 <- integer()
+    data$num_sig_corr_t2 <- integer()
+    return(data)
+  }
+
+  t1 <- as.character(data$t1)
+  t2 <- as.character(data$t2)
+
+  if (two_modal) {
+    counts_t1 <- table(t1)
+    counts_t2 <- table(t2)
+    data$num_sig_corr_t1 <- unname(as.integer(counts_t1[t1]))
+    data$num_sig_corr_t2 <- unname(as.integer(counts_t2[t2]))
+  } else {
+    # In one-modality mode, a feature can occur on either side of an edge.
+    counts <- table(c(t1, t2))
+    data$num_sig_corr_t1 <- unname(as.integer(counts[t1]))
+    data$num_sig_corr_t2 <- unname(as.integer(counts[t2]))
+  }
+
+  data
+}
+
 # Align two groups to the same features within a modality
 align_common_features <- function(data1, data2, modality) {
   features1 <- colnames(data1)
@@ -248,13 +274,9 @@ disco_score <- function(data1, # [List] Data for group 1
   # Find the number of significant correlations
   df_tmp_sig <- df_tmp %>%
     mutate(abs_diff_cor = abs(r1 - r2)) %>%
-    filter(p < p_alpha & abs_diff_cor > diff_threshold & q < q_alpha) %>%
-    group_by(t1) %>%
-    mutate(num_sig_corr_t1 = n()) %>%
-    ungroup() %>%
-    group_by(t2) %>%
-    mutate(num_sig_corr_t2 = n()) %>%
-    ungroup() # Added final ungroup
+    filter(p < p_alpha & abs_diff_cor > diff_threshold & q < q_alpha)
+
+  df_tmp_sig <- add_significant_correlation_counts(df_tmp_sig, two_modal)
 
   cat("Number of significant pairwise correlations:", nrow(df_tmp_sig), "\n")
 
