@@ -58,10 +58,7 @@ testthat::test_that("both groups must meet the co-occurrence threshold", {
   testthat::expect_false(is.na(result$pvals["b", "a"]))
   testthat::expect_true(is.na(result$pvals["a", "c"]))
   testthat::expect_true(is.na(result$pvals["b", "c"]))
-  testthat::expect_true(is.na(result$delta_R["a", "c"]))
-  testthat::expect_true(is.na(result$delta_R["b", "c"]))
   testthat::expect_true(all(is.na(diag(result$pvals))))
-  testthat::expect_true(all(is.na(diag(result$delta_R))))
 })
 
 testthat::test_that("eligible pairs still undergo single-group screening", {
@@ -82,7 +79,6 @@ testthat::test_that("eligible pairs still undergo single-group screening", {
   testthat::expect_true(result$eligible["a", "b"])
   testthat::expect_false(result$retained["a", "b"])
   testthat::expect_true(is.na(result$pvals["a", "b"]))
-  testthat::expect_equal(result$delta_R["a", "b"], 0)
 })
 
 testthat::test_that("no eligible pairs return stable empty result schemas", {
@@ -99,19 +95,31 @@ testthat::test_that("no eligible pairs return stable empty result schemas", {
     dimnames = list(NULL, feature_names)
   ))
 
+  output_dir <- tempfile("disco-strict-")
   result <- disco_score(
     list(data1),
     list(data2),
     cooccur = 7,
-    output_dir = tempfile("disco-strict-"),
+    output_dir = output_dir,
     prefix = "strict"
   )
 
-  testthat::expect_true(all(is.na(result$pvals_tmp)))
-  testthat::expect_true(all(is.na(result$delta_R)))
+  testthat::expect_identical(
+    names(result),
+    c("df_tmp", "df_tmp_sig", "disco")
+  )
+  testthat::expect_equal(nrow(result$df_tmp), 0)
   testthat::expect_identical(
     names(result$disco),
     c("species", "t", "p", "num_corr", "q")
   )
   testthat::expect_equal(nrow(result$disco), 0)
+  testthat::expect_identical(
+    sort(list.files(output_dir)),
+    sort(c(
+      "strict_cor_diff.csv",
+      "strict_cor_diff_sig.csv",
+      "strict_disco.csv"
+    ))
+  )
 })

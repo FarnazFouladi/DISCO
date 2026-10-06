@@ -42,10 +42,7 @@ fisher_z_p_2sample <- function(R1, N1, R2, N2,
   se <- sqrt(se1^2 + se2^2)
   Z <- (Z1_bc - Z2_bc) / se
 
-  pvals <- 2 * pnorm(-abs(Z))
-
-  # Returning Z2_bc - Z1_bc (delta Z)
-  return(list(pvals, Z2_bc - Z1_bc))
+  2 * pnorm(-abs(Z))
 }
 
 # Wrapper for Spearman correlation
@@ -79,7 +76,6 @@ compare_eligible_correlations <- function(R1, C1, R2, C2,
   P1 <- empty_matrix(R1)
   P2 <- empty_matrix(R2)
   pvals <- empty_matrix(R1)
-  delta_R <- empty_matrix(R1)
 
   if (any(eligible)) {
     P1[eligible] <- fisher_z_p(
@@ -89,12 +85,10 @@ compare_eligible_correlations <- function(R1, C1, R2, C2,
       R2[eligible], C2[eligible], correction = correction
     )
 
-    fisher_res <- fisher_z_p_2sample(
+    pvals[eligible] <- fisher_z_p_2sample(
       R1[eligible], C1[eligible], R2[eligible], C2[eligible],
       correction = correction
     )
-    pvals[eligible] <- fisher_res[[1]]
-    delta_R[eligible] <- fisher_res[[2]]
   }
 
   # Retain eligible pairs correlated in at least one group.
@@ -104,7 +98,6 @@ compare_eligible_correlations <- function(R1, C1, R2, C2,
 
   list(
     pvals = pvals,
-    delta_R = delta_R,
     eligible = eligible,
     retained = retained
   )
@@ -307,7 +300,6 @@ disco_score <- function(data1, # [List] Data for group 1
     correction = spearman_correction
   )
   pvals_tmp <- comparison$pvals
-  delta_R <- comparison$delta_R
 
   # Create a long dataframe
   if (two_modal) {
@@ -331,10 +323,6 @@ disco_score <- function(data1, # [List] Data for group 1
 
   cat("Number of all pairwise correlations:", length(pvals_filtered), "\n")
   cat("Number of retained pairwise correlations:", sum(!is.na(pvals_filtered)), "\n")
-
-  # Create a matrix for adjusted p-values
-  adj_pvals <- matrix(NA, nrow = nrow(pvals_tmp), ncol = ncol(pvals_tmp))
-  adj_pvals[inds] <- adjp
 
   df_tmp <- data.frame(t1, t2, r1, r2, n1, n2, p = pvals_filtered, q = adjp) %>%
     filter(!is.na(p))
@@ -391,9 +379,6 @@ disco_score <- function(data1, # [List] Data for group 1
   write.csv(df_tmp, file.path(output_dir, paste0(prefix, "_cor_diff.csv")), quote = TRUE, row.names = FALSE)
   write.csv(df_tmp_sig, file.path(output_dir, paste0(prefix, "_cor_diff_sig.csv")), quote = TRUE, row.names = FALSE)
   write.csv(disco, file.path(output_dir, paste0(prefix, "_disco.csv")), quote = TRUE, row.names = FALSE)
-  write.csv(delta_R, file.path(output_dir, paste0(prefix, "_delta_cor.csv")), quote = TRUE, row.names = TRUE)
-  write.csv(pvals_tmp, file.path(output_dir, paste0(prefix, "_p.csv")), quote = TRUE, row.names = TRUE)
-  write.csv(adj_pvals, file.path(output_dir, paste0(prefix, "_q.csv")), quote = TRUE, row.names = TRUE)
 
-  return(list(df_tmp = df_tmp, df_tmp_sig = df_tmp_sig, disco = disco, delta_R = delta_R, pvals_tmp = pvals_tmp, adj_pvals = adj_pvals))
+  return(list(cor_diff = df_tmp, cor_diff_sig = df_tmp_sig, disco = disco))
 }

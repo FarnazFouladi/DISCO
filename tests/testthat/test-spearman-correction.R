@@ -72,15 +72,13 @@ testthat::test_that("two-sample Fisher tests use group-specific corrections", {
   )
 
   testthat::expect_equal(
-    bonett[[1]],
+    bonett,
     2 * stats::pnorm(-abs((z1_bc - z2_bc) / bonett_se))
   )
   testthat::expect_equal(
-    fieller[[1]],
+    fieller,
     2 * stats::pnorm(-abs((z1_bc - z2_bc) / fieller_se))
   )
-  testthat::expect_equal(bonett[[2]], z2_bc - z1_bc)
-  testthat::expect_equal(fieller[[2]], z2_bc - z1_bc)
 })
 
 testthat::test_that("invalid Spearman corrections are rejected", {
@@ -158,10 +156,8 @@ testthat::test_that("disco_score exposes both Spearman corrections", {
 
   testthat::expect_gt(
     abs(
-      bonett$pvals_tmp["a", "b"] -
-        fieller$pvals_tmp["a", "b"]
+      bonett$df_tmp$p - fieller$df_tmp$p
     ),
     0
   )
-  testthat::expect_equal(bonett$delta_R, fieller$delta_R)
 })
