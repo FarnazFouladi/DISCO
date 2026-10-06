@@ -172,6 +172,19 @@ safe_tan_cauchy <- function(p_vect, tol = 1e-16) {
   1 / length(p_vect) * sum(tan((0.5 - p_vect) * pi))
 }
 
+# Report the sample overlap between two modalities within a group
+report_sample_overlap <- function(modality1, modality2, group) {
+  n_common <- length(intersect(rownames(modality1), rownames(modality2)))
+
+  if (n_common == 0) {
+    stop(sprintf("%s modalities have no common samples", group),
+         call. = FALSE)
+  }
+
+  message(sprintf("%s modalities have %d common sample(s)", group, n_common))
+  invisible(n_common)
+}
+
 # Align two groups to the same features within a modality
 align_common_features <- function(data1, data2, modality) {
   features1 <- colnames(data1)
@@ -270,6 +283,9 @@ disco_score <- function(data1, # [List] Data for group 1
     two_modal <- TRUE
     n_feat1 <- ncol(data1[[1]])
     n_feat2 <- ncol(data1[[2]])
+
+    report_sample_overlap(data1[[1]], data1[[2]], group = "data1")
+    report_sample_overlap(data2[[1]], data2[[2]], group = "data2")
 
     # Concatenating data modality 1 and data modality 2 for group 1
     d_merged1 <- merge(data1[[1]], data1[[2]], by = "row.names", all = TRUE) %>%
