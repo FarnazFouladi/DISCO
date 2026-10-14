@@ -146,8 +146,10 @@ result$disco
 | `p_alpha` | `0.01` | Two-sample correlation-test p-value threshold. |
 | `q_alpha` | `0.2` | Adjusted two-sample correlation-test p-value threshold. |
 | `adj_method` | `"BY"` | Adjustment method passed to `stats::p.adjust()`. |
-| `spearman_correction` | `"bonett_wright"` | Spearman standard-error correction; alternatively use `"fieller_1.06"`. |
-| `tol` | `1e-16` | Numerical p-value boundary used before the Cauchy transformation. |
+
+DISCO uses the Bonett–Wright standard error for Fisher-transformed Spearman
+correlations. For numerical stability, the Cauchy calculation uses the nearest
+p-value tail and fixes its minimum value at `1e-8`.
 
 ## Results
 

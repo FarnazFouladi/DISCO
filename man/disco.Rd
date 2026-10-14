@@ -14,9 +14,7 @@ disco(
   q_alpha = 0.2,
   adj_method = "BY",
   output_dir,
-  prefix,
-  tol = 1e-16,
-  spearman_correction = c("bonett_wright", "fieller_1.06")
+  prefix
 )
 }
 \arguments{
@@ -49,12 +47,6 @@ Spearman correlations used to identify significant disrupted pairs.}
 directory is created when it does not exist.}
 
 \item{prefix}{Character prefix used for result filenames.}
-
-\item{tol}{Numerical boundary used to constrain p-values before the Cauchy
-transformation. It must be greater than 0 and less than 0.5.}
-
-\item{spearman_correction}{Standard-error correction for Fisher-transformed
-Spearman correlations. Either \code{"bonett_wright"} or \code{"fieller_1.06"}.}
 }
 \value{
 A list with three data frames: \code{cor_diff} contains retained pairwise
@@ -66,5 +58,7 @@ to CSV files in \code{output_dir}.
 Quantifies feature-specific changes in Spearman correlation patterns between
 two groups. Inputs may contain one data modality or two data modalities.
 Corresponding modalities are aligned to their common features before the
-correlations are compared.
+correlations are compared. Fisher-transformed Spearman correlations use the
+Bonett-Wright standard error. Cauchy-transformed tail probabilities are
+bounded below at \code{1e-8} for numerical stability.
 }

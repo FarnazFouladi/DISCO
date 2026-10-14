@@ -9,17 +9,6 @@ validate_cooccur <- function(cooccur) {
   cooccur
 }
 
-# Validate the numerical boundary used in the Cauchy transformation
-validate_cauchy_tolerance <- function(tol) {
-  if (!is.numeric(tol) || length(tol) != 1 || is.na(tol) ||
-      !is.finite(tol) || tol <= 0 || tol >= 0.5) {
-    stop("tol must be a single finite number greater than 0 and less than 0.5",
-         call. = FALSE)
-  }
-
-  tol
-}
-
 # Report the sample overlap between two modalities within a group
 report_sample_overlap <- function(modality1, modality2, group) {
   n_common <- length(intersect(rownames(modality1), rownames(modality2)))

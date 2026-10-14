@@ -3,7 +3,9 @@
 #' Quantifies feature-specific changes in Spearman correlation patterns between
 #' two groups. Inputs may contain one data modality or two data modalities.
 #' Corresponding modalities are aligned to their common features before the
-#' correlations are compared.
+#' correlations are compared. Fisher-transformed Spearman correlations use the
+#' Bonett-Wright standard error. Cauchy-transformed tail probabilities are
+#' bounded below at `1e-8` for numerical stability.
 #'
 #' @param data1 A list containing one or two numeric matrices or data frames for
 #'   the first group. Rows represent samples and columns represent features.
@@ -25,10 +27,6 @@
 #' @param output_dir Directory in which result CSV files are written. The
 #'   directory is created when it does not exist.
 #' @param prefix Character prefix used for result filenames.
-#' @param tol Numerical boundary used to constrain p-values before the Cauchy
-#'   transformation. It must be greater than 0 and less than 0.5.
-#' @param spearman_correction Standard-error correction for Fisher-transformed
-#'   Spearman correlations. Either `"bonett_wright"` or `"fieller_1.06"`.
 #'
 #' @return A list with three data frames: `cor_diff` contains retained pairwise
 #'   comparisons, `cor_diff_sig` contains significant disrupted pairs, and
@@ -44,14 +42,9 @@ disco <- function(data1,
                   q_alpha = 0.2,
                   adj_method = "BY",
                   output_dir,
-                  prefix,
-                  tol = 1e-16,
-                  spearman_correction = c("bonett_wright",
-                                          "fieller_1.06")) {
+                  prefix) {
 
   cooccur <- validate_cooccur(cooccur)
-  tol <- validate_cauchy_tolerance(tol)
-  spearman_correction <- match.arg(spearman_correction)
 
   if (length(data1) != length(data2) || !(length(data1) %in% c(1, 2))) {
     stop("Number of data modalities should be one or two for each group")
@@ -95,8 +88,7 @@ disco <- function(data1,
   comparison <- compare_eligible_correlations(
     R1, C1, R2, C2,
     cooccur = cooccur,
-    filt_threshold = filt_threshold,
-    correction = spearman_correction
+    filt_threshold = filt_threshold
   )
   pvals_tmp <- comparison$pvals
 
@@ -142,7 +134,7 @@ disco <- function(data1,
         pvals_tmp[(n_feat1 + 1):(n_feat1 + n_feat2), i]
       ))
       if(length(p_vect) == 0) return(NULL)
-      t <- safe_tan_cauchy(p_vect, tol = tol)
+      t <- safe_tan_cauchy(p_vect)
       pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
       data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
     }, simplify = FALSE)
@@ -150,7 +142,7 @@ disco <- function(data1,
     disco_rows <- sapply(1:n_feat1, function(i) {
       p_vect <- as.vector(na.omit(pvals_tmp[-i, i]))
       if(length(p_vect) == 0) return(NULL)
-      t <- safe_tan_cauchy(p_vect, tol = tol)
+      t <- safe_tan_cauchy(p_vect)
       pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
       data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
     }, simplify = FALSE)
