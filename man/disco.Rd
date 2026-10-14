@@ -9,9 +9,6 @@ disco(
   data2,
   cooccur = 10,
   filt_threshold = 0.001,
-  diff_threshold = 0.3,
-  p_alpha = 0.01,
-  q_alpha = 0.2,
   adj_method = "BY",
   output_dir,
   prefix
@@ -33,13 +30,6 @@ observations.}
 retained when its correlation is significant in at least one group at this
 threshold.}
 
-\item{diff_threshold}{Minimum absolute difference between the two raw
-Spearman correlations used to identify significant disrupted pairs.}
-
-\item{p_alpha}{Two-sample correlation-test p-value threshold.}
-
-\item{q_alpha}{Adjusted two-sample correlation-test p-value threshold.}
-
 \item{adj_method}{Multiple-testing adjustment method passed to
 \code{\link[stats:p.adjust]{stats::p.adjust()}}.}
 
@@ -49,10 +39,9 @@ directory is created when it does not exist.}
 \item{prefix}{Character prefix used for result filenames.}
 }
 \value{
-A list with three data frames: \code{cor_diff} contains retained pairwise
-comparisons, \code{cor_diff_sig} contains significant disrupted pairs, and
-\code{disco} contains feature-level DISCO results. The same tables are written
-to CSV files in \code{output_dir}.
+A list with two data frames: \code{cor_diff} contains retained pairwise
+comparisons and \code{disco} contains feature-level DISCO results. The same
+tables are written to CSV files in \code{output_dir}.
 }
 \description{
 Quantifies feature-specific changes in Spearman correlation patterns between

@@ -106,7 +106,7 @@ testthat::test_that("no eligible pairs return stable empty result schemas", {
 
   testthat::expect_identical(
     names(result),
-    c("cor_diff", "cor_diff_sig", "disco")
+    c("cor_diff", "disco")
   )
   testthat::expect_equal(nrow(result$cor_diff), 0)
   testthat::expect_identical(
@@ -118,7 +118,6 @@ testthat::test_that("no eligible pairs return stable empty result schemas", {
     sort(list.files(output_dir)),
     sort(c(
       "strict_cor_diff.csv",
-      "strict_cor_diff_sig.csv",
       "strict_disco.csv"
     ))
   )

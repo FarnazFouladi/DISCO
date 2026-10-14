@@ -84,7 +84,6 @@ result <- disco(
 )
 
 result$cor_diff
-result$cor_diff_sig
 result$disco
 ```
 
@@ -132,7 +131,6 @@ result <- disco(
 )
 
 result$cor_diff
-result$cor_diff_sig
 result$disco
 ```
 
@@ -142,9 +140,6 @@ result$disco
 |---|---:|---|
 | `cooccur` | `10` | Minimum pairwise-complete count required in each group. |
 | `filt_threshold` | `0.001` | Retains a pair when its correlation meets this p-value threshold in at least one group. |
-| `diff_threshold` | `0.3` | Minimum absolute difference between raw group correlations for a pair to be called significant. |
-| `p_alpha` | `0.01` | Two-sample correlation-test p-value threshold. |
-| `q_alpha` | `0.2` | Adjusted two-sample correlation-test p-value threshold. |
 | `adj_method` | `"BY"` | Adjustment method passed to `stats::p.adjust()`. |
 
 DISCO uses the Bonett–Wright standard error for Fisher-transformed Spearman
@@ -153,18 +148,16 @@ p-value tail and fixes its minimum value at `1e-8`.
 
 ## Results
 
-`disco()` returns a list containing three data frames:
+`disco()` returns a list containing two data frames:
 
 | Component | Contents |
 |---|---|
 | `cor_diff` | Retained feature pairs, group correlations (`r1`, `r2`), pairwise-complete counts (`n1`, `n2`), two-sample p-values (`p`), and adjusted p-values (`q`). |
-| `cor_diff_sig` | Pairs from `cor_diff` meeting `p_alpha`, `q_alpha`, and `diff_threshold`, with significant-correlation counts added. |
 | `disco` | Feature-level Cauchy statistics, p-values, adjusted p-values, and the number of pairwise comparisons included. |
 
 The same tables are written to `output_dir`:
 
 - `<prefix>_cor_diff.csv`
-- `<prefix>_cor_diff_sig.csv`
 - `<prefix>_disco.csv`
 
 ## Development checks

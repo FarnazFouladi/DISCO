@@ -18,28 +18,20 @@
 #' @param filt_threshold Single-group correlation p-value threshold. A pair is
 #'   retained when its correlation is significant in at least one group at this
 #'   threshold.
-#' @param diff_threshold Minimum absolute difference between the two raw
-#'   Spearman correlations used to identify significant disrupted pairs.
-#' @param p_alpha Two-sample correlation-test p-value threshold.
-#' @param q_alpha Adjusted two-sample correlation-test p-value threshold.
 #' @param adj_method Multiple-testing adjustment method passed to
 #'   [stats::p.adjust()].
 #' @param output_dir Directory in which result CSV files are written. The
 #'   directory is created when it does not exist.
 #' @param prefix Character prefix used for result filenames.
 #'
-#' @return A list with three data frames: `cor_diff` contains retained pairwise
-#'   comparisons, `cor_diff_sig` contains significant disrupted pairs, and
-#'   `disco` contains feature-level DISCO results. The same tables are written
-#'   to CSV files in `output_dir`.
+#' @return A list with two data frames: `cor_diff` contains retained pairwise
+#'   comparisons and `disco` contains feature-level DISCO results. The same
+#'   tables are written to CSV files in `output_dir`.
 #' @export
 disco <- function(data1,
                   data2,
                   cooccur = 10,
                   filt_threshold = 0.001,
-                  diff_threshold = 0.3,
-                  p_alpha = 0.01,
-                  q_alpha = 0.2,
                   adj_method = "BY",
                   output_dir,
                   prefix) {
@@ -118,15 +110,6 @@ disco <- function(data1,
   df_tmp <- data.frame(t1, t2, r1, r2, n1, n2, p = pvals_filtered, q = adjp) %>%
     filter(!is.na(p))
 
-  # Find the number of significant correlations
-  df_tmp_sig <- df_tmp %>%
-    mutate(abs_diff_cor = abs(r1 - r2)) %>%
-    filter(p < p_alpha & abs_diff_cor > diff_threshold & q < q_alpha)
-
-  df_tmp_sig <- add_significant_correlation_counts(df_tmp_sig, two_modal)
-
-  cat("Number of significant pairwise correlations:", nrow(df_tmp_sig), "\n")
-
   # Calculating disco score
   if (two_modal) {
     disco_rows <- sapply(1:n_feat1, function(i) {
@@ -168,12 +151,10 @@ disco <- function(data1,
 
   # Save the results
   write.csv(df_tmp, file.path(output_dir, paste0(prefix, "_cor_diff.csv")), quote = TRUE, row.names = FALSE)
-  write.csv(df_tmp_sig, file.path(output_dir, paste0(prefix, "_cor_diff_sig.csv")), quote = TRUE, row.names = FALSE)
   write.csv(disco_results, file.path(output_dir, paste0(prefix, "_disco.csv")), quote = TRUE, row.names = FALSE)
 
   return(list(
     cor_diff = df_tmp,
-    cor_diff_sig = df_tmp_sig,
     disco = disco_results
   ))
 }
