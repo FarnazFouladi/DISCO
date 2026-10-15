@@ -120,8 +120,11 @@ This example uses:
   abundance**, estimated across that cohort after prevalence filtering.
 - **CLR normalization** within each sample, separately for each
   modality.
-- **No covariate adjustment**; these are exploratory results.
-- 100 label permutations, `q_value = 0.2`, and `global_p_cutoff = 0.05`.
+- After CLR, each feature is residualized against **age, gender, and
+  BMI** in one linear model fitted across the combined CRC/control
+  cohort. **Disease is not included** in this model. The same residuals
+  feed the real comparison and all label permutations.
+- 100 label permutations, q cutoff 0.2, and global p-value cutoff 0.05.
 
 Install the example dependencies if needed:
 
@@ -132,26 +135,63 @@ BiocManager::install(c("curatedMetagenomicData", "SummarizedExperiment"))
 
 ### Retrieve and preprocess the data
 
-``` r
-library(DISCO)
-library(curatedMetagenomicData)
-library(SummarizedExperiment)
+The blocks below are read directly from the [analysis
+script](analysis/run_yachida_readme_examples.R) and its
+[helpers](analysis/yachida_readme_preprocessing.R). The script
+initializes the local package and repository paths (`analysis_dir`,
+`repo_dir`), then runs these exact blocks. Cached runs are reused only
+when inputs, settings, and source-code hashes match.
 
-metadata <- sampleMetadata[
-  !is.na(sampleMetadata$study_name) &
-    sampleMetadata$study_name == "YachidaS_2019" &
-    sampleMetadata$disease %in% c("healthy", "CRC"),
-  , drop = FALSE
+``` r
+settings <- list(
+  n_resamples = 100L, random_seed = 1L, cooccur = 10L, adj_method = "BY",
+  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.2,
+  covariate_adjustment = "pooled ~ age + gender + BMI; no disease term"
+)
+results_dir <- file.path(analysis_dir, "yachida_readme_adjusted_results")
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+source_md5 <- readme_source_hashes(repo_dir)
+```
+
+Samples missing age, gender, or BMI are excluded **before prevalence
+filtering and normalization**. The excluded-sample table is saved with
+the analysis.
+
+``` r
+metadata <- curatedMetagenomicData::sampleMetadata
+metadata <- metadata[
+  !is.na(metadata$study_name) & metadata$study_name == "YachidaS_2019" &
+    metadata$disease %in% c("healthy", "CRC"), , drop = FALSE
 ]
-taxa_se <- returnSamples(
+if (!is.numeric(metadata$age) || !is.numeric(metadata$BMI)) {
+  stop("Age and BMI must be numeric.")
+}
+complete_covariates <- stats::complete.cases(metadata[, c("age", "gender", "BMI")]) &
+  is.finite(metadata$age) & is.finite(metadata$BMI) &
+  nzchar(trimws(as.character(metadata$gender)))
+excluded_covariates <- as.data.frame(metadata[!complete_covariates, , drop = FALSE])
+metadata <- as.data.frame(metadata[complete_covariates, , drop = FALSE])
+if (!nrow(metadata) || anyNA(metadata$sample_id) || anyDuplicated(metadata$sample_id)) {
+  stop("Covariate-complete sample IDs must be non-missing and unique.")
+}
+rownames(metadata) <- NULL
+sample_metadata <- metadata
+rownames(sample_metadata) <- sample_metadata$sample_id
+message("Excluded ", nrow(excluded_covariates),
+        " sample(s) missing age, gender or BMI.")
+taxa_se <- curatedMetagenomicData::returnSamples(
   metadata, dataType = "relative_abundance", counts = FALSE, rownames = "short"
 )
-taxa <- t(as.matrix(assay(taxa_se)))
-sample_ids <- metadata$sample_id[metadata$sample_id %in% rownames(taxa)]
-taxa <- taxa[sample_ids, , drop = FALSE]
+taxa <- t(as.matrix(SummarizedExperiment::assay(taxa_se)))
+taxa_ids <- metadata$sample_id[metadata$sample_id %in% rownames(taxa)]
+taxa <- taxa[taxa_ids, , drop = FALSE]
+if (any(!is.finite(taxa)) || any(taxa < 0)) stop("Invalid taxon abundances.")
 taxa <- taxa[rowSums(taxa) > 0, , drop = FALSE]
-group <- setNames(as.character(metadata$disease), metadata$sample_id)
+group <- stats::setNames(as.character(metadata$disease), metadata$sample_id)
 taxa_group <- group[rownames(taxa)]
+if (any(table(factor(taxa_group, levels = c("healthy", "CRC"))) < settings$cooccur)) {
+  stop("Each group must have at least cooccur usable samples.")
+}
 ```
 
 The same preprocessing helper is used for taxa and pathways:
@@ -197,19 +237,59 @@ preprocess_abundance <- function(x, prevalence_cutoff = 0.20) {
 }
 ```
 
+The covariate-adjustment helper fits a separate response model for each
+feature with a shared design matrix. Residuals keep the original sample
+and feature names.
+
 ``` r
-taxa_prepared <- preprocess_abundance(taxa, prevalence_cutoff = 0.20)
-taxa_result <- disco(
-  data1 = list(taxa_prepared$clr[taxa_group == "healthy", , drop = FALSE]),
-  data2 = list(taxa_prepared$clr[taxa_group == "CRC", , drop = FALSE]),
-  n_resamples = 100, random_seed = 1L,
-  q_value = 0.2, global_p_cutoff = 0.05,
-  output_dir = "analysis/yachida_readme_taxa_results",
-  prefix = "YachidaS_2019_taxa"
+# Fit one model per feature over the combined cohort, without a disease term.
+residualize_abundance <- function(clr, metadata) {
+  stopifnot(identical(rownames(clr), rownames(metadata)), all(is.finite(clr)),
+            is.numeric(metadata$age), is.numeric(metadata$BMI),
+            all(is.finite(metadata$age)), all(is.finite(metadata$BMI)))
+  model_data <- metadata
+  model_data$gender <- factor(trimws(as.character(model_data$gender)))
+  if (anyNA(model_data$gender) || any(!nzchar(as.character(model_data$gender))) ||
+      nlevels(model_data$gender) < 2L) {
+    stop("At least two non-missing gender levels are required.")
+  }
+  design <- stats::model.matrix(~ age + gender + BMI, data = model_data)
+  fit <- stats::lm.fit(design, clr)
+  if (fit$rank < ncol(design) || nrow(design) <= fit$rank) {
+    stop("Covariate model must have full rank and positive residual degrees of freedom.")
+  }
+  residuals <- fit$residuals
+  dimnames(residuals) <- dimnames(clr)
+  stopifnot(all(is.finite(residuals)))
+  list(residuals = residuals, coefficients = fit$coefficients,
+       design = design, residual_df = nrow(design) - fit$rank)
+}
+```
+
+``` r
+taxa_prepared <- preprocess_abundance(taxa, settings$prevalence_cutoff)
+taxa_adjusted <- residualize_abundance(
+  taxa_prepared$clr, sample_metadata[rownames(taxa_prepared$clr), , drop = FALSE]
 )
-taxa_result$global_test
-taxa_result$selected_threshold
-head(taxa_result$disco[order(taxa_result$disco$q, taxa_result$disco$p), ], 10)
+single_dir <- file.path(results_dir, "taxa")
+single_input <- list(
+  data1 = list(taxa_adjusted$residuals[taxa_group == "healthy", , drop = FALSE]),
+  data2 = list(taxa_adjusted$residuals[taxa_group == "CRC", , drop = FALSE]),
+  settings = settings, source_md5 = source_md5
+)
+single <- readme_cached_result(single_dir, single_input, recompute)
+if (is.null(single)) {
+  single <- DISCO::disco(
+    data1 = single_input$data1, data2 = single_input$data2,
+    n_resamples = settings$n_resamples, random_seed = settings$random_seed,
+    q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
+    cooccur = settings$cooccur, adj_method = settings$adj_method,
+    output_dir = single_dir,
+    prefix = "YachidaS_2019_taxa"
+  )
+  saveRDS(single_input, file.path(single_dir, "disco_inputs.rds"))
+  saveRDS(single, file.path(single_dir, "disco_analysis.rds"))
+}
 ```
 
 ### Results
@@ -217,29 +297,30 @@ head(taxa_result$disco[order(taxa_result$disco$q, taxa_result$disco$p), ], 10)
 These outputs come from the completed analysis, saved before rendering
 this README. Package version: 0.0.0.9000; curatedMetagenomicData
 version: 3.12.0. Downloading a different resource version can change
-results.
+results. The complete-case restriction excluded **1** sample(s) with
+missing covariates.
 
 | control | CRC | retained_taxa |
 |--------:|----:|--------------:|
-|     246 | 258 |           149 |
+|     245 | 258 |           149 |
 
-Global p-value: **0.009901**. Selected threshold: **0.5**. Taxa with
-DISCO q \<0.2 at the selected threshold: **26**.
+Global p-value: **0.0198**. Selected threshold: **0.05**. Taxa with
+DISCO q \<0.2 at the selected threshold: **17**.
 
 Top 10 taxa by DISCO q-value, breaking ties by p-value:
 
-| Taxon                          | DISCO p  | DISCO q  | Comparisons |
-|:-------------------------------|:---------|:---------|------------:|
-| Parvimonas micra               | 4.22e-07 | 2.91e-04 |         142 |
-| Actinomyces sp. HMSC035G02     | 1.12e-06 | 2.91e-04 |         145 |
-| Tyzzerella nexilis             | 1.39e-06 | 2.91e-04 |         139 |
-| \[Eubacterium\] sulci          | 1.40e-06 | 2.91e-04 |         140 |
-| Fusobacterium mortiferum       | 4.25e-06 | 7.07e-04 |         144 |
-| Megasphaera micronuciformis    | 6.69e-06 | 9.28e-04 |         141 |
-| Actinomyces sp. ICM47          | 1.71e-05 | 2.03e-03 |         138 |
-| Blautia sp. CAG:257            | 1.41e-04 | 1.31e-02 |         146 |
-| Actinomyces sp. oral taxon 181 | 1.42e-04 | 1.31e-02 |         140 |
-| Butyricimonas synergistica     | 2.03e-04 | 1.69e-02 |         133 |
+| Taxon                       | DISCO p  | DISCO q  | Comparisons |
+|:----------------------------|:---------|:---------|------------:|
+| Parvimonas micra            | 7.10e-07 | 4.62e-04 |         113 |
+| Actinomyces sp. HMSC035G02  | 1.11e-06 | 4.62e-04 |         111 |
+| \[Eubacterium\] sulci       | 2.87e-06 | 7.95e-04 |          97 |
+| Actinomyces sp. ICM47       | 5.41e-06 | 1.12e-03 |          99 |
+| Tyzzerella nexilis          | 1.70e-05 | 2.83e-03 |         114 |
+| Megamonas funiformis        | 1.80e-04 | 2.50e-02 |          78 |
+| Fusobacterium mortiferum    | 2.19e-04 | 2.61e-02 |          90 |
+| Megasphaera micronuciformis | 2.92e-04 | 3.03e-02 |          99 |
+| Odoribacter splanchnicus    | 6.11e-04 | 5.53e-02 |          85 |
+| Streptococcus vestibularis  | 6.65e-04 | 5.53e-02 |          87 |
 
 The first plot compares real discovery percentages with the null mean ±
 SD. The second shows the ratio used to select the threshold.
@@ -262,41 +343,60 @@ whose relationships with pathways differ between groups. Pathways are
 unstratified community totals; `UNMAPPED` and `UNINTEGRATED` rows are
 removed. Both modalities are restricted to common usable samples, then
 prevalence-filtered and normalized separately using the same ≥20%,
-half-minimum, CLR workflow above. No covariate adjustment is applied.
+half-minimum, CLR workflow above. **Both taxa and pathways** are then
+residualized against age, gender, and BMI using the pooled model above,
+and DISCO compares correlations between those residuals.
 
 ``` r
-pathway_se <- returnSamples(metadata, dataType = "pathway_abundance")
-pathways <- t(as.matrix(assay(pathway_se)))
+pathway_se <- curatedMetagenomicData::returnSamples(metadata, dataType = "pathway_abundance")
+pathways <- t(as.matrix(SummarizedExperiment::assay(pathway_se)))
+if (any(!is.finite(pathways)) || any(pathways < 0)) stop("Invalid pathway abundances.")
 pathway_ids <- colnames(pathways)
 pathways <- pathways[, !grepl("|", pathway_ids, fixed = TRUE) &
                        !toupper(trimws(pathway_ids)) %in% c("UNMAPPED", "UNINTEGRATED"),
                      drop = FALSE]
 common_ids <- rownames(taxa)[rownames(taxa) %in% rownames(pathways)]
 common_ids <- common_ids[rowSums(pathways[common_ids, , drop = FALSE]) > 0]
+if (!length(common_ids)) stop("No usable common samples.")
 two_group <- group[common_ids]
-two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE])
-two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE])
-
-two_result <- disco(
-  data1 = list(two_taxa$clr[two_group == "healthy", , drop = FALSE],
-               two_pathways$clr[two_group == "healthy", , drop = FALSE]),
-  data2 = list(two_taxa$clr[two_group == "CRC", , drop = FALSE],
-               two_pathways$clr[two_group == "CRC", , drop = FALSE]),
-  n_resamples = 100, random_seed = 1L,
-  q_value = 0.2, global_p_cutoff = 0.05,
-  output_dir = "analysis/yachida_readme_two_modality_results",
-  prefix = "YachidaS_2019_taxa_pathways"
+if (any(table(factor(two_group, levels = c("healthy", "CRC"))) < settings$cooccur)) {
+  stop("Each group requires at least cooccur samples.")
+}
+two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE], settings$prevalence_cutoff)
+two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE], settings$prevalence_cutoff)
+two_metadata <- sample_metadata[common_ids, , drop = FALSE]
+two_taxa_adjusted <- residualize_abundance(two_taxa$clr, two_metadata)
+two_pathways_adjusted <- residualize_abundance(two_pathways$clr, two_metadata)
+two_dir <- file.path(results_dir, "taxa_pathways")
+two_input <- list(
+  data1 = list(two_taxa_adjusted$residuals[two_group == "healthy", , drop = FALSE],
+               two_pathways_adjusted$residuals[two_group == "healthy", , drop = FALSE]),
+  data2 = list(two_taxa_adjusted$residuals[two_group == "CRC", , drop = FALSE],
+               two_pathways_adjusted$residuals[two_group == "CRC", , drop = FALSE]),
+  settings = settings, source_md5 = source_md5
 )
-two_result$global_test
-two_result$selected_threshold
-head(two_result$disco[order(two_result$disco$q, two_result$disco$p), ], 10)
+two <- readme_cached_result(two_dir, two_input, recompute)
+if (is.null(two)) {
+  message("Running two modalities: ", ncol(two_taxa$clr), " taxa, ",
+          ncol(two_pathways$clr), " pathways; control n = ",
+          sum(two_group == "healthy"), "; CRC n = ", sum(two_group == "CRC"), ".")
+  two <- DISCO::disco(
+    data1 = two_input$data1, data2 = two_input$data2,
+    n_resamples = settings$n_resamples, random_seed = settings$random_seed,
+    q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
+    cooccur = settings$cooccur, adj_method = settings$adj_method,
+    output_dir = two_dir, prefix = "YachidaS_2019_taxa_pathways"
+  )
+  saveRDS(two_input, file.path(two_dir, "disco_inputs.rds"))
+  saveRDS(two, file.path(two_dir, "disco_analysis.rds"))
+}
 ```
 
 ### Results
 
 | control | CRC | retained_taxa | retained_pathways |
 |--------:|----:|--------------:|------------------:|
-|     246 | 258 |           149 |               385 |
+|     245 | 258 |           149 |               385 |
 
 Global p-value: **1**. Selected threshold: **1**. Taxa with DISCO q
 \<0.2 at the selected threshold: **0**.
@@ -308,16 +408,16 @@ does not establish significance; use the reported q-values.
 
 | Taxon                          | DISCO p  | DISCO q | Comparisons |
 |:-------------------------------|:---------|:--------|------------:|
-| Mogibacterium diversum         | 1.33e-02 | 1e+00   |         385 |
-| Odoribacter splanchnicus       | 1.80e-02 | 1e+00   |         385 |
-| Bifidobacterium longum         | 2.11e-02 | 1e+00   |         385 |
-| Enterocloster aldenensis       | 3.86e-02 | 1e+00   |         385 |
-| Ruminococcus bromii            | 4.29e-02 | 1e+00   |         385 |
-| Parvimonas micra               | 4.45e-02 | 1e+00   |         385 |
-| Erysipelatoclostridium ramosum | 4.66e-02 | 1e+00   |         385 |
-| Actinomyces sp. HMSC035G02     | 4.81e-02 | 1e+00   |         385 |
-| Holdemanella biformis          | 5.39e-02 | 1e+00   |         385 |
-| Adlercreutzia equolifaciens    | 5.40e-02 | 1e+00   |         385 |
+| Adlercreutzia equolifaciens    | 1.21e-02 | 1e+00   |         385 |
+| Actinomyces sp. oral taxon 181 | 1.62e-02 | 1e+00   |         385 |
+| Parvimonas micra               | 1.91e-02 | 1e+00   |         385 |
+| Escherichia coli               | 2.36e-02 | 1e+00   |         385 |
+| Bifidobacterium longum         | 2.96e-02 | 1e+00   |         385 |
+| Mogibacterium diversum         | 4.36e-02 | 1e+00   |         385 |
+| Odoribacter splanchnicus       | 5.05e-02 | 1e+00   |         385 |
+| Roseburia hominis              | 5.44e-02 | 1e+00   |         385 |
+| Clostridium bolteae CAG:59     | 5.56e-02 | 1e+00   |         385 |
+| Enterocloster aldenensis       | 5.81e-02 | 1e+00   |         385 |
 
 <img src="man/figures/README-yachida-taxa_pathways-discovery_plot.png" width="100%" />
 
@@ -329,8 +429,12 @@ does not establish significance; use the reported q-values.
 
 `README.Rmd` is the source for this README. Rendering reads the portable
 saved summaries in `README-results.rds` and figures under
-`man/figures/`; it does not download data or rerun permutations. From
-the repository root:
+`man/figures/`; it does not download data or rerun permutations.
+Analysis code blocks are imported from the script with
+`knitr::read_chunk()`, so they are never maintained separately in the
+Rmd. Rendering stops if source-code hashes differ from the saved
+results, preventing changed code from being shown with stale outputs.
+From the repository root:
 
 ``` r
 install.packages(c("rmarkdown", "knitr")) # If needed; Pandoc is also required
@@ -346,10 +450,14 @@ Rscript analysis/run_yachida_readme_examples.R
 
 This requires the example dependencies and `pkgload`, may download
 resources through ExperimentHub, and reuses existing results only when
-inputs and settings match. Set `DISCO_README_RECOMPUTE=true` to
-recompute both examples. Full results stay under `analysis/`; the README
-bundle contains only cohort summaries and top-result tables. Package
-checks can be run with `devtools::test()` and `devtools::check()`.
+inputs and settings and source hashes match. Set
+`DISCO_README_RECOMPUTE=true` to recompute both examples. Adjusted
+results stay under `analysis/yachida_readme_adjusted_results/`; previous
+unadjusted results are retained. The README bundle contains only cohort
+summaries and top-result tables. Package checks can be run with
+`devtools::test()` and `devtools::check()`. Preprocessing and
+residualization helpers can be checked without downloading data using
+`Rscript analysis/test_yachida_readme_helpers.R`.
 
 ## License
 

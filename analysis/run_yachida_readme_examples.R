@@ -1,6 +1,7 @@
 # Generate the real-data results and portable figures used by README.Rmd.
 # Run from any directory: Rscript /path/to/DISCO/analysis/run_yachida_readme_examples.R
-# Reuses the validated taxa-only run when its CLR input and settings match.
+# Both modalities use pooled age/gender/BMI residuals after CLR.
+# Named chunks below are displayed verbatim in README.Rmd via read_chunk().
 # Set DISCO_README_RECOMPUTE=true to recompute both examples.
 
 file_argument <- grep("^--file=", commandArgs(FALSE), value = TRUE)
@@ -14,50 +15,81 @@ if (length(missing)) stop("Install: ", paste(missing, collapse = ", "))
 pkgload::load_all(repo_dir, quiet = TRUE, export_all = FALSE)
 recompute <- identical(tolower(Sys.getenv("DISCO_README_RECOMPUTE")), "true")
 
+## ---- readme-settings ----
+settings <- list(
+  n_resamples = 100L, random_seed = 1L, cooccur = 10L, adj_method = "BY",
+  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.2,
+  covariate_adjustment = "pooled ~ age + gender + BMI; no disease term"
+)
+results_dir <- file.path(analysis_dir, "yachida_readme_adjusted_results")
+dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
+source_md5 <- readme_source_hashes(repo_dir)
+
+## ---- retrieve-taxa ----
 metadata <- curatedMetagenomicData::sampleMetadata
 metadata <- metadata[
   !is.na(metadata$study_name) & metadata$study_name == "YachidaS_2019" &
     metadata$disease %in% c("healthy", "CRC"), , drop = FALSE
 ]
+if (!is.numeric(metadata$age) || !is.numeric(metadata$BMI)) {
+  stop("Age and BMI must be numeric.")
+}
+complete_covariates <- stats::complete.cases(metadata[, c("age", "gender", "BMI")]) &
+  is.finite(metadata$age) & is.finite(metadata$BMI) &
+  nzchar(trimws(as.character(metadata$gender)))
+excluded_covariates <- as.data.frame(metadata[!complete_covariates, , drop = FALSE])
+metadata <- as.data.frame(metadata[complete_covariates, , drop = FALSE])
+if (!nrow(metadata) || anyNA(metadata$sample_id) || anyDuplicated(metadata$sample_id)) {
+  stop("Covariate-complete sample IDs must be non-missing and unique.")
+}
+rownames(metadata) <- NULL
+sample_metadata <- metadata
+rownames(sample_metadata) <- sample_metadata$sample_id
+message("Excluded ", nrow(excluded_covariates),
+        " sample(s) missing age, gender or BMI.")
 taxa_se <- curatedMetagenomicData::returnSamples(
   metadata, dataType = "relative_abundance", counts = FALSE, rownames = "short"
 )
 taxa <- t(as.matrix(SummarizedExperiment::assay(taxa_se)))
 taxa_ids <- metadata$sample_id[metadata$sample_id %in% rownames(taxa)]
 taxa <- taxa[taxa_ids, , drop = FALSE]
+if (any(!is.finite(taxa)) || any(taxa < 0)) stop("Invalid taxon abundances.")
 taxa <- taxa[rowSums(taxa) > 0, , drop = FALSE]
 group <- stats::setNames(as.character(metadata$disease), metadata$sample_id)
 taxa_group <- group[rownames(taxa)]
-taxa_prepared <- preprocess_abundance(taxa)
-
-single_dir <- file.path(analysis_dir, "yachida_local_disco_results",
-                        "prevalence_20pct_half_min_clr")
-single_file <- file.path(single_dir, "disco_analysis.rds")
-single_input <- file.path(single_dir, "preprocessed_data.rds")
-reuse_single <- !recompute && file.exists(single_file) && file.exists(single_input)
-if (reuse_single) {
-  old <- readRDS(single_input)
-  reuse_single <- isTRUE(all.equal(old$taxa_clr, taxa_prepared$clr)) &&
-    identical(old$group, taxa_group) && old$settings$n_resamples == 100 &&
-    old$settings$q_value == 0.2 && old$settings$global_p_cutoff == 0.05 &&
-    old$settings$random_seed == 1L && old$settings$cooccur == 10L &&
-    old$settings$adj_method == "BY" && old$settings$covariate_adjustment == "none"
+if (any(table(factor(taxa_group, levels = c("healthy", "CRC"))) < settings$cooccur)) {
+  stop("Each group must have at least cooccur usable samples.")
 }
-if (reuse_single) {
-  message("Reusing the validated taxa-only Yachida results.")
-  single <- readRDS(single_file)
-} else {
+
+## ---- run-taxa ----
+taxa_prepared <- preprocess_abundance(taxa, settings$prevalence_cutoff)
+taxa_adjusted <- residualize_abundance(
+  taxa_prepared$clr, sample_metadata[rownames(taxa_prepared$clr), , drop = FALSE]
+)
+single_dir <- file.path(results_dir, "taxa")
+single_input <- list(
+  data1 = list(taxa_adjusted$residuals[taxa_group == "healthy", , drop = FALSE]),
+  data2 = list(taxa_adjusted$residuals[taxa_group == "CRC", , drop = FALSE]),
+  settings = settings, source_md5 = source_md5
+)
+single <- readme_cached_result(single_dir, single_input, recompute)
+if (is.null(single)) {
   single <- DISCO::disco(
-    data1 = list(taxa_prepared$clr[taxa_group == "healthy", , drop = FALSE]),
-    data2 = list(taxa_prepared$clr[taxa_group == "CRC", , drop = FALSE]),
-    n_resamples = 100, random_seed = 1L, q_value = 0.2, global_p_cutoff = 0.05,
-    output_dir = file.path(analysis_dir, "yachida_readme_taxa_results"),
+    data1 = single_input$data1, data2 = single_input$data2,
+    n_resamples = settings$n_resamples, random_seed = settings$random_seed,
+    q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
+    cooccur = settings$cooccur, adj_method = settings$adj_method,
+    output_dir = single_dir,
     prefix = "YachidaS_2019_taxa"
   )
+  saveRDS(single_input, file.path(single_dir, "disco_inputs.rds"))
+  saveRDS(single, file.path(single_dir, "disco_analysis.rds"))
 }
 
+## ---- run-two-modalities ----
 pathway_se <- curatedMetagenomicData::returnSamples(metadata, dataType = "pathway_abundance")
 pathways <- t(as.matrix(SummarizedExperiment::assay(pathway_se)))
+if (any(!is.finite(pathways)) || any(pathways < 0)) stop("Invalid pathway abundances.")
 pathway_ids <- colnames(pathways)
 pathways <- pathways[, !grepl("|", pathway_ids, fixed = TRUE) &
                        !toupper(trimws(pathway_ids)) %in% c("UNMAPPED", "UNINTEGRATED"),
@@ -66,44 +98,50 @@ common_ids <- rownames(taxa)[rownames(taxa) %in% rownames(pathways)]
 common_ids <- common_ids[rowSums(pathways[common_ids, , drop = FALSE]) > 0]
 if (!length(common_ids)) stop("No usable common samples.")
 two_group <- group[common_ids]
-if (any(table(factor(two_group, levels = c("healthy", "CRC"))) < 10L)) {
-  stop("Each group requires at least 10 samples.")
+if (any(table(factor(two_group, levels = c("healthy", "CRC"))) < settings$cooccur)) {
+  stop("Each group requires at least cooccur samples.")
 }
-two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE])
-two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE])
-two_dir <- file.path(analysis_dir, "yachida_readme_two_modality_results")
-two_file <- file.path(two_dir, "disco_analysis.rds")
-two_input <- file.path(two_dir, "preprocessed_data.rds")
-settings <- list(n_resamples = 100L, random_seed = 1L, cooccur = 10L,
-                 adj_method = "BY", q_value = 0.2, global_p_cutoff = 0.05,
-                 prevalence_cutoff = 0.2, covariate_adjustment = "none")
-reuse_two <- !recompute && file.exists(two_file) && file.exists(two_input)
-if (reuse_two) {
-  old <- readRDS(two_input)
-  reuse_two <- identical(old$settings, settings) && identical(old$group, two_group) &&
-    isTRUE(all.equal(old$taxa$clr, two_taxa$clr)) &&
-    isTRUE(all.equal(old$pathways$clr, two_pathways$clr))
-}
-if (reuse_two) {
-  two <- readRDS(two_file)
-} else {
-  dir.create(two_dir, recursive = TRUE, showWarnings = FALSE)
-  saveRDS(list(taxa = two_taxa, pathways = two_pathways, group = two_group,
-               settings = settings), two_input)
+two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE], settings$prevalence_cutoff)
+two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE], settings$prevalence_cutoff)
+two_metadata <- sample_metadata[common_ids, , drop = FALSE]
+two_taxa_adjusted <- residualize_abundance(two_taxa$clr, two_metadata)
+two_pathways_adjusted <- residualize_abundance(two_pathways$clr, two_metadata)
+two_dir <- file.path(results_dir, "taxa_pathways")
+two_input <- list(
+  data1 = list(two_taxa_adjusted$residuals[two_group == "healthy", , drop = FALSE],
+               two_pathways_adjusted$residuals[two_group == "healthy", , drop = FALSE]),
+  data2 = list(two_taxa_adjusted$residuals[two_group == "CRC", , drop = FALSE],
+               two_pathways_adjusted$residuals[two_group == "CRC", , drop = FALSE]),
+  settings = settings, source_md5 = source_md5
+)
+two <- readme_cached_result(two_dir, two_input, recompute)
+if (is.null(two)) {
   message("Running two modalities: ", ncol(two_taxa$clr), " taxa, ",
           ncol(two_pathways$clr), " pathways; control n = ",
           sum(two_group == "healthy"), "; CRC n = ", sum(two_group == "CRC"), ".")
   two <- DISCO::disco(
-    data1 = list(two_taxa$clr[two_group == "healthy", , drop = FALSE],
-                 two_pathways$clr[two_group == "healthy", , drop = FALSE]),
-    data2 = list(two_taxa$clr[two_group == "CRC", , drop = FALSE],
-                 two_pathways$clr[two_group == "CRC", , drop = FALSE]),
-    n_resamples = 100, random_seed = 1L, q_value = 0.2, global_p_cutoff = 0.05,
+    data1 = two_input$data1, data2 = two_input$data2,
+    n_resamples = settings$n_resamples, random_seed = settings$random_seed,
+    q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
+    cooccur = settings$cooccur, adj_method = settings$adj_method,
     output_dir = two_dir, prefix = "YachidaS_2019_taxa_pathways"
   )
-  saveRDS(two, two_file)
+  saveRDS(two_input, file.path(two_dir, "disco_inputs.rds"))
+  saveRDS(two, file.path(two_dir, "disco_analysis.rds"))
 }
 
+## ---- internal-readme-export ----
+# Save new adjusted outputs separately; retain the previous unadjusted runs.
+saveRDS(list(taxa = taxa_prepared, adjustment = taxa_adjusted, group = taxa_group,
+             metadata = sample_metadata[rownames(taxa), , drop = FALSE], settings = settings),
+        file.path(single_dir, "preprocessed_data.rds"))
+saveRDS(list(taxa = two_taxa, pathways = two_pathways,
+             taxa_adjustment = two_taxa_adjusted,
+             pathway_adjustment = two_pathways_adjusted, group = two_group,
+             metadata = two_metadata, settings = settings),
+        file.path(two_dir, "preprocessed_data.rds"))
+utils::write.csv(excluded_covariates, file.path(results_dir, "excluded_covariate_samples.csv"),
+                 row.names = FALSE)
 summarize_example <- function(result, group, taxa, n_pathways = NA_integer_) {
   scores <- result$disco[order(result$disco$q, result$disco$p), , drop = FALSE]
   list(
@@ -111,12 +149,14 @@ summarize_example <- function(result, group, taxa, n_pathways = NA_integer_) {
                          retained_taxa = ncol(taxa), retained_pathways = n_pathways),
     global_test = result$global_test,
     selected_threshold = result$selected_threshold,
-    significant_taxa = sum(result$disco$q < 0.2, na.rm = TRUE),
+    significant_taxa = sum(result$disco$q < settings$q_value, na.rm = TRUE),
     top_taxa = utils::head(scores[, c("species", "p", "q", "num_corr")], 10L)
   )
 }
 bundle <- list(
   settings = settings,
+  source_md5 = source_md5,
+  excluded_covariate_samples = nrow(excluded_covariates),
   taxa = summarize_example(single, taxa_group, taxa_prepared$clr),
   taxa_pathways = summarize_example(two, two_group, two_taxa$clr, ncol(two_pathways$clr)),
   versions = vapply(c("DISCO", "curatedMetagenomicData"), function(p) {
