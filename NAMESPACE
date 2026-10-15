@@ -2,13 +2,5 @@
 
 export(disco)
 importFrom(dplyr,"%>%")
-importFrom(dplyr,arrange)
-importFrom(dplyr,bind_rows)
-importFrom(dplyr,filter)
-importFrom(dplyr,mutate)
-importFrom(stats,na.omit)
-importFrom(stats,p.adjust)
-importFrom(stats,pcauchy)
 importFrom(stats,pnorm)
 importFrom(tibble,column_to_rownames)
-importFrom(utils,write.csv)

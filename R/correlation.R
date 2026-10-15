@@ -41,9 +41,8 @@ get_npairs <- function(D) {
   crossprod(!is.na(D))
 }
 
-# Compare correlations only when both groups meet the co-occurrence threshold
-compare_eligible_correlations <- function(R1, C1, R2, C2,
-                                          cooccur, filt_threshold) {
+# Calculate the correlation tests shared by all filtering thresholds
+calculate_correlation_tests <- function(R1, C1, R2, C2, cooccur) {
   eligible <- C1 >= cooccur & C2 >= cooccur
   diag(eligible) <- FALSE
 
@@ -58,25 +57,45 @@ compare_eligible_correlations <- function(R1, C1, R2, C2,
 
   P1 <- empty_matrix(R1)
   P2 <- empty_matrix(R2)
-  pvals <- empty_matrix(R1)
+  differential_p <- empty_matrix(R1)
 
   if (any(eligible)) {
     P1[eligible] <- fisher_z_p(R1[eligible], C1[eligible])
     P2[eligible] <- fisher_z_p(R2[eligible], C2[eligible])
 
-    pvals[eligible] <- fisher_z_p_2sample(
+    differential_p[eligible] <- fisher_z_p_2sample(
       R1[eligible], C1[eligible], R2[eligible], C2[eligible]
     )
   }
 
+  list(
+    differential_p = differential_p,
+    p1 = P1,
+    p2 = P2,
+    eligible = eligible
+  )
+}
+
+# Apply the single-group correlation screen at one filtering threshold
+filter_correlation_tests <- function(tests, filt_threshold) {
+  pvals <- tests$differential_p
+
   # Retain eligible pairs correlated in at least one group.
-  retained <- eligible & (P1 < filt_threshold | P2 < filt_threshold)
+  retained <- tests$eligible &
+    (tests$p1 < filt_threshold | tests$p2 < filt_threshold)
   retained[is.na(retained)] <- FALSE
   pvals[!retained] <- NA_real_
 
   list(
     pvals = pvals,
-    eligible = eligible,
+    eligible = tests$eligible,
     retained = retained
   )
+}
+
+# Compare correlations only when both groups meet the co-occurrence threshold
+compare_eligible_correlations <- function(R1, C1, R2, C2,
+                                          cooccur, filt_threshold) {
+  tests <- calculate_correlation_tests(R1, C1, R2, C2, cooccur)
+  filter_correlation_tests(tests, filt_threshold)
 }

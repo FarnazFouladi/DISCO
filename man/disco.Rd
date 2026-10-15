@@ -8,10 +8,15 @@ disco(
   data1,
   data2,
   cooccur = 10,
-  filt_threshold = 0.001,
+  empirically_derive_threshold = TRUE,
+  filter_threshold = 0.05,
+  q_value = 0.2,
+  n_resamples = 100,
+  random_seed = 1L,
   adj_method = "BY",
   output_dir,
-  prefix
+  prefix,
+  global_p_cutoff = 0.05
 )
 }
 \arguments{
@@ -26,28 +31,92 @@ features.}
 tested only when both groups have at least this many pairwise non-missing
 observations.}
 
-\item{filt_threshold}{Single-group correlation p-value threshold. A pair is
-retained when its correlation is significant in at least one group at this
-threshold.}
+\item{empirically_derive_threshold}{Logical. If \code{TRUE}, select the filtering
+threshold empirically by comparing observed discoveries with discoveries
+from size-matched random label permutations. If \code{FALSE}, use
+\code{filter_threshold} and do not generate null data or diagnostic plots.}
+
+\item{filter_threshold}{Single-group correlation p-value threshold used when
+\code{empirically_derive_threshold = FALSE}. A pair is retained when its
+correlation is significant in at least one group at this threshold.}
+
+\item{q_value}{Adjusted DISCO p-value cutoff used to declare a feature
+significant when estimating empirical real and null discovery
+percentages. Used only when \code{empirically_derive_threshold = TRUE}.}
+
+\item{n_resamples}{Number of random, size-matched label permutations used to
+estimate the mean null discovery percentage. Used only when
+\code{empirically_derive_threshold = TRUE}.}
+
+\item{random_seed}{Non-negative integer seed for reproducible label
+permutations. The caller's random-number state is restored on exit. Used
+only when \code{empirically_derive_threshold = TRUE}.}
 
 \item{adj_method}{Multiple-testing adjustment method passed to
 \code{\link[stats:p.adjust]{stats::p.adjust()}}.}
 
-\item{output_dir}{Directory in which result CSV files are written. The
+\item{output_dir}{Directory in which result files are written. Empirical mode
+writes CSV and PNG files; fixed mode writes only the result CSV files. The
 directory is created when it does not exist.}
 
 \item{prefix}{Character prefix used for result filenames.}
+
+\item{global_p_cutoff}{Significance cutoff for the global maximum-discovery
+permutation test in empirical mode. Defaults to \code{0.05}. Ratio selection
+proceeds only when the global p-value is strictly below this cutoff;
+otherwise the filtering threshold is \code{1}.}
 }
 \value{
-A list with two data frames: \code{cor_diff} contains retained pairwise
-comparisons and \code{disco} contains feature-level DISCO results. The same
-tables are written to CSV files in \code{output_dir}.
+A list containing \code{cor_diff}, \code{disco}, \code{selected_threshold},
+\code{threshold_summary}, \code{global_test}, \code{discovery_plot}, \code{ratio_plot},
+\code{feature_null_summary}, \code{feature_null_plot}, and \code{output_files}.
+\code{feature_null_summary} contains real p-values and q-values and per-feature
+null testing and discovery counts at each candidate threshold.
+\code{feature_null_plot} shows negative log10 real p-values versus the percentage
+of permutations declaring each feature significant, colored using
+\code{q_value}, with significant-feature counts in each panel.
+In empirical mode, \code{global_test} reports the global p-value,
+cutoff, signal decision, maximum discovery summaries, number of evaluable
+thresholds and valid permutations, and selected threshold. When the global
+test passes, selection maximizes \verb{max(real percentage, 1) / max(mean null percentage, 1)}; ties select the largest threshold.
+Otherwise the threshold is \code{1}. In fixed mode, \code{threshold_summary},
+\code{global_test}, \code{discovery_plot}, \code{ratio_plot}, \code{feature_null_summary}, and
+\code{feature_null_plot} are \code{NULL}.
 }
 \description{
 Quantifies feature-specific changes in Spearman correlation patterns between
 two groups. Inputs may contain one data modality or two data modalities.
 Corresponding modalities are aligned to their common features before the
-correlations are compared. Fisher-transformed Spearman correlations use the
-Bonett-Wright standard error. Cauchy-transformed tail probabilities are
-bounded below at \code{1e-8} for numerical stability.
+correlations are compared. The correlation filtering threshold can either
+be selected empirically from a fixed candidate set or supplied directly by
+the user.
+}
+\details{
+Input values should already be normalized and, when desired, adjusted for
+covariates. The function does not normalize or residualize the data.
+Fisher-transformed Spearman correlations use the Bonett-Wright standard
+error. Cauchy-transformed tail probabilities are bounded below at \code{1e-8}
+for numerical stability.
+
+In empirical mode, samples from the two groups are pooled for each
+null resample, randomly permuted without replacement, and split into groups
+with the same sample sizes as \code{data1} and \code{data2}. For two-modality
+analyses, permutation is stratified by modality-availability pattern. This
+applies one coherent shuffled label per sample while preserving each
+modality's group sizes and the number of samples shared between modalities.
+The global statistic is the maximum discovery percentage across thresholds.
+Each permutation contributes its maximum across the same thresholds, with
+p-value \verb{(1 + sum(null maxima >= real maximum)) / (1 + valid permutations)}.
+Thresholds without a finite real discovery percentage are excluded from
+both maxima; permutations missing any remaining threshold are excluded from
+the global test. An error is raised if no thresholds or permutations remain.
+The test uses unfloored percentages. It accounts for the search across
+thresholds but does not adjust individual feature-level DISCO q-values for
+threshold selection. With 100 permutations the smallest possible global
+p-value is \code{1/101}.
+Feature null discovery frequencies use all \code{n_resamples} permutations as
+their denominator; features absent or untested in a permutation count as
+non-discoveries. These frequencies are not formal feature-level FDR
+estimates. In two-modality mode the diagnostic covers modality-1 features.
+For plotting only, real p-values below \code{1e-8} are displayed at \code{1e-8}.
 }

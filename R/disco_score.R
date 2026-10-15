@@ -3,9 +3,15 @@
 #' Quantifies feature-specific changes in Spearman correlation patterns between
 #' two groups. Inputs may contain one data modality or two data modalities.
 #' Corresponding modalities are aligned to their common features before the
-#' correlations are compared. Fisher-transformed Spearman correlations use the
-#' Bonett-Wright standard error. Cauchy-transformed tail probabilities are
-#' bounded below at `1e-8` for numerical stability.
+#' correlations are compared. The correlation filtering threshold can either
+#' be selected empirically from a fixed candidate set or supplied directly by
+#' the user.
+#'
+#' Input values should already be normalized and, when desired, adjusted for
+#' covariates. The function does not normalize or residualize the data.
+#' Fisher-transformed Spearman correlations use the Bonett-Wright standard
+#' error. Cauchy-transformed tail probabilities are bounded below at `1e-8`
+#' for numerical stability.
 #'
 #' @param data1 A list containing one or two numeric matrices or data frames for
 #'   the first group. Rows represent samples and columns represent features.
@@ -15,146 +21,130 @@
 #' @param cooccur A single integer greater than or equal to 4. A feature pair is
 #'   tested only when both groups have at least this many pairwise non-missing
 #'   observations.
-#' @param filt_threshold Single-group correlation p-value threshold. A pair is
-#'   retained when its correlation is significant in at least one group at this
-#'   threshold.
+#' @param empirically_derive_threshold Logical. If `TRUE`, select the filtering
+#'   threshold empirically by comparing observed discoveries with discoveries
+#'   from size-matched random label permutations. If `FALSE`, use
+#'   `filter_threshold` and do not generate null data or diagnostic plots.
+#' @param filter_threshold Single-group correlation p-value threshold used when
+#'   `empirically_derive_threshold = FALSE`. A pair is retained when its
+#'   correlation is significant in at least one group at this threshold.
+#' @param q_value Adjusted DISCO p-value cutoff used to declare a feature
+#'   significant when estimating empirical real and null discovery
+#'   percentages. Used only when `empirically_derive_threshold = TRUE`.
+#' @param n_resamples Number of random, size-matched label permutations used to
+#'   estimate the mean null discovery percentage. Used only when
+#'   `empirically_derive_threshold = TRUE`.
+#' @param random_seed Non-negative integer seed for reproducible label
+#'   permutations. The caller's random-number state is restored on exit. Used
+#'   only when `empirically_derive_threshold = TRUE`.
 #' @param adj_method Multiple-testing adjustment method passed to
 #'   [stats::p.adjust()].
-#' @param output_dir Directory in which result CSV files are written. The
+#' @param output_dir Directory in which result files are written. Empirical mode
+#'   writes CSV and PNG files; fixed mode writes only the result CSV files. The
 #'   directory is created when it does not exist.
 #' @param prefix Character prefix used for result filenames.
+#' @param global_p_cutoff Significance cutoff for the global maximum-discovery
+#'   permutation test in empirical mode. Defaults to `0.05`. Ratio selection
+#'   proceeds only when the global p-value is strictly below this cutoff;
+#'   otherwise the filtering threshold is `1`.
 #'
-#' @return A list with two data frames: `cor_diff` contains retained pairwise
-#'   comparisons and `disco` contains feature-level DISCO results. The same
-#'   tables are written to CSV files in `output_dir`.
+#' @return A list containing `cor_diff`, `disco`, `selected_threshold`,
+#'   `threshold_summary`, `global_test`, `discovery_plot`, `ratio_plot`,
+#'   `feature_null_summary`, `feature_null_plot`, and `output_files`.
+#'   `feature_null_summary` contains real p-values and q-values and per-feature
+#'   null testing and discovery counts at each candidate threshold.
+#'   `feature_null_plot` shows negative log10 real p-values versus the percentage
+#'   of permutations declaring each feature significant, colored using
+#'   `q_value`, with significant-feature counts in each panel.
+#'   In empirical mode, `global_test` reports the global p-value,
+#'   cutoff, signal decision, maximum discovery summaries, number of evaluable
+#'   thresholds and valid permutations, and selected threshold. When the global
+#'   test passes, selection maximizes `max(real percentage, 1) /
+#'   max(mean null percentage, 1)`; ties select the largest threshold.
+#'   Otherwise the threshold is `1`. In fixed mode, `threshold_summary`,
+#'   `global_test`, `discovery_plot`, `ratio_plot`, `feature_null_summary`, and
+#'   `feature_null_plot` are `NULL`.
+#'
+#' @details In empirical mode, samples from the two groups are pooled for each
+#'   null resample, randomly permuted without replacement, and split into groups
+#'   with the same sample sizes as `data1` and `data2`. For two-modality
+#'   analyses, permutation is stratified by modality-availability pattern. This
+#'   applies one coherent shuffled label per sample while preserving each
+#'   modality's group sizes and the number of samples shared between modalities.
+#'   The global statistic is the maximum discovery percentage across thresholds.
+#'   Each permutation contributes its maximum across the same thresholds, with
+#'   p-value `(1 + sum(null maxima >= real maximum)) / (1 + valid permutations)`.
+#'   Thresholds without a finite real discovery percentage are excluded from
+#'   both maxima; permutations missing any remaining threshold are excluded from
+#'   the global test. An error is raised if no thresholds or permutations remain.
+#'   The test uses unfloored percentages. It accounts for the search across
+#'   thresholds but does not adjust individual feature-level DISCO q-values for
+#'   threshold selection. With 100 permutations the smallest possible global
+#'   p-value is `1/101`.
+#'   Feature null discovery frequencies use all `n_resamples` permutations as
+#'   their denominator; features absent or untested in a permutation count as
+#'   non-discoveries. These frequencies are not formal feature-level FDR
+#'   estimates. In two-modality mode the diagnostic covers modality-1 features.
+#'   For plotting only, real p-values below `1e-8` are displayed at `1e-8`.
 #' @export
 disco <- function(data1,
                   data2,
                   cooccur = 10,
-                  filt_threshold = 0.001,
+                  empirically_derive_threshold = TRUE,
+                  filter_threshold = 0.05,
+                  q_value = 0.2,
+                  n_resamples = 100,
+                  random_seed = 1L,
                   adj_method = "BY",
                   output_dir,
-                  prefix) {
-
-  cooccur <- validate_cooccur(cooccur)
-
-  if (length(data1) != length(data2) || !(length(data1) %in% c(1, 2))) {
-    stop("Number of data modalities should be one or two for each group")
+                  prefix,
+                  global_p_cutoff = 0.05) {
+  if (!is.logical(empirically_derive_threshold) ||
+      length(empirically_derive_threshold) != 1L ||
+      is.na(empirically_derive_threshold)) {
+    stop("empirically_derive_threshold must be TRUE or FALSE", call. = FALSE)
   }
 
-  for (i in seq_along(data1)) {
-    aligned <- align_common_features(data1[[i]], data2[[i]], modality = i)
-    data1[[i]] <- aligned$data1
-    data2[[i]] <- aligned$data2
-  }
-
-  if (length(data1) == 2) {
-    two_modal <- TRUE
-    n_feat1 <- ncol(data1[[1]])
-    n_feat2 <- ncol(data1[[2]])
-
-    report_sample_overlap(data1[[1]], data1[[2]], group = "data1")
-    report_sample_overlap(data2[[1]], data2[[2]], group = "data2")
-
-    # Concatenating data modality 1 and data modality 2 for group 1
-    d_merged1 <- merge(data1[[1]], data1[[2]], by = "row.names", all = TRUE) %>%
-      column_to_rownames("Row.names")
-    # Concatenating data modality 1 and data modality 2 for group 2
-    d_merged2 <- merge(data2[[1]], data2[[2]], by = "row.names", all = TRUE) %>%
-      column_to_rownames("Row.names")
-
-  } else {
-    two_modal <- FALSE
-    n_feat1 <- ncol(data1[[1]])
-    d_merged1 <- data1[[1]]
-    d_merged2 <- data2[[1]]
-  }
-
-  # Estimate correlations and cooccurrences
-  C1 <- get_npairs(d_merged1)
-  C2 <- get_npairs(d_merged2)
-  R1 <- get_corr(d_merged1)
-  R2 <- get_corr(d_merged2)
-
-  # Test only pairs meeting the co-occurrence threshold in both groups.
-  comparison <- compare_eligible_correlations(
-    R1, C1, R2, C2,
-    cooccur = cooccur,
-    filt_threshold = filt_threshold
-  )
-  pvals_tmp <- comparison$pvals
-
-  # Create a long dataframe
-  if (two_modal) {
-    inds <- as.matrix(expand.grid(
-      row = 1:n_feat1,
-      col = (n_feat1 + 1):(n_feat1 + n_feat2)
+  if (empirically_derive_threshold) {
+    return(run_empirical_disco(
+      data1 = data1,
+      data2 = data2,
+      cooccur = cooccur,
+      filter_thresholds = c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1),
+      q_value = q_value,
+      n_resamples = n_resamples,
+      random_seed = random_seed,
+      adj_method = adj_method,
+      output_dir = output_dir,
+      prefix = prefix,
+      global_p_cutoff = global_p_cutoff
     ))
-  } else {
-    inds <- which(upper.tri(R1), arr.ind = TRUE)
   }
 
-  t1 <- rownames(R1)[inds[, 1]]
-  t2 <- rownames(R1)[inds[, 2]]
-  r1 <- R1[inds]
-  r2 <- R2[inds]
-  n1 <- C1[inds]
-  n2 <- C2[inds]
-
-  pvals_filtered <- pvals_tmp[inds]
-  adjp <- p.adjust(pvals_filtered, method = adj_method)
-
-  cat("Number of all pairwise correlations:", length(pvals_filtered), "\n")
-  cat("Number of retained pairwise correlations:", sum(!is.na(pvals_filtered)), "\n")
-
-  df_tmp <- data.frame(t1, t2, r1, r2, n1, n2, p = pvals_filtered, q = adjp) %>%
-    filter(!is.na(p))
-
-  # Calculating disco score
-  if (two_modal) {
-    disco_rows <- sapply(1:n_feat1, function(i) {
-      p_vect <- as.vector(na.omit(
-        pvals_tmp[(n_feat1 + 1):(n_feat1 + n_feat2), i]
-      ))
-      if(length(p_vect) == 0) return(NULL)
-      t <- safe_tan_cauchy(p_vect)
-      pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
-      data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
-    }, simplify = FALSE)
-  } else {
-    disco_rows <- sapply(1:n_feat1, function(i) {
-      p_vect <- as.vector(na.omit(pvals_tmp[-i, i]))
-      if(length(p_vect) == 0) return(NULL)
-      t <- safe_tan_cauchy(p_vect)
-      pval <- pcauchy(t, location = 0, scale = 1, lower.tail = FALSE)
-      data.frame(species = colnames(pvals_tmp)[i], t = t, p = pval, num_corr = length(p_vect))
-    }, simplify = FALSE)
-  }
-
-  disco_results <- bind_rows(
-    data.frame(
-      species = character(),
-      t = numeric(),
-      p = numeric(),
-      num_corr = integer()
-    ),
-    disco_rows
+  result <- calculate_fixed_threshold_disco(
+    data1 = data1,
+    data2 = data2,
+    cooccur = cooccur,
+    filt_threshold = filter_threshold,
+    adj_method = adj_method,
+    output_dir = output_dir,
+    prefix = prefix
+  )
+  output_files <- c(
+    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.csv")),
+    disco = file.path(output_dir, paste0(prefix, "_disco.csv"))
   )
 
-  # Adjustment of p-values
-  disco_results <- disco_results %>%
-    mutate(q = p.adjust(p, method = adj_method)) %>%
-    arrange(q)
-
-  # Create output directory if missing
-  dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-
-  # Save the results
-  write.csv(df_tmp, file.path(output_dir, paste0(prefix, "_cor_diff.csv")), quote = TRUE, row.names = FALSE)
-  write.csv(disco_results, file.path(output_dir, paste0(prefix, "_disco.csv")), quote = TRUE, row.names = FALSE)
-
-  return(list(
-    cor_diff = df_tmp,
-    disco = disco_results
-  ))
+  list(
+    cor_diff = result$cor_diff,
+    disco = result$disco,
+    selected_threshold = filter_threshold,
+    threshold_summary = NULL,
+    global_test = NULL,
+    discovery_plot = NULL,
+    ratio_plot = NULL,
+    feature_null_summary = NULL,
+    feature_null_plot = NULL,
+    output_files = output_files
+  )
 }

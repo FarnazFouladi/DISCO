@@ -4,10 +4,21 @@
 #' two groups, including changes in relationships across data modalities.
 #'
 #' @keywords internal
-#' @importFrom dplyr %>% arrange bind_rows filter mutate
-#' @importFrom stats na.omit p.adjust pcauchy pnorm
+#' @importFrom dplyr %>%
+#' @importFrom stats pnorm
 #' @importFrom tibble column_to_rownames
-#' @importFrom utils write.csv
 "_PACKAGE"
 
-utils::globalVariables(c("abs_diff_cor", "p", "q", "r1", "r2"))
+utils::globalVariables(c(
+  "filter_threshold",
+  "annotation",
+  "lower",
+  "percentage",
+  "neg_log10_real_disco_p",
+  "null_discovery_percentage",
+  "panel",
+  "real_q_category",
+  "real_to_null_ratio",
+  "result_type",
+  "upper"
+))

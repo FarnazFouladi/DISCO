@@ -92,7 +92,8 @@ testthat::test_that("disco runs with the fixed Bonett-Wright correction", {
       list(data1),
       list(data2),
       cooccur = 10,
-      filt_threshold = 1,
+      empirically_derive_threshold = FALSE,
+      filter_threshold = 1,
       output_dir = tempfile("disco-bonett-"),
       prefix = "bonett"
     )

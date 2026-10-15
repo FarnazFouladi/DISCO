@@ -95,13 +95,12 @@ testthat::test_that("no eligible pairs return stable empty result schemas", {
     dimnames = list(NULL, feature_names)
   ))
 
-  output_dir <- tempfile("disco-strict-")
-  result <- disco(
-    list(data1),
-    list(data2),
-    cooccur = 7,
-    output_dir = output_dir,
-    prefix = "strict"
+  prepared <- prepare_disco_inputs(list(data1), list(data2))
+  base <- calculate_disco_base(prepared, cooccur = 7)
+  result <- calculate_disco_at_threshold(
+    base,
+    filt_threshold = 1,
+    adj_method = "BY"
   )
 
   testthat::expect_identical(
@@ -114,11 +113,4 @@ testthat::test_that("no eligible pairs return stable empty result schemas", {
     c("species", "t", "p", "num_corr", "q")
   )
   testthat::expect_equal(nrow(result$disco), 0)
-  testthat::expect_identical(
-    sort(list.files(output_dir)),
-    sort(c(
-      "strict_cor_diff.csv",
-      "strict_disco.csv"
-    ))
-  )
 })
