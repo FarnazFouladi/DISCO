@@ -2,3 +2,5 @@
 ^DESCRIPTION\.empty-directory$
 ^analysis$
 ^visualizations$
+^README\.Rmd$
+^README-results\.rds$
