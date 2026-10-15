@@ -107,6 +107,8 @@ calculate_disco_at_threshold <- function(base, filt_threshold, adj_method) {
     stringsAsFactors = FALSE
   )
   cor_diff <- cor_diff[!is.na(cor_diff$p), , drop = FALSE]
+  cor_diff <- cor_diff[order(cor_diff$q, na.last = TRUE), , drop = FALSE]
+  rownames(cor_diff) <- NULL
 
   disco_rows <- lapply(seq_len(base$n_feat1), function(i) {
     if (base$two_modal) {

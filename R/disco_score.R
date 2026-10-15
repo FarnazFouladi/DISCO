@@ -51,8 +51,11 @@
 #' @return A list containing `cor_diff`, `disco`, `selected_threshold`,
 #'   `threshold_summary`, `global_test`, `discovery_plot`, `ratio_plot`,
 #'   `feature_null_summary`, `feature_null_plot`, and `output_files`.
+#'   The `cor_diff` table is sorted by ascending adjusted p-value (`q`).
 #'   `feature_null_summary` contains real p-values and q-values and per-feature
 #'   null testing and discovery counts at each candidate threshold.
+#'   Its real significance column is named `q_less_than_<q_value>`, for example
+#'   `q_less_than_0.2` when `q_value = 0.2`.
 #'   `feature_null_plot` shows negative log10 real p-values versus the percentage
 #'   of permutations declaring each feature significant, colored using
 #'   `q_value`, with significant-feature counts in each panel.

@@ -204,7 +204,7 @@ q-values for selecting a threshold. The function returns:
 
 | Component | Contents |
 |---|---|
-| `cor_diff` | Retained feature pairs, group correlations (`r1`, `r2`), pairwise-complete counts (`n1`, `n2`), two-sample p-values (`p`), and adjusted p-values (`q`). |
+| `cor_diff` | Retained feature pairs, group correlations (`r1`, `r2`), pairwise-complete counts (`n1`, `n2`), two-sample p-values (`p`), and adjusted p-values (`q`), sorted by increasing `q`. |
 | `disco` | Feature-level Cauchy statistics, p-values, adjusted p-values, and the number of pairwise comparisons included. |
 | `selected_threshold` | Empirically selected correlation filtering threshold. |
 | `threshold_summary` | Real and null discovery percentages, null standard deviations, both floored percentages, ratios, and the selected-threshold indicator. |
@@ -226,6 +226,8 @@ feature-level FDR estimate. In two-modality mode it describes modality-1
 features. Both colors and null discoveries use `q_value` (default `0.2`). Real
 p-values below `1e-8` are plotted at 8 on the negative-log10 axis, while their
 original values remain in `feature_null_summary`.
+The real-data significance column is named for the chosen cutoff:
+`q_less_than_0.2` by default, or `q_less_than_0.1` when `q_value = 0.1`.
 
 The following files are written to `output_dir`:
 

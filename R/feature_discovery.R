@@ -6,6 +6,10 @@ null_feature_indicators <- function(result, feature_names, q_value) {
   list(tested = tested, discovered = tested & scores$q[index] < q_value)
 }
 
+feature_q_column <- function(q_value) {
+  paste0("q_less_than_", format(q_value, scientific = FALSE, trim = TRUE))
+}
+
 # Null frequencies use all requested permutations as the denominator.
 build_feature_null_summary <- function(real_results, null_discoveries,
                                        null_tested, filter_thresholds,
@@ -24,7 +28,6 @@ build_feature_null_summary <- function(real_results, null_discoveries,
       real_disco_q = scores$q,
       real_significant = scores$q < q_value,
       neg_log10_real_disco_p = -log10(pmax(scores$p, 1e-8)),
-      p_value_floored_for_plot = scores$p < 1e-8,
       n_null_tested = null_tested[index, i],
       n_null_discoveries = null_discoveries[index, i],
       n_resamples = rep(n_resamples, nrow(scores)),
@@ -34,6 +37,7 @@ build_feature_null_summary <- function(real_results, null_discoveries,
     )
   })
   summary <- do.call(rbind, rows)
+  names(summary)[names(summary) == "real_significant"] <- feature_q_column(q_value)
   rownames(summary) <- NULL
   summary
 }
@@ -49,8 +53,9 @@ create_feature_null_plot <- function(summary, filter_thresholds, q_value,
   )
   significant_label <- paste0("Real DISCO q < ", format(q_value))
   other_label <- paste0("Real DISCO q >= ", format(q_value))
+  significant <- summary[[feature_q_column(q_value)]]
   summary$real_q_category <- factor(
-    ifelse(summary$real_significant, significant_label, other_label),
+    ifelse(significant, significant_label, other_label),
     levels = c(significant_label, other_label)
   )
   annotations <- data.frame(
@@ -58,7 +63,7 @@ create_feature_null_plot <- function(summary, filter_thresholds, q_value,
     annotation = paste0("Real q < ", format(q_value), ": n = ", vapply(
       filter_thresholds,
       function(threshold) {
-        sum(summary$filter_threshold == threshold & summary$real_significant)
+        sum(summary$filter_threshold == threshold & significant)
       }, integer(1L)
     ))
   )

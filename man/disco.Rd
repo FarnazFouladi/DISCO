@@ -70,8 +70,11 @@ otherwise the filtering threshold is \code{1}.}
 A list containing \code{cor_diff}, \code{disco}, \code{selected_threshold},
 \code{threshold_summary}, \code{global_test}, \code{discovery_plot}, \code{ratio_plot},
 \code{feature_null_summary}, \code{feature_null_plot}, and \code{output_files}.
+The \code{cor_diff} table is sorted by ascending adjusted p-value (\code{q}).
 \code{feature_null_summary} contains real p-values and q-values and per-feature
 null testing and discovery counts at each candidate threshold.
+Its real significance column is named \verb{q_less_than_<q_value>}, for example
+\code{q_less_than_0.2} when \code{q_value = 0.2}.
 \code{feature_null_plot} shows negative log10 real p-values versus the percentage
 of permutations declaring each feature significant, colored using
 \code{q_value}, with significant-feature counts in each panel.

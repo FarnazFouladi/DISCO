@@ -121,6 +121,10 @@ testthat::test_that("fixed-threshold mode skips empirical calculations", {
   )
 
   testthat::expect_identical(result$selected_threshold, 0.05)
+  testthat::expect_false(is.unsorted(result$cor_diff$q))
+  testthat::expect_equal(
+    utils::read.csv(result$output_files[["cor_diff"]]), result$cor_diff
+  )
   testthat::expect_null(result$threshold_summary)
   testthat::expect_null(result$global_test)
   testthat::expect_null(result$discovery_plot)
@@ -216,6 +220,10 @@ testthat::test_that("disco empirically selects a threshold and returns plots", {
   )
   testthat::expect_equal(result$disco, fixed$disco)
   testthat::expect_equal(result$cor_diff, fixed$cor_diff)
+  testthat::expect_false(is.unsorted(result$cor_diff$q))
+  testthat::expect_equal(
+    utils::read.csv(result$output_files[["cor_diff"]]), result$cor_diff
+  )
   testthat::expect_s3_class(result$discovery_plot, "ggplot")
   testthat::expect_s3_class(result$ratio_plot, "ggplot")
   testthat::expect_s3_class(result$feature_null_plot, "ggplot")
