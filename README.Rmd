@@ -142,14 +142,16 @@ accessed through
 This example uses:
 
 - Relative abundances (`counts = FALSE`).
-- Features present in **≥`r example_prevalence`% of samples across the combined CRC/control cohort**.
+- Features present in **≥`r example_prevalence`% of samples in each group**:
+  a feature must pass separately in both healthy controls and CRC.
 - Zero replacement with **half each feature's minimum positive abundance**,
   estimated across that cohort after prevalence filtering.
 - **CLR normalization** within each sample, separately for each modality.
-- After CLR, each feature is residualized against **age, gender, and BMI** in
-  one linear model fitted across the combined CRC/control cohort. **Disease is
-  not included** in this model. The same residuals feed the real comparison and
-  all label permutations.
+- After CLR, each feature is residualized against **age, gender, and BMI** using
+  **separate models within healthy controls and CRC**. Each group has its own
+  intercept and covariate coefficients. Models are fitted once within the
+  original groups; the resulting residuals feed the real comparison and all
+  label permutations, without refitting the covariate models after shuffling.
 - `r readme_results$settings$n_resamples` label permutations, q cutoff
   `r example_q`, and global p-value cutoff `r readme_results$settings$global_p_cutoff`.
 
@@ -184,7 +186,7 @@ The same preprocessing helper is used for taxa and pathways:
 ```
 
 The covariate-adjustment helper fits a separate response model for each feature
-with a shared design matrix. Residuals keep the original sample and feature names.
+within each group. Residuals keep the original sample and feature names.
 
 ```{r readme-residual-helper, eval=FALSE}
 ```
@@ -244,7 +246,7 @@ with pathways differ between groups. Pathways are unstratified community totals;
 `UNMAPPED` and `UNINTEGRATED` rows are removed. Both modalities are restricted to
 common usable samples, then prevalence-filtered and normalized separately using
 the same ≥`r example_prevalence`%, half-minimum, CLR workflow above. **Both taxa and pathways** are
-then residualized against age, gender, and BMI using the pooled model above,
+then residualized against age, gender, and BMI separately within each group,
 and DISCO compares correlations between those residuals.
 
 ```{r run-two-modalities, eval=FALSE}
@@ -305,8 +307,8 @@ Rscript analysis/run_yachida_readme_examples.R
 This requires the example dependencies and `pkgload`, may download resources
 through ExperimentHub, and reuses existing results only when inputs and settings
 and source hashes match. Set `DISCO_README_RECOMPUTE=true` to recompute both
-examples. Adjusted results stay under `analysis/yachida_readme_adjusted_results/`;
-previous unadjusted results are retained. The README bundle contains only cohort summaries and
+examples. Results stay under `analysis/yachida_readme_groupwise_10pct_results/`;
+previous pooled-adjustment and unadjusted results are retained. The README bundle contains only cohort summaries and
 top-result tables. Package checks can be run with `devtools::test()` and
 `devtools::check()`.
 Preprocessing and residualization helpers can be checked without downloading

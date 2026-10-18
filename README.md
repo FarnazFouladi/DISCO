@@ -114,16 +114,18 @@ through
 This example uses:
 
 - Relative abundances (`counts = FALSE`).
-- Features present in **≥20% of samples across the combined CRC/control
-  cohort**.
+- Features present in **≥10% of samples in each group**: a feature must
+  pass separately in both healthy controls and CRC.
 - Zero replacement with **half each feature’s minimum positive
   abundance**, estimated across that cohort after prevalence filtering.
 - **CLR normalization** within each sample, separately for each
   modality.
 - After CLR, each feature is residualized against **age, gender, and
-  BMI** in one linear model fitted across the combined CRC/control
-  cohort. **Disease is not included** in this model. The same residuals
-  feed the real comparison and all label permutations.
+  BMI** using **separate models within healthy controls and CRC**. Each
+  group has its own intercept and covariate coefficients. Models are
+  fitted once within the original groups; the resulting residuals feed
+  the real comparison and all label permutations, without refitting the
+  covariate models after shuffling.
 - 100 label permutations, q cutoff 0.2, and global p-value cutoff 0.05.
 
 Install the example dependencies if needed:
@@ -145,10 +147,11 @@ when inputs, settings, and source-code hashes match.
 ``` r
 settings <- list(
   n_resamples = 100L, random_seed = 1L, cooccur = 10L, adj_method = "BY",
-  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.2,
-  covariate_adjustment = "pooled ~ age + gender + BMI; no disease term"
+  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.1,
+  prevalence_scope = "at least 10% in each of healthy and CRC",
+  covariate_adjustment = "separate healthy and CRC models: ~ age + gender + BMI"
 )
-results_dir <- file.path(analysis_dir, "yachida_readme_adjusted_results")
+results_dir <- file.path(analysis_dir, "yachida_readme_groupwise_10pct_results")
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 source_md5 <- readme_source_hashes(repo_dir)
 ```
@@ -198,20 +201,25 @@ The same preprocessing helper is used for taxa and pathways:
 
 ``` r
 # Samples are rows; features are columns. Apply independently per modality.
-preprocess_abundance <- function(x, prevalence_cutoff = 0.20) {
+preprocess_abundance <- function(x, group, prevalence_cutoff = 0.10) {
   stopifnot(
     is.matrix(x), is.numeric(x), nrow(x) > 0L, ncol(x) > 0L,
     all(is.finite(x)), all(x >= 0), all(rowSums(x) > 0),
     !is.null(rownames(x)), !anyDuplicated(rownames(x)),
     !is.null(colnames(x)), !anyDuplicated(colnames(x)),
     length(prevalence_cutoff) == 1L, is.finite(prevalence_cutoff),
-    prevalence_cutoff > 0, prevalence_cutoff <= 1
+    prevalence_cutoff > 0, prevalence_cutoff <= 1,
+    identical(rownames(x), names(group)), !anyNA(group),
+    setequal(as.character(group), c("healthy", "CRC"))
   )
 
-  # Convert the full profile to proportions, then filter across both groups.
+  # Require the prevalence cutoff separately in BOTH original groups.
   x <- sweep(x, 1, rowSums(x), "/")
-  prevalence <- colMeans(x > 0)
-  keep <- prevalence >= prevalence_cutoff
+  prevalence <- cbind(
+    healthy = colMeans(x[group == "healthy", , drop = FALSE] > 0),
+    CRC = colMeans(x[group == "CRC", , drop = FALSE] > 0)
+  )
+  keep <- apply(prevalence >= prevalence_cutoff, 1, all)
   if (sum(keep) < 2L) stop("Fewer than two features pass the prevalence filter.")
   retained <- x[, keep, drop = FALSE]
 
@@ -230,7 +238,8 @@ preprocess_abundance <- function(x, prevalence_cutoff = 0.20) {
     retained_relative_abundance = retained,
     imputed_abundance = imputed,
     prevalence = data.frame(
-      feature = names(prevalence), prevalence = unname(prevalence), retained = keep
+      feature = rownames(prevalence), prevalence, retained = unname(keep),
+      row.names = NULL
     ),
     half_minimum = data.frame(feature = names(half_min), replacement = unname(half_min))
   )
@@ -238,38 +247,49 @@ preprocess_abundance <- function(x, prevalence_cutoff = 0.20) {
 ```
 
 The covariate-adjustment helper fits a separate response model for each
-feature with a shared design matrix. Residuals keep the original sample
-and feature names.
+feature within each group. Residuals keep the original sample and
+feature names.
 
 ``` r
-# Fit one model per feature over the combined cohort, without a disease term.
-residualize_abundance <- function(clr, metadata) {
+# Fit independent age/gender/BMI models within the original disease groups.
+residualize_abundance <- function(clr, metadata, group) {
   stopifnot(identical(rownames(clr), rownames(metadata)), all(is.finite(clr)),
             is.numeric(metadata$age), is.numeric(metadata$BMI),
-            all(is.finite(metadata$age)), all(is.finite(metadata$BMI)))
-  model_data <- metadata
-  model_data$gender <- factor(trimws(as.character(model_data$gender)))
-  if (anyNA(model_data$gender) || any(!nzchar(as.character(model_data$gender))) ||
-      nlevels(model_data$gender) < 2L) {
-    stop("At least two non-missing gender levels are required.")
+            all(is.finite(metadata$age)), all(is.finite(metadata$BMI)),
+            identical(rownames(clr), names(group)), !anyNA(group),
+            setequal(as.character(group), c("healthy", "CRC")))
+  residuals <- matrix(NA_real_, nrow(clr), ncol(clr), dimnames = dimnames(clr))
+  models <- list()
+  for (group_name in c("healthy", "CRC")) {
+    rows <- which(group == group_name)
+    model_data <- metadata[rows, , drop = FALSE]
+    model_data$gender <- factor(trimws(as.character(model_data$gender)))
+    if (anyNA(model_data$gender) || any(!nzchar(as.character(model_data$gender))) ||
+        nlevels(model_data$gender) < 2L) {
+      stop("At least two non-missing gender levels are required in ", group_name, ".")
+    }
+    design <- stats::model.matrix(~ age + gender + BMI, data = model_data)
+    fit <- stats::lm.fit(design, clr[rows, , drop = FALSE])
+    if (fit$rank < ncol(design) || nrow(design) <= fit$rank) {
+      stop("Covariate model requires full rank and positive residual degrees of freedom in ",
+           group_name, ".")
+    }
+    residuals[rows, ] <- fit$residuals
+    models[[group_name]] <- list(
+      coefficients = fit$coefficients, design = design,
+      sample_ids = rownames(model_data), residual_df = nrow(design) - fit$rank
+    )
   }
-  design <- stats::model.matrix(~ age + gender + BMI, data = model_data)
-  fit <- stats::lm.fit(design, clr)
-  if (fit$rank < ncol(design) || nrow(design) <= fit$rank) {
-    stop("Covariate model must have full rank and positive residual degrees of freedom.")
-  }
-  residuals <- fit$residuals
-  dimnames(residuals) <- dimnames(clr)
   stopifnot(all(is.finite(residuals)))
-  list(residuals = residuals, coefficients = fit$coefficients,
-       design = design, residual_df = nrow(design) - fit$rank)
+  list(residuals = residuals, models = models)
 }
 ```
 
 ``` r
-taxa_prepared <- preprocess_abundance(taxa, settings$prevalence_cutoff)
+taxa_prepared <- preprocess_abundance(taxa, taxa_group, settings$prevalence_cutoff)
 taxa_adjusted <- residualize_abundance(
-  taxa_prepared$clr, sample_metadata[rownames(taxa_prepared$clr), , drop = FALSE]
+  taxa_prepared$clr, sample_metadata[rownames(taxa_prepared$clr), , drop = FALSE],
+  taxa_group
 )
 single_dir <- file.path(results_dir, "taxa")
 single_input <- list(
@@ -302,25 +322,25 @@ missing covariates.
 
 | control | CRC | retained_taxa |
 |--------:|----:|--------------:|
-|     245 | 258 |           149 |
+|     245 | 258 |           184 |
 
-Global p-value: **0.0198**. Selected threshold: **0.05**. Taxa with
-DISCO q \<0.2 at the selected threshold: **17**.
+Global p-value: **0.009901**. Selected threshold: **0.01**. Taxa with
+DISCO q \<0.2 at the selected threshold: **80**.
 
 Top 10 taxa by DISCO q-value, breaking ties by p-value:
 
-| Taxon                       | DISCO p  | DISCO q  | Comparisons |
-|:----------------------------|:---------|:---------|------------:|
-| Parvimonas micra            | 7.10e-07 | 4.62e-04 |         113 |
-| Actinomyces sp. HMSC035G02  | 1.11e-06 | 4.62e-04 |         111 |
-| \[Eubacterium\] sulci       | 2.87e-06 | 7.95e-04 |          97 |
-| Actinomyces sp. ICM47       | 5.41e-06 | 1.12e-03 |          99 |
-| Tyzzerella nexilis          | 1.70e-05 | 2.83e-03 |         114 |
-| Megamonas funiformis        | 1.80e-04 | 2.50e-02 |          78 |
-| Fusobacterium mortiferum    | 2.19e-04 | 2.61e-02 |          90 |
-| Megasphaera micronuciformis | 2.92e-04 | 3.03e-02 |          99 |
-| Odoribacter splanchnicus    | 6.11e-04 | 5.53e-02 |          85 |
-| Streptococcus vestibularis  | 6.65e-04 | 5.53e-02 |          87 |
+| Taxon                      | DISCO p  | DISCO q  | Comparisons |
+|:---------------------------|:---------|:---------|------------:|
+| Parvimonas micra           | 3.43e-07 | 3.31e-04 |         121 |
+| Fusobacterium ulcerans     | 1.08e-06 | 3.31e-04 |         133 |
+| Actinomyces sp. S6-Spd3    | 1.08e-06 | 3.31e-04 |         134 |
+| Actinomyces sp. HMSC035G02 | 1.24e-06 | 3.31e-04 |         128 |
+| Clostridium disporicum     | 5.48e-06 | 1.17e-03 |         110 |
+| Lactobacillus rogosae      | 8.43e-06 | 1.36e-03 |          95 |
+| Actinomyces sp. ICM47      | 8.93e-06 | 1.36e-03 |         119 |
+| Acidaminococcus intestini  | 1.13e-05 | 1.50e-03 |          87 |
+| \[Eubacterium\] sulci      | 1.26e-05 | 1.50e-03 |          98 |
+| Clostridium sp. CAG:299    | 1.60e-05 | 1.71e-03 |         116 |
 
 The first plot compares real discovery percentages with the null mean ±
 SD. The second shows the ratio used to select the threshold.
@@ -342,9 +362,9 @@ controls. The first modality is taxa, so the DISCO scores describe taxa
 whose relationships with pathways differ between groups. Pathways are
 unstratified community totals; `UNMAPPED` and `UNINTEGRATED` rows are
 removed. Both modalities are restricted to common usable samples, then
-prevalence-filtered and normalized separately using the same ≥20%,
+prevalence-filtered and normalized separately using the same ≥10%,
 half-minimum, CLR workflow above. **Both taxa and pathways** are then
-residualized against age, gender, and BMI using the pooled model above,
+residualized against age, gender, and BMI separately within each group,
 and DISCO compares correlations between those residuals.
 
 ``` r
@@ -362,11 +382,13 @@ two_group <- group[common_ids]
 if (any(table(factor(two_group, levels = c("healthy", "CRC"))) < settings$cooccur)) {
   stop("Each group requires at least cooccur samples.")
 }
-two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE], settings$prevalence_cutoff)
-two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE], settings$prevalence_cutoff)
+two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE], two_group,
+                                 settings$prevalence_cutoff)
+two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE], two_group,
+                                     settings$prevalence_cutoff)
 two_metadata <- sample_metadata[common_ids, , drop = FALSE]
-two_taxa_adjusted <- residualize_abundance(two_taxa$clr, two_metadata)
-two_pathways_adjusted <- residualize_abundance(two_pathways$clr, two_metadata)
+two_taxa_adjusted <- residualize_abundance(two_taxa$clr, two_metadata, two_group)
+two_pathways_adjusted <- residualize_abundance(two_pathways$clr, two_metadata, two_group)
 two_dir <- file.path(results_dir, "taxa_pathways")
 two_input <- list(
   data1 = list(two_taxa_adjusted$residuals[two_group == "healthy", , drop = FALSE],
@@ -396,7 +418,7 @@ if (is.null(two)) {
 
 | control | CRC | retained_taxa | retained_pathways |
 |--------:|----:|--------------:|------------------:|
-|     245 | 258 |           149 |               385 |
+|     245 | 258 |           184 |               404 |
 
 Global p-value: **1**. Selected threshold: **1**. Taxa with DISCO q
 \<0.2 at the selected threshold: **0**.
@@ -408,16 +430,16 @@ does not establish significance; use the reported q-values.
 
 | Taxon                          | DISCO p  | DISCO q | Comparisons |
 |:-------------------------------|:---------|:--------|------------:|
-| Adlercreutzia equolifaciens    | 1.21e-02 | 1e+00   |         385 |
-| Actinomyces sp. oral taxon 181 | 1.62e-02 | 1e+00   |         385 |
-| Parvimonas micra               | 1.91e-02 | 1e+00   |         385 |
-| Escherichia coli               | 2.36e-02 | 1e+00   |         385 |
-| Bifidobacterium longum         | 2.96e-02 | 1e+00   |         385 |
-| Mogibacterium diversum         | 4.36e-02 | 1e+00   |         385 |
-| Odoribacter splanchnicus       | 5.05e-02 | 1e+00   |         385 |
-| Roseburia hominis              | 5.44e-02 | 1e+00   |         385 |
-| Clostridium bolteae CAG:59     | 5.56e-02 | 1e+00   |         385 |
-| Enterocloster aldenensis       | 5.81e-02 | 1e+00   |         385 |
+| Parvimonas micra               | 1.05e-02 | 1e+00   |         404 |
+| Bifidobacterium longum         | 1.32e-02 | 1e+00   |         404 |
+| Actinomyces sp. HMSC035G02     | 1.86e-02 | 1e+00   |         404 |
+| Odoribacter splanchnicus       | 3.45e-02 | 1e+00   |         404 |
+| Erysipelatoclostridium ramosum | 3.56e-02 | 1e+00   |         404 |
+| Mogibacterium diversum         | 4.18e-02 | 1e+00   |         404 |
+| Enterocloster clostridioformis | 4.71e-02 | 1e+00   |         404 |
+| Streptococcus sp. A12          | 4.86e-02 | 1e+00   |         404 |
+| Adlercreutzia equolifaciens    | 5.21e-02 | 1e+00   |         404 |
+| Enterocloster aldenensis       | 5.93e-02 | 1e+00   |         404 |
 
 <img src="man/figures/README-yachida-taxa_pathways-discovery_plot.png" width="100%" />
 
@@ -451,13 +473,13 @@ Rscript analysis/run_yachida_readme_examples.R
 This requires the example dependencies and `pkgload`, may download
 resources through ExperimentHub, and reuses existing results only when
 inputs and settings and source hashes match. Set
-`DISCO_README_RECOMPUTE=true` to recompute both examples. Adjusted
-results stay under `analysis/yachida_readme_adjusted_results/`; previous
-unadjusted results are retained. The README bundle contains only cohort
-summaries and top-result tables. Package checks can be run with
-`devtools::test()` and `devtools::check()`. Preprocessing and
-residualization helpers can be checked without downloading data using
-`Rscript analysis/test_yachida_readme_helpers.R`.
+`DISCO_README_RECOMPUTE=true` to recompute both examples. Results stay
+under `analysis/yachida_readme_groupwise_10pct_results/`; previous
+pooled-adjustment and unadjusted results are retained. The README bundle
+contains only cohort summaries and top-result tables. Package checks can
+be run with `devtools::test()` and `devtools::check()`. Preprocessing
+and residualization helpers can be checked without downloading data
+using `Rscript analysis/test_yachida_readme_helpers.R`.
 
 ## License
 

@@ -1,6 +1,6 @@
 # Generate the real-data results and portable figures used by README.Rmd.
 # Run from any directory: Rscript /path/to/DISCO/analysis/run_yachida_readme_examples.R
-# Both modalities use pooled age/gender/BMI residuals after CLR.
+# Both modalities use separate healthy/CRC age/gender/BMI models after CLR.
 # Named chunks below are displayed verbatim in README.Rmd via read_chunk().
 # Set DISCO_README_RECOMPUTE=true to recompute both examples.
 
@@ -18,10 +18,11 @@ recompute <- identical(tolower(Sys.getenv("DISCO_README_RECOMPUTE")), "true")
 ## ---- readme-settings ----
 settings <- list(
   n_resamples = 100L, random_seed = 1L, cooccur = 10L, adj_method = "BY",
-  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.2,
-  covariate_adjustment = "pooled ~ age + gender + BMI; no disease term"
+  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.1,
+  prevalence_scope = "at least 10% in each of healthy and CRC",
+  covariate_adjustment = "separate healthy and CRC models: ~ age + gender + BMI"
 )
-results_dir <- file.path(analysis_dir, "yachida_readme_adjusted_results")
+results_dir <- file.path(analysis_dir, "yachida_readme_groupwise_10pct_results")
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 source_md5 <- readme_source_hashes(repo_dir)
 
@@ -62,9 +63,10 @@ if (any(table(factor(taxa_group, levels = c("healthy", "CRC"))) < settings$coocc
 }
 
 ## ---- run-taxa ----
-taxa_prepared <- preprocess_abundance(taxa, settings$prevalence_cutoff)
+taxa_prepared <- preprocess_abundance(taxa, taxa_group, settings$prevalence_cutoff)
 taxa_adjusted <- residualize_abundance(
-  taxa_prepared$clr, sample_metadata[rownames(taxa_prepared$clr), , drop = FALSE]
+  taxa_prepared$clr, sample_metadata[rownames(taxa_prepared$clr), , drop = FALSE],
+  taxa_group
 )
 single_dir <- file.path(results_dir, "taxa")
 single_input <- list(
@@ -101,11 +103,13 @@ two_group <- group[common_ids]
 if (any(table(factor(two_group, levels = c("healthy", "CRC"))) < settings$cooccur)) {
   stop("Each group requires at least cooccur samples.")
 }
-two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE], settings$prevalence_cutoff)
-two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE], settings$prevalence_cutoff)
+two_taxa <- preprocess_abundance(taxa[common_ids, , drop = FALSE], two_group,
+                                 settings$prevalence_cutoff)
+two_pathways <- preprocess_abundance(pathways[common_ids, , drop = FALSE], two_group,
+                                     settings$prevalence_cutoff)
 two_metadata <- sample_metadata[common_ids, , drop = FALSE]
-two_taxa_adjusted <- residualize_abundance(two_taxa$clr, two_metadata)
-two_pathways_adjusted <- residualize_abundance(two_pathways$clr, two_metadata)
+two_taxa_adjusted <- residualize_abundance(two_taxa$clr, two_metadata, two_group)
+two_pathways_adjusted <- residualize_abundance(two_pathways$clr, two_metadata, two_group)
 two_dir <- file.path(results_dir, "taxa_pathways")
 two_input <- list(
   data1 = list(two_taxa_adjusted$residuals[two_group == "healthy", , drop = FALSE],
@@ -131,7 +135,7 @@ if (is.null(two)) {
 }
 
 ## ---- internal-readme-export ----
-# Save new adjusted outputs separately; retain the previous unadjusted runs.
+# Save this workflow separately; retain the previous pooled and unadjusted runs.
 saveRDS(list(taxa = taxa_prepared, adjustment = taxa_adjusted, group = taxa_group,
              metadata = sample_metadata[rownames(taxa), , drop = FALSE], settings = settings),
         file.path(single_dir, "preprocessed_data.rds"))
