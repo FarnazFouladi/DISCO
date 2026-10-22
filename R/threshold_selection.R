@@ -107,7 +107,7 @@ pool_null_inputs <- function(prepared) {
 }
 
 # Permute labels within modality-availability strata
-permute_null_groups <- function(pooled) {
+draw_null_assignment <- function(pooled) {
   assignments <- lapply(pooled$strata, function(stratum) {
     shuffled <- sample(stratum$sample_id, nrow(stratum), replace = FALSE)
     n_data1 <- sum(stratum$original_group == 1L)
@@ -127,6 +127,11 @@ permute_null_groups <- function(pooled) {
   data1_ids <- unlist(lapply(assignments, `[[`, "data1"), use.names = FALSE)
   data2_ids <- unlist(lapply(assignments, `[[`, "data2"), use.names = FALSE)
 
+  list(data1 = data1_ids, data2 = data2_ids)
+}
+
+permute_null_groups <- function(pooled, assignment = draw_null_assignment(pooled)) {
+
   subset_modalities <- function(ids) {
     lapply(pooled$pooled, function(x) {
       available_ids <- ids[ids %in% rownames(x)]
@@ -135,8 +140,8 @@ permute_null_groups <- function(pooled) {
   }
 
   list(
-    data1 = subset_modalities(data1_ids),
-    data2 = subset_modalities(data2_ids)
+    data1 = subset_modalities(assignment$data1),
+    data2 = subset_modalities(assignment$data2)
   )
 }
 
@@ -381,7 +386,9 @@ create_threshold_plots <- function(summary, q_value, n_resamples,
 # Run empirical threshold selection and write the selected results
 run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
                                 q_value, n_resamples, random_seed, adj_method,
-                                output_dir, prefix, global_p_cutoff = 0.05) {
+                                output_dir, prefix, global_p_cutoff = 0.05,
+                                workers = 1L) {
+  workers <- validate_null_workers(workers)
   cooccur <- validate_cooccur(cooccur)
   settings <- validate_threshold_selection(
     filter_thresholds = filter_thresholds,
@@ -403,7 +410,8 @@ run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
     calculate_disco_at_threshold(
       real_base,
       filt_threshold = threshold,
-      adj_method = adj_method
+      adj_method = adj_method,
+      include_cor_diff = FALSE
     )
   })
 
@@ -435,32 +443,21 @@ run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
 
   message(
     "Estimating null discoveries using ", n_resamples,
-    " size-matched label permutations."
+    " size-matched label permutations with ", min(workers, n_resamples),
+    " worker(s)."
+  )
+  # Draw only labels here, not copies of the expression matrices. This retains
+  # the serial RNG sequence independently of scheduling and worker count.
+  assignments <- lapply(seq_len(n_resamples), function(i) draw_null_assignment(pooled))
+  null_summaries <- run_null_permutations(
+    assignments, pooled, cooccur, filter_thresholds, adj_method,
+    feature_names, q_value, workers
   )
   for (resample_index in seq_len(n_resamples)) {
-    null_groups <- permute_null_groups(pooled)
-
-    null_prepared <- prepare_disco_inputs(
-      null_groups$data1,
-      null_groups$data2,
-      report_overlap = FALSE
-    )
-    null_base <- calculate_disco_base(null_prepared, cooccur = cooccur)
-
-    for (threshold_index in seq_along(filter_thresholds)) {
-      null_result <- calculate_disco_at_threshold(
-        null_base,
-        filt_threshold = filter_thresholds[[threshold_index]],
-        adj_method = adj_method
-      )
-      null_percentages[resample_index, threshold_index] <-
-        disco_discovery_percentage(null_result, q_value)$percentage
-      indicators <- null_feature_indicators(null_result, feature_names, q_value)
-      null_discoveries[, threshold_index] <-
-        null_discoveries[, threshold_index] + indicators$discovered
-      null_tested[, threshold_index] <-
-        null_tested[, threshold_index] + indicators$tested
-    }
+    summary <- null_summaries[[resample_index]]
+    null_percentages[resample_index, ] <- summary$percentages
+    null_discoveries <- null_discoveries + summary$discovered
+    null_tested <- null_tested + summary$tested
   }
 
   threshold_summary <- build_threshold_summary(
@@ -478,6 +475,13 @@ run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
     threshold_summary$filter_threshold == selected_threshold
   selected_index <- match(selected_threshold, filter_thresholds)
   selected_result <- real_results[[selected_index]]
+  # Only the selected real-data threshold needs a pairwise output table.
+  selected_pvals <- filter_correlation_tests(
+    real_base$correlation_tests, filt_threshold = selected_threshold
+  )$pvals
+  selected_result$cor_diff <- build_cor_diff_table(
+    real_base, selected_pvals, adj_method
+  )
 
   plots <- create_threshold_plots(
     summary = threshold_summary,

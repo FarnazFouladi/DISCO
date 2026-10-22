@@ -17,6 +17,7 @@ Imports:
     dplyr,
     ggplot2,
     Hmisc,
+    parallel,
     stats,
     tibble,
     utils

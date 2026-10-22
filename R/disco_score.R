@@ -47,6 +47,12 @@
 #'   permutation test in empirical mode. Defaults to `0.05`. Ratio selection
 #'   proceeds only when the global p-value is strictly below this cutoff;
 #'   otherwise the filtering threshold is `1`.
+#' @param workers Positive integer number of parallel worker processes for null
+#'   permutations. Defaults to `1` (sequential); used only in empirical mode.
+#'   The number used is capped at `n_resamples`. Each worker holds its own
+#'   correlation matrices, so start with `2` if memory is limited. Uses socket
+#'   workers on all platforms. For a given seed, permutations and results do
+#'   not depend on worker count. Workers are stopped on completion or error.
 #'
 #' @return A list containing `cor_diff`, `disco`, `selected_threshold`,
 #'   `threshold_summary`, `global_test`, `discovery_plot`, `ratio_plot`,
@@ -101,7 +107,8 @@ disco <- function(data1,
                   adj_method = "BY",
                   output_dir,
                   prefix,
-                  global_p_cutoff = 0.05) {
+                  global_p_cutoff = 0.05,
+                  workers = 1L) {
   if (!is.logical(empirically_derive_threshold) ||
       length(empirically_derive_threshold) != 1L ||
       is.na(empirically_derive_threshold)) {
@@ -120,7 +127,8 @@ disco <- function(data1,
       adj_method = adj_method,
       output_dir = output_dir,
       prefix = prefix,
-      global_p_cutoff = global_p_cutoff
+      global_p_cutoff = global_p_cutoff,
+      workers = workers
     ))
   }
 

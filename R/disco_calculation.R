@@ -77,38 +77,19 @@ calculate_disco_base <- function(prepared, cooccur) {
   )
 }
 
-# Build pair- and feature-level results at one filtering threshold
-calculate_disco_at_threshold <- function(base, filt_threshold, adj_method) {
+# Build feature-level results, optionally including the pairwise output table.
+# Pairwise adjusted p-values are reporting-only; Cauchy uses raw p-values.
+calculate_disco_at_threshold <- function(base, filt_threshold, adj_method,
+                                         include_cor_diff = TRUE) {
   comparison <- filter_correlation_tests(
     base$correlation_tests,
     filt_threshold = filt_threshold
   )
   pvals_tmp <- comparison$pvals
-  inds <- base$inds
-
-  t1 <- rownames(base$R1)[inds[, 1]]
-  t2 <- rownames(base$R1)[inds[, 2]]
-  r1 <- base$R1[inds]
-  r2 <- base$R2[inds]
-  n1 <- base$C1[inds]
-  n2 <- base$C2[inds]
-  pvals_filtered <- pvals_tmp[inds]
-  adjp <- stats::p.adjust(pvals_filtered, method = adj_method)
-
-  cor_diff <- data.frame(
-    t1 = t1,
-    t2 = t2,
-    r1 = r1,
-    r2 = r2,
-    n1 = n1,
-    n2 = n2,
-    p = pvals_filtered,
-    q = adjp,
-    stringsAsFactors = FALSE
-  )
-  cor_diff <- cor_diff[!is.na(cor_diff$p), , drop = FALSE]
-  cor_diff <- cor_diff[order(cor_diff$q, na.last = TRUE), , drop = FALSE]
-  rownames(cor_diff) <- NULL
+  cor_diff <- NULL
+  if (include_cor_diff) {
+    cor_diff <- build_cor_diff_table(base, pvals_tmp, adj_method)
+  }
 
   disco_rows <- lapply(seq_len(base$n_feat1), function(i) {
     if (base$two_modal) {
@@ -151,6 +132,37 @@ calculate_disco_at_threshold <- function(base, filt_threshold, adj_method) {
   disco_results <- disco_results[order(disco_results$q), , drop = FALSE]
 
   list(cor_diff = cor_diff, disco = disco_results)
+}
+
+# Materialize pairwise results only when they will be returned or written.
+build_cor_diff_table <- function(base, pvals_tmp, adj_method) {
+  inds <- base$inds
+
+  t1 <- rownames(base$R1)[inds[, 1]]
+  t2 <- rownames(base$R1)[inds[, 2]]
+  r1 <- base$R1[inds]
+  r2 <- base$R2[inds]
+  n1 <- base$C1[inds]
+  n2 <- base$C2[inds]
+  pvals_filtered <- pvals_tmp[inds]
+  adjp <- stats::p.adjust(pvals_filtered, method = adj_method)
+
+  cor_diff <- data.frame(
+    t1 = t1,
+    t2 = t2,
+    r1 = r1,
+    r2 = r2,
+    n1 = n1,
+    n2 = n2,
+    p = pvals_filtered,
+    q = adjp,
+    stringsAsFactors = FALSE
+  )
+  cor_diff <- cor_diff[!is.na(cor_diff$p), , drop = FALSE]
+  cor_diff <- cor_diff[order(cor_diff$q, na.last = TRUE), , drop = FALSE]
+  rownames(cor_diff) <- NULL
+
+  cor_diff
 }
 
 # Run one fixed threshold for legacy sensitivity-analysis scripts

@@ -16,7 +16,8 @@ disco(
   adj_method = "BY",
   output_dir,
   prefix,
-  global_p_cutoff = 0.05
+  global_p_cutoff = 0.05,
+  workers = 1L
 )
 }
 \arguments{
@@ -65,6 +66,13 @@ directory is created when it does not exist.}
 permutation test in empirical mode. Defaults to \code{0.05}. Ratio selection
 proceeds only when the global p-value is strictly below this cutoff;
 otherwise the filtering threshold is \code{1}.}
+
+\item{workers}{Positive integer number of parallel worker processes for null
+permutations. Defaults to \code{1} (sequential); used only in empirical mode.
+The number used is capped at \code{n_resamples}. Each worker holds its own
+correlation matrices, so start with \code{2} if memory is limited. Uses socket
+workers on all platforms. For a given seed, permutations and results do
+not depend on worker count. Workers are stopped on completion or error.}
 }
 \value{
 A list containing \code{cor_diff}, \code{disco}, \code{selected_threshold},
