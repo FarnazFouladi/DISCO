@@ -2,5 +2,6 @@
 ^DESCRIPTION\.empty-directory$
 ^analysis$
 ^visualizations$
+^meta-analysis$
 ^README\.Rmd$
 ^README-results\.rds$
