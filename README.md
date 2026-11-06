@@ -57,7 +57,7 @@ pair passes a threshold when its correlation p-value is below it in at
 least one group. DISCO first compares the maximum real discovery
 percentage across thresholds with the maximum from each permutation:
 
-``` text
+```text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -316,7 +316,7 @@ if (is.null(single)) {
 
 These outputs come from the completed analysis, saved before rendering
 this README. Package version: 0.0.0.9000; curatedMetagenomicData
-version: 3.12.0. Downloading a different resource version can change
+version: 3.14.0. Downloading a different resource version can change
 results. The complete-case restriction excluded **1** sample(s) with
 missing covariates.
 
@@ -345,15 +345,15 @@ Top 10 taxa by DISCO q-value, breaking ties by p-value:
 The first plot compares real discovery percentages with the null mean ±
 SD. The second shows the ratio used to select the threshold.
 
-<img src="man/figures/README-yachida-taxa-discovery_plot.png" width="100%" />
+<img src="man/figures/README-yachida-taxa-discovery_plot.png" alt="" width="100%" />
 
-<img src="man/figures/README-yachida-taxa-ratio_plot.png" width="100%" />
+<img src="man/figures/README-yachida-taxa-ratio_plot.png" alt="" width="100%" />
 
 Each point below is a taxon. Orange denotes real-data DISCO q \<0.2;
 each panel reports its orange-taxon count. The y-axis is the percentage
 of null permutations in which that taxon had DISCO q \<0.2.
 
-<img src="man/figures/README-yachida-taxa-feature_null_plot.png" width="100%" />
+<img src="man/figures/README-yachida-taxa-feature_null_plot.png" alt="" width="100%" />
 
 ## Yachida example: taxa and pathways
 
@@ -441,11 +441,11 @@ does not establish significance; use the reported q-values.
 | Adlercreutzia equolifaciens    | 5.21e-02 | 1e+00   |         404 |
 | Enterocloster aldenensis       | 5.93e-02 | 1e+00   |         404 |
 
-<img src="man/figures/README-yachida-taxa_pathways-discovery_plot.png" width="100%" />
+<img src="man/figures/README-yachida-taxa_pathways-discovery_plot.png" alt="" width="100%" />
 
-<img src="man/figures/README-yachida-taxa_pathways-ratio_plot.png" width="100%" />
+<img src="man/figures/README-yachida-taxa_pathways-ratio_plot.png" alt="" width="100%" />
 
-<img src="man/figures/README-yachida-taxa_pathways-feature_null_plot.png" width="100%" />
+<img src="man/figures/README-yachida-taxa_pathways-feature_null_plot.png" alt="" width="100%" />
 
 ## Rebuilding these examples
 
