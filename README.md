@@ -4,15 +4,28 @@
 <!-- README.md is generated from README.Rmd. Please edit README.Rmd. -->
 
 DISCO (**DIS**ruption in **CO**rrelations) identifies features whose
-correlation patterns differ between two groups. It evaluates
-relationships within one data modality or between two modalities and
-combines pairwise tests into a feature-level DISCO score.
+correlation patterns differ between two groups, such as healthy controls
+and people with a disease. It combines evidence from pairwise
+differential-correlation tests into a score, p-value, and adjusted
+p-value (q-value) for each feature. This helps identify features whose
+relationships with other measurements change between groups, even when
+their average abundance is not the focus of the analysis.
 
-DISCO can be applied to **any high-dimensional data represented by
-quantitative features**, including microbial abundances, gene
-expression, proteins, and metabolites. It uses Spearman correlations
-with Bonett–Wright standard errors and Cauchy combination of
-differential-correlation p-values.
+DISCO supports one modality (for example, correlations among microbial
+taxa) or two modalities (for example, correlations between microbes and
+metabolites). It can be applied to quantitative features such as
+microbial abundances, gene expression, protein levels, and metabolites,
+with preprocessing appropriate to the data type. Correlations describe
+statistical associations, not necessarily direct biological
+interactions.
+
+The implementation uses Spearman correlations with Fisher
+transformations and [Bonett–Wright standard errors
+(2000)](https://doi.org/10.1007/BF02294183), then combines
+differential-correlation p-values using the [Cauchy combination test
+(Liu and Xie, 2020)](https://doi.org/10.1080/01621459.2018.1554485).
+DISCO was introduced by [Fouladi et
+al. (2025)](https://doi.org/10.1038/s41467-025-64822-z).
 
 ## Installation
 
@@ -22,56 +35,112 @@ remotes::install_github("FarnazFouladi/DISCO")
 library(DISCO)
 ```
 
-To use a local checkout during development, run
-`devtools::load_all(".")` from the repository root.
-
 ## Inputs and arguments
 
-`data1` and `data2` represent the two groups. Each is a list containing
-one or two numeric matrices or data frames, with **samples in rows and
-features in columns**. Supply unique feature names and, especially for
-two modalities, unique sample row names. Corresponding modalities are
-restricted to common features and put in a consistent order.
+The main function, `disco()`, compares `data1` (group 1, such as
+controls) with `data2` (group 2, such as cases). Each input is a list
+containing **one or two numeric matrices or data frames**, with
+**samples in rows and features in columns**.
 
-**Normalize inputs appropriately for the data type before running
-DISCO.** The function does not normalize or adjust for covariates. CLR
-is used for the compositional abundance examples below; other data types
-require their own appropriate preprocessing. Supply covariate-adjusted
-data if your analysis requires it. Zeros are observed values; only `NA`
-reduces the pairwise-complete sample count.
+- **One modality:** DISCO compares correlations among features and
+  assigns a score to each feature based on its differential correlations
+  with the others.
+- **Two modalities:** DISCO compares cross-modality correlations and
+  scores features in the **first modality**. For example, list microbes
+  first and metabolites second to score microbes by changes in their
+  metabolite associations. Use the same modality order in both groups.
+
+Features are matched by column name separately within each modality.
+DISCO keeps features shared between groups and reorders group 2 to match
+group 1; you do not need to align columns manually. Supply unique,
+nonempty feature names.
+
+For two modalities, row names must identify samples consistently. Within
+each group, the modalities must share samples, but their sample sets and
+row order may differ. DISCO aligns rows by sample name and represents
+measurements from an unavailable modality as missing. Each feature pair
+must have at least `cooccur` paired, nonmissing observations **in each
+group** to be tested.
+
+**Normalize inputs appropriately before running DISCO.** The function
+does not normalize data or adjust for covariates. Supply normalized and,
+when needed, covariate-adjusted measurements. The abundance examples
+below use a centered log-ratio (CLR) transformation; other data types
+may require different preprocessing. Zeros are treated as observed
+values, while missing values are excluded separately for each pair.
 
 | Argument | Default | Meaning |
 |----|---:|----|
-| `cooccur` | `10` | Minimum pairwise non-missing observations in **each** group; integer ≥4. |
+| `cooccur` | `10` | Minimum pairwise non-missing observations in **each** group; integer ≥10. |
 | `empirically_derive_threshold` | `TRUE` | Select the correlation filtering threshold using label permutations. |
-| `filter_threshold` | `0.05` | Fixed correlation p-value threshold when empirical selection is disabled. |
-| `q_value` | `0.2` | Feature-level DISCO q cutoff for real and null discovery counts and plot colors. |
-| `global_p_cutoff` | `0.05` | Global permutation p-value must be below this cutoff to select by ratio; otherwise use threshold `1`. |
+| `filter_threshold` | `1` | Fixed correlation p-value threshold when empirical selection is disabled. |
+| `q_value` | `0.2` | Feature-level q-value cutoff used to count discoveries in empirical mode. |
+| `global_p_cutoff` | `0.05` | Select a threshold by the real-to-null ratio only when the global permutation p-value is below this cutoff; otherwise use `1`. |
 | `n_resamples` | `100` | Number of size-matched label permutations. |
 | `random_seed` | `1L` | Reproducible permutation seed; the caller’s RNG state is restored. |
 | `adj_method` | `"BY"` | Multiple-testing adjustment passed to `p.adjust()`. |
+| `workers` | `1L` | Number of parallel workers for permutations; capped at `n_resamples`. |
 | `output_dir`, `prefix` | Required | Results directory and filename prefix. |
 
-Empirical mode evaluates `c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1)`. A
-pair passes a threshold when its correlation p-value is below it in at
-least one group. DISCO first compares the maximum real discovery
-percentage across thresholds with the maximum from each permutation:
+### Correlation filtering and threshold selection
+
+DISCO estimates a Spearman correlation for each eligible pair in each
+group, tests whether the correlations differ, and combines the raw
+differential-test p-values separately for each focal feature. In
+high-dimensional data, screening out weak correlations can reduce the
+number of uninformative pairs contributing to a score.
+
+`filter_threshold` screens pairs using their **single-group correlation
+p-values**, not their differential-correlation p-values. A pair is
+retained if its correlation p-value is below the threshold in **at least
+one group**. For example, `filter_threshold = 0.05` excludes pairs whose
+correlation p-values are both ≥0.05. A threshold of `1` is the least
+restrictive setting; minimum sample counts and valid correlation tests
+are still required. The implementation uses a strict `<` comparison, so
+a pair with p-values exactly `1` in both groups is also excluded.
+
+By default, `empirically_derive_threshold = TRUE`. DISCO compares the
+observed data with size-matched random label permutations at thresholds
+`c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1)`. At each threshold, it
+calculates the percentage of tested features with DISCO `q < q_value` in
+the observed data and in each permutation.
+
+A global permutation test compares the maximum observed discovery
+percentage across thresholds with the corresponding maximum from each
+valid permutation:
 
 ```text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
-If the global test passes, DISCO selects the threshold maximizing
-`max(real %, 1) / max(mean null %, 1)`; ties select the largest
-threshold. Otherwise it uses threshold `1`. With 100 permutations, the
-smallest possible global p-value is `1/101`. Thresholds without a real
-discovery percentage are excluded from both maxima; permutations missing
-any remaining threshold are excluded from the global test. Counts used
-are reported in `global_test`. The function stops if no thresholds or
-valid permutations remain.
+If `global p < global_p_cutoff`, DISCO selects the threshold that
+maximizes `max(real percentage, 1) / max(mean null percentage, 1)`. The
+floors are in percentage points and prevent ratios from being dominated
+by near-zero values. Ties select the largest threshold. Otherwise, DISCO
+uses threshold `1`. This global test accounts for searching across
+thresholds; it does not further adjust the individual feature q-values
+for threshold selection.
 
-For a fixed threshold, set `empirically_derive_threshold = FALSE` and
-supply `filter_threshold`. This skips permutations and diagnostic plots.
+For two modalities, permutations preserve each modality’s group sizes
+and sample overlap. A shared sample receives the same shuffled group
+label in both modalities.
+
+To use a fixed threshold, set `empirically_derive_threshold = FALSE` and
+supply `filter_threshold` (default `1`). This skips permutations and
+diagnostic plots. For example, with already preprocessed matrices
+`controls` and `cases`:
+
+``` r
+result <- disco(
+  data1 = list(controls),
+  data2 = list(cases),
+  empirically_derive_threshold = FALSE,
+  filter_threshold = 1,
+  output_dir = "disco_results",
+  prefix = "controls_vs_cases"
+)
+head(result$disco)
+```
 
 ## Returned results
 
@@ -86,47 +155,47 @@ supply `filter_threshold`. This skips permutations and diagnostic plots.
 | `feature_null_summary`, `feature_null_plot` | Per-feature null discovery frequencies versus real p-values, across thresholds. |
 | `output_files` | Paths to saved CSV tables and PNG figures. |
 
-In two-modality mode, DISCO tests **cross-modality pairs** and scores
-features in the **first modality**. Samples may differ between
-modalities; permutations preserve each modality’s group sizes and
-overlap. A shared sample receives one shuffled label for both
-modalities.
+In `feature_null_summary`, a column such as `q_less_than_0.2` indicates
+whether the real-data feature q-value is below `0.2`. Its name follows
+the supplied `q_value`. Null discovery percentages use all requested
+permutations as the denominator, counting absent or untested features as
+non-discoveries.
 
-In `feature_null_summary`, `q_less_than_0.2` indicates a real-data DISCO
-`q < 0.2`; its name follows `q_value`. Null discovery percentages use
-all permutations as the denominator, counting untested features as
-non-discoveries. These frequencies are not formal feature-level FDR
-estimates. The plots display real p-values below `1e-8` at
-`-log10(p) = 8`; original p-values are retained. The global test
-accounts for searching across thresholds but does not adjust
-feature-level q-values for threshold selection.
+`feature_null_plot` shows **−log10(real-data p-value)** on the x-axis
+and the percentage of permutations in which the feature has
+`q < q_value` on the y-axis. Orange points identify real-data
+discoveries. Low null discovery frequencies provide a useful diagnostic,
+but are not formal feature-level FDR estimates.
 
-Fixed mode returns the first three components and `output_files`; the
-diagnostic components are `NULL`. Pair and feature tables are saved as
-`<prefix>_cor_diff.csv` and `<prefix>_disco.csv`.
+In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and
+`output_files` are returned; the diagnostic components are `NULL`. Pair
+and feature tables are saved as `<prefix>_cor_diff.csv` and
+`<prefix>_disco.csv`.
 
-## Yachida example: taxa
+## Example: One modality — microbial composition
 
-We use healthy controls and CRC samples from [Yachida et
+For this example, we use healthy controls and CRC metagenomes from
+[Yachida et
 al. (2019)](https://www.nature.com/articles/s41591-019-0458-7), accessed
 through
 [curatedMetagenomicData](https://waldronlab.io/curatedMetagenomicData/reference/returnSamples.html).
-This example uses:
 
-- Relative abundances (`counts = FALSE`).
-- Features present in **≥10% of samples in each group**: a feature must
-  pass separately in both healthy controls and CRC.
-- Zero replacement with **half each feature’s minimum positive
-  abundance**, estimated across that cohort after prevalence filtering.
-- **CLR normalization** within each sample, separately for each
-  modality.
-- After CLR, each feature is residualized against **age, gender, and
-  BMI** using **separate models within healthy controls and CRC**. Each
-  group has its own intercept and covariate coefficients. Models are
-  fitted once within the original groups; the resulting residuals feed
-  the real comparison and all label permutations, without refitting the
-  covariate models after shuffling.
-- 100 label permutations, q cutoff 0.2, and global p-value cutoff 0.05.
+The workflow preprocesses the data as follows:
+
+1.  Retrieve microbial relative abundances from `curatedMetagenomicData`
+    and exclude samples missing age, gender, or BMI.
+2.  Retain features present in **≥10% of samples in each group**,
+    requiring the cutoff separately in controls and CRC.
+3.  Replace zeros with half of each feature’s minimum positive relative
+    abundance, estimated across the combined retained cohort.
+4.  Apply the **CLR transformation** within each sample.
+5.  Regress each transformed feature on **age, gender, and BMI**,
+    fitting separate models in controls and CRC. Use the residuals as
+    DISCO inputs. These models are fitted once in the original groups,
+    before permutations.
+
+The example uses 100 label permutations, a feature q-value cutoff of
+0.2, and a global p-value cutoff of 0.05.
 
 Install the example dependencies if needed:
 
@@ -197,7 +266,9 @@ if (any(table(factor(taxa_group, levels = c("healthy", "CRC"))) < settings$coocc
 }
 ```
 
-The same preprocessing helper is used for taxa and pathways:
+The preprocessing helper applies the prevalence filter, half-minimum
+zero replacement, and CLR transformation. It is used independently for
+each modality.
 
 ``` r
 # Samples are rows; features are columns. Apply independently per modality.
@@ -285,6 +356,8 @@ residualize_abundance <- function(clr, metadata, group) {
 }
 ```
 
+Run DISCO on the covariate-adjusted measurements:
+
 ``` r
 taxa_prepared <- preprocess_abundance(taxa, taxa_group, settings$prevalence_cutoff)
 taxa_adjusted <- residualize_abundance(
@@ -325,7 +398,7 @@ missing covariates.
 |     245 | 258 |           184 |
 
 Global p-value: **0.009901**. Selected threshold: **0.01**. Taxa with
-DISCO q \<0.2 at the selected threshold: **80**.
+DISCO q \< 0.2 at the selected threshold: **80**.
 
 Top 10 taxa by DISCO q-value, breaking ties by p-value:
 
@@ -342,20 +415,37 @@ Top 10 taxa by DISCO q-value, breaking ties by p-value:
 | \[Eubacterium\] sulci      | 1.26e-05 | 1.50e-03 |          98 |
 | Clostridium sp. CAG:299    | 1.60e-05 | 1.71e-03 |         116 |
 
-The first plot compares real discovery percentages with the null mean ±
-SD. The second shows the ratio used to select the threshold.
+The two highest-ranked taxa are *Parvimonas micra* and *Fusobacterium
+ulcerans*. *P. micra* has been associated with CRC and shown to promote
+colorectal tumorigenesis in experimental models ([Zhao et al.,
+2022](https://pmc.ncbi.nlm.nih.gov/articles/PMC9439953/)). For *F.
+ulcerans*, the evidence is more specific: a lineage including *F.
+ulcerans* and *F. varium* was associated with lymphovascular invasion in
+CRC tumours, although that lineage was not enriched in CRC overall ([Bi
+et al., 2022](https://www.nature.com/articles/s41467-022-30957-6)).
+These studies provide biological context; DISCO identifies changes in
+correlation patterns rather than testing abundance differences or
+causality.
+
+The discovery plot compares observed discovery percentages with the
+permutation mean ± SD. Here, the global p-value is **0.009901**, and the
+selected threshold is **0.01**. The ratio plot shows the criterion used
+to select that threshold.
 
 <img src="man/figures/README-yachida-taxa-discovery_plot.png" alt="" width="100%" />
 
 <img src="man/figures/README-yachida-taxa-ratio_plot.png" alt="" width="100%" />
 
-Each point below is a taxon. Orange denotes real-data DISCO q \<0.2;
-each panel reports its orange-taxon count. The y-axis is the percentage
-of null permutations in which that taxon had DISCO q \<0.2.
+In the next figure, each point is a taxon and each panel is a filtering
+threshold. Orange points have real-data DISCO q \< 0.2. The x-axis shows
+−log10 of the real-data p-value; the y-axis shows the percentage of
+label permutations in which the taxon has DISCO q \< 0.2. Compare panels
+to see how filtering changes both the observed discoveries and their
+null discovery frequencies.
 
 <img src="man/figures/README-yachida-taxa-feature_null_plot.png" alt="" width="100%" />
 
-## Yachida example: taxa and pathways
+## Example: Two modalities — microbial composition and pathways
 
 We now compare **taxon–pathway correlations** between CRC and healthy
 controls. The first modality is taxa, so the DISCO scores describe taxa
@@ -420,13 +510,21 @@ if (is.null(two)) {
 |--------:|----:|--------------:|------------------:|
 |     245 | 258 |           184 |               404 |
 
-Global p-value: **1**. Selected threshold: **1**. Taxa with DISCO q
-\<0.2 at the selected threshold: **0**.
+Global p-value: **1**. Selected threshold: **1**. Taxa with DISCO q \<
+0.2 at the selected threshold: **0**.
 
-The global test does not detect excess discoveries in this taxon–pathway
-analysis, so DISCO falls back to threshold 1. The table below shows the
-top 10 taxa by DISCO q-value, breaking ties by p-value. A ranking alone
-does not establish significance; use the reported q-values.
+The global test does not detect an excess of discoveries in this
+taxon–pathway analysis, so DISCO uses the least restrictive threshold,
+1.
+
+The table below lists the top 10 taxa by DISCO q-value, breaking ties by
+p-value. At the selected threshold, **0** taxa have q \< 0.2.
+
+In this cohort and with this preprocessing, the one-modality analysis
+detects changes in taxon–taxon correlation patterns. The taxon–pathway
+analysis does not provide comparable evidence of a global excess of
+discoveries. This result does not establish that microbial functions or
+individual taxon–pathway relationships are unchanged.
 
 | Taxon                          | DISCO p  | DISCO q | Comparisons |
 |:-------------------------------|:---------|:--------|------------:|
@@ -484,3 +582,15 @@ using `Rscript analysis/test_yachida_readme_helpers.R`.
 ## License
 
 DISCO is licensed under the MIT License.
+
+## Citation
+
+If you use DISCO, please cite the paper that introduced the method:
+
+Fouladi F, Chen Y, Bera S, Jarmusch AK, Van Tyne D, Palella FJ,
+Margolick JB, Chew KW, Sun J, Martinson J, Rinaldo CR, Peddada SD. A
+taxon-specific measurement of disruption in a multi-modal study of
+microbiomes and metabolomes reveals system-wide dysbiosis preceding
+HIV-1 infection. Nat Commun. 2025 Nov 20;16(1):10204.
+[doi:10.1038/s41467-025-64822-z](https://doi.org/10.1038/s41467-025-64822-z).
+PMID: 41266305; PMCID: PMC12635353.

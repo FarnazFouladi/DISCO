@@ -18,7 +18,7 @@
 #' @param data2 A list with the same number of modalities as `data1`, containing
 #'   data for the second group. Rows represent samples and columns represent
 #'   features.
-#' @param cooccur A single integer greater than or equal to 4. A feature pair is
+#' @param cooccur A single integer greater than or equal to 10. A feature pair is
 #'   tested only when both groups have at least this many pairwise non-missing
 #'   observations.
 #' @param empirically_derive_threshold Logical. If `TRUE`, select the filtering
@@ -100,7 +100,7 @@ disco <- function(data1,
                   data2,
                   cooccur = 10,
                   empirically_derive_threshold = TRUE,
-                  filter_threshold = 0.05,
+                  filter_threshold = 1,
                   q_value = 0.2,
                   n_resamples = 100,
                   random_seed = 1L,

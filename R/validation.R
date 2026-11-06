@@ -1,8 +1,8 @@
 # Validate the minimum co-occurrence threshold
 validate_cooccur <- function(cooccur) {
   if (!is.numeric(cooccur) || length(cooccur) != 1 || is.na(cooccur) ||
-      !is.finite(cooccur) || cooccur < 4 || cooccur != floor(cooccur)) {
-    stop("cooccur must be a single integer greater than or equal to 4",
+      !is.finite(cooccur) || cooccur < 10 || cooccur != floor(cooccur)) {
+    stop("cooccur must be a single integer greater than or equal to 10",
          call. = FALSE)
   }
 

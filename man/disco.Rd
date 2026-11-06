@@ -9,7 +9,7 @@ disco(
   data2,
   cooccur = 10,
   empirically_derive_threshold = TRUE,
-  filter_threshold = 0.05,
+  filter_threshold = 1,
   q_value = 0.2,
   n_resamples = 100,
   random_seed = 1L,
@@ -28,7 +28,7 @@ the first group. Rows represent samples and columns represent features.}
 data for the second group. Rows represent samples and columns represent
 features.}
 
-\item{cooccur}{A single integer greater than or equal to 4. A feature pair is
+\item{cooccur}{A single integer greater than or equal to 10. A feature pair is
 tested only when both groups have at least this many pairwise non-missing
 observations.}
 
