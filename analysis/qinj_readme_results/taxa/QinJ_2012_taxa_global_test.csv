@@ -1,2 +1,2 @@
 "real_max_percentage","null_mean_max_percentage","null_sd_max_percentage","n_thresholds","n_valid_resamples","global_p_value","global_p_cutoff","signal_detected","selected_threshold"
-21.6216216216216,4.68207739516273,5.74409896307462,7,1000,0.012987012987013,0.05,TRUE,0.01
+26.6666666666667,3.03337702103837,4.81939328228008,7,1000,0.001998001998002,0.05,TRUE,0.005

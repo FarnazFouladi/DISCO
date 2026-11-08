@@ -27,6 +27,14 @@ example_results <- lapply(c("taxa", "taxa_pathways"), function(mode) {
   readRDS(file.path("analysis/qinj_readme_results", mode, "disco_analysis.rds"))
 })
 names(example_results) <- c("taxa", "taxa_pathways")
+example_significant <- lapply(example_results, function(result) {
+  result$disco$species[is.finite(result$disco$q) & result$disco$q < readme_results$settings$q_value]
+})
+example_union <- length(Reduce(union, example_significant))
+example_overlap <- length(Reduce(intersect, example_significant))
+example_pairs <- list(
+  taxa = read.csv("analysis/qinj_differential_scatterplots/top10_pairs.csv"),
+  taxa_pathways = read.csv("analysis/qinj_taxa_pathway_scatterplots/top1_pairs.csv"))
 disco_taxa_table <- function(x) {
   x <- x[is.finite(x$q) & x$q < readme_results$settings$q_value, , drop = FALSE]
   x <- x[order(x$q, x$p, x$species), c("species", "t", "p", "q", "num_corr")]
@@ -81,11 +89,10 @@ columns**.
 - **Two modalities:** DISCO compares cross-modality correlations and scores
   features in the **first modality**. For example, list microbes first and
   metabolites second to score microbes by changes in their metabolite
-  associations. Use the same modality order in both groups.
+  associations. The order of two data modalities should be the same in both groups.
 
-Features are matched by column name separately within each modality. DISCO
-keeps features shared between groups and reorders group 2 to match group 1;
-you do not need to align columns manually.
+Features are matched between the two groups by column name separately within each modality. DISCO
+keeps features shared between groups and reorders group 2 to match group 1.
 
 For two modalities, row names must identify samples consistently. Within each
 group, the modalities must share samples, but their sample sets and row order
@@ -93,8 +100,8 @@ may differ. DISCO aligns rows by sample name and represents measurements from
 an unavailable modality as missing. Each feature pair must have at least
 `cooccur` paired, nonmissing observations **in each group** to be tested.
 
-**Normalize inputs appropriately before running DISCO.** The function does not
-normalize data or adjust for covariates. Supply normalized and, when needed,
+**Please normalize inputs appropriately before running DISCO.** The function does not
+normalize data or adjust for covariates. Users should supply normalized and, when needed,
 covariate-adjusted measurements. In the examples below we use a robust centered
 log-ratio (CLR) transformation for microbiome data: each sample is centred over
 its observed positive features, and abundance zeros are represented as `NA`.
@@ -121,11 +128,9 @@ values; missing values are excluded separately for each pair.
 
 DISCO estimates a Spearman correlation for each eligible pair in each group,
 tests whether the correlations differ, and combines the raw differential-test
-p-values separately for each focal feature. In high-dimensional data, screening
+p-values separately for each focal feature. In high-dimensional data, the number of pairwise correlations is considerably high and therefore screening
 out weak correlations can reduce the number of uninformative pairs contributing
-to a score and increase the power, although this could be at the expense of increasing false positives.
-
-`filter_threshold` screens pairs using their **single-group correlation
+to a score and increase the power, although sometimes this could be at the expense of increasing false positives. Users can remove correlations using `filter_threshold` which screens pairs using their **single-group correlation
 p-values**, not their differential-correlation p-values. A pair is retained if
 its correlation p-value is below the threshold in **at least one group**. For
 example, `filter_threshold = 0.05` excludes pairs whose correlation p-values are
@@ -200,33 +205,33 @@ saved as `<prefix>_cor_diff.csv` and `<prefix>_disco.csv`.
 
 This example uses **QinJ_2012**, comparing type 2 diabetes (**T2D**) with
 strictly healthy controls in `curatedMetagenomicData`. Both the one-modality
-and two-modality examples use this same comparison; studies are not pooled.
+and two-modality examples use this same comparison.
 
 The workflow follows these steps:
 
 1. Select one independent sample per participant, excluding conflicting disease
-   labels and samples missing **gender, BMI, or age category**. Retain the
+   labels and samples missing **gender or BMI**. Retain the
    earliest covariate-complete sample, breaking collection-day ties by sample ID.
 2. Retain features present in **≥`r example_prevalence`% of each group**, testing
    prevalence separately in controls and T2D.
 3. Apply **robust CLR** within each sample, centring log positive abundances
    over the retained observed features. Abundance zeros and existing missing
-   values remain `NA`; no zero replacement or matrix completion is performed.
-4. Fit **`~ gender + BMI + age_category` separately within controls and T2D**,
-   using each feature's observed values. Gender and age category are categorical;
-   BMI is continuous. Preserve missing residuals. Models are fitted once in the
-   original groups, before permutations.
+   values remain `NA`; no zero imputation is performed.
+4. Fit **`~ gender + BMI` separately within controls and T2D**,
+   using each feature's observed values. Gender is categorical and BMI is
+   continuous. Preserve missing residuals. Models are fitted once in the
+   original groups before permutations.
 5. Run DISCO on the residuals, using complete observations separately for each
    pair and requiring at least **`r readme_results$settings$cooccur` observations
-   in each group**. A sample missing one feature can contribute to other pairs.
+   in each group**.
 
 The saved run uses **`r readme_results$settings$n_resamples` permutations**,
 `r readme_results$settings$workers` workers, seed
 `r readme_results$settings$random_seed`, BY adjustment, feature q <
 `r example_q`, and global p < `r readme_results$settings$global_p_cutoff`.
-Age categories are adult, schoolage, and senior. Each group has only one
-schoolage participant; a feature with an unestimable adjustment model is left
-missing and its model status is recorded.
+Age category is not included in the adjustment or used to exclude participants.
+A feature with an unestimable adjustment model is left missing and its model
+status is recorded.
 
 ### Retrieve and preprocess the data
 
@@ -297,9 +302,7 @@ covariate adjustment. They are not differential-abundance or causal-effect tests
 The global permutation p-value is
 **`r format(readme_results$taxa$global_test$global_p_value, digits=4)`**;
 the selected correlation-filtering threshold is
-**`r readme_results$taxa$selected_threshold`**. The global test passes, so DISCO
-selects the threshold using the maximum real-to-null discovery ratio, with the
-documented tie rule.
+**`r readme_results$taxa$selected_threshold`**. `r if (readme_results$taxa$global_test$signal_detected) "The global test passes, so DISCO selects the threshold using the maximum real-to-null discovery ratio, with the documented tie rule." else "The global test does not pass, so DISCO uses the fallback threshold of 1."`
 
 The discovery plot compares observed discovery percentages with the permutation
 mean ± SD. The ratio plot shows the criterion used for threshold selection.
@@ -323,7 +326,7 @@ knitr::include_graphics("man/figures/README-qinj-taxa-feature_null_plot.png")
 
 ### Taxon–taxon network
 
-The network highlights the **top five significant taxa**, ranked by DISCO q,
+The network highlights the **top ten significant taxa**, ranked by DISCO q,
 then p. Edges are selected by **raw differential-correlation p < 0.05** from
 the saved pair table after DISCO's selected correlation filter. This edge rule
 is separate from the feature-level DISCO q cutoff. The panels share nodes,
@@ -337,8 +340,8 @@ knitr::include_graphics("man/figures/README-qinj-taxa-network.png")
 
 ### Example pairwise scatterplot
 
-The highest-ranked retained pair is **Bacteroides thetaiotaomicron versus
-Bacteroides uniformis**, ranked by differential-correlation q, then p. The plot
+The highest-ranked retained pair is **`r example_pairs$taxa$t1[1]` versus
+`r example_pairs$taxa$t2[1]`**, ranked by differential-correlation q, then p. The plot
 uses the exact adjusted inputs passed to DISCO and only complete pairs. Its
 annotations report saved Spearman correlations and paired sample counts;
 dashed linear fits are visual guides. The displayed pair p/q are distinct
@@ -357,8 +360,7 @@ community totals, excluding `UNMAPPED` and `UNINTEGRATED`.
 
 Restrict both modalities to common usable participants, then repeat the
 ≥`r example_prevalence`% per-group prevalence filter and robust CLR separately
-for taxa and pathways. Adjust **both modalities** for gender, BMI, and age
-category in separate control/T2D models, preserving missing values throughout.
+for taxa and pathways. Adjust **both modalities** for gender and BMI in separate control/T2D models, preserving missing values throughout.
 
 ```{r run-two-modalities, eval=FALSE}
 ```
@@ -383,8 +385,8 @@ disco_taxa_table(example_results$taxa_pathways$disco)
 The global permutation p-value is
 **`r format(readme_results$taxa_pathways$global_test$global_p_value, digits=4)`**;
 the selected threshold is **`r readme_results$taxa_pathways$selected_threshold`**.
-The global test passes and DISCO selects the threshold using the real-to-null
-discovery ratio. These diagnostics are calculated separately from taxa-only DISCO.
+`r if (readme_results$taxa_pathways$global_test$signal_detected) "The global test passes and DISCO selects the threshold using the real-to-null discovery ratio." else "The global test does not pass, so DISCO uses the fallback threshold of 1."`
+These diagnostics are calculated separately from taxa-only DISCO.
 
 ```{r two-discoveries, echo=FALSE, out.width="100%"}
 knitr::include_graphics("man/figures/README-qinj-taxa_pathways-discovery_plot.png")
@@ -414,8 +416,9 @@ knitr::include_graphics("man/figures/README-qinj-taxa_pathways-network.png")
 
 ### Example pairwise scatterplot
 
-The highest-ranked retained pair is **Bilophila wadsworthia versus PWY-6612**
-(superpathway of tetrahydrofolate biosynthesis). The plotted values
+The highest-ranked retained pair is **`r example_pairs$taxa_pathways$t1[1]` versus
+`r sub(":.*$", "", example_pairs$taxa_pathways$t2[1])`**
+(`r sub("^[^:]+: *", "", example_pairs$taxa_pathways$t2[1])`). The plotted values
 are the separately adjusted robust CLR taxon and pathway measurements, with
 complete pairs only. Saved group Spearman correlations, sample counts, and
 pair-level differential p/q are shown; dashed lines remain visual guides.
@@ -426,15 +429,18 @@ knitr::include_graphics("man/figures/README-qinj-taxa_pathways-scatterplot.png")
 
 ## Overall example results
 
-Across the two analyses, **18 unique taxa** have DISCO q < `r example_q` in at
-least one analysis: seven in taxa–taxa DISCO, 14 in taxon–pathway DISCO, and three
-in both. The heatmap compares the **raw feature-level DISCO p-values** for this
+Across the two analyses, **`r example_union` unique taxa** have DISCO q < `r example_q`
+in at least one analysis: `r length(example_significant$taxa)` in taxa–taxa DISCO,
+`r length(example_significant$taxa_pathways)` in taxon–pathway DISCO, and
+`r example_overlap` in both. The heatmap compares the **raw feature-level DISCO p-values** for this
 union, including each taxon's nonsignificant result in the other column.
 
 Colors show **−log10(raw DISCO p)** without row scaling. An asterisk marks
-**DISCO q < `r example_q`** in that cell. Rows are hierarchically clustered by
-Euclidean distance on the displayed values using complete linkage; the two
-analysis columns stay in a fixed order. Thus the stars summarize adjusted
+**DISCO q < `r example_q`** in that cell. Rows with both results are hierarchically clustered by
+Euclidean distance on the displayed values using complete linkage. Taxa without
+a testable result in one analysis are shown in a separate unclustered block,
+with unavailable values grey; no p-values are imputed. The two analysis columns
+stay in a fixed order. Thus the stars summarize adjusted
 significance, while the colors retain the raw p-value magnitude.
 
 ```{r overall-heatmap, echo=FALSE, out.width="100%"}
@@ -475,7 +481,7 @@ diagnostic_names <- paste0("README-qinj-",
 assets <- stats::setNames(
   file.path("analysis/qinj_readme_results/figures", diagnostic_names), diagnostic_names)
 assets <- c(assets,
-  "README-qinj-taxa-network.png" = "analysis/qinj_taxa_networks/top5_taxa_combined_control_T2D_networks.png",
+  "README-qinj-taxa-network.png" = "analysis/qinj_taxa_networks/top10_taxa_combined_control_T2D_networks.png",
   "README-qinj-taxa-scatterplot.png" = "analysis/qinj_differential_scatterplots/top10_page01_preview.png",
   "README-qinj-taxa_pathways-network.png" = "analysis/qinj_taxa_pathway_networks/top5_taxa_pathways_control_T2D_networks.png",
   "README-qinj-taxa_pathways-scatterplot.png" = "analysis/qinj_taxa_pathway_scatterplots/top1_page01_preview.png",

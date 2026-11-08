@@ -1,7 +1,7 @@
 # Generate QinJ_2012 T2D/control results, following the Nielsen README workflow.
 # Run from any directory: Rscript /path/to/DISCO/analysis/run_qinj_readme_examples.R
 # Or in R: source("/path/to/DISCO/analysis/run_qinj_readme_examples.R")
-# Both modalities use separate healthy/T2D gender/BMI/age-category models after robust CLR; zeros remain NA.
+# Both modalities use separate healthy/T2D gender/BMI models after robust CLR; zeros remain NA.
 # Both taxa-only and taxon-pathway analyses use the current local DISCO code.
 # Set DISCO_README_RECOMPUTE=true to recompute both examples.
 
@@ -28,10 +28,10 @@ recompute <- identical(tolower(Sys.getenv("DISCO_README_RECOMPUTE")), "true")
 settings <- list(
   workers = 12L,
   n_resamples = 1000L, random_seed = 1L, cooccur = 20L, adj_method = "BY",
-  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.2,
+  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.5,
   transformation = "robust CLR; zeros remain NA",
   prevalence_scope = "at least 20% in each of healthy and T2D",
-  covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI + age_category"
+  covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI"
 )
 results_dir <- file.path(analysis_dir, "qinj_readme_results")
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
@@ -43,7 +43,7 @@ metadata <- selection$metadata
 excluded_covariates <- selection$excluded_covariates
 sample_metadata <- metadata
 rownames(sample_metadata) <- sample_metadata$sample_id
-message("Excluded ", nrow(excluded_covariates), " sample(s) missing gender, BMI or age category; ",
+message("Excluded ", nrow(excluded_covariates), " sample(s) missing gender or BMI; ",
         nrow(selection$excluded_subjects), " conflicting or repeated sample(s).")
 taxa_se <- curatedMetagenomicData::returnSamples(
   metadata, dataType = "relative_abundance", counts = FALSE, rownames = "short"

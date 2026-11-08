@@ -1,18 +1,47 @@
 "species","x","y","role","label","fontface"
-"[Clostridium] innocuum",1,0.678206272843666,"Partner taxon","[Clostridium]
-innocuum","plain"
-"Alistipes putredinis",0.743382391077167,-0.942871303031392,"Top 5 DISCO taxon","Alistipes putredinis","bold"
-"Bacteroides ovatus",0.0649622267650904,-0.0802006030886704,"Partner taxon","Bacteroides ovatus","plain"
-"Bacteroides thetaiotaomicron",0.118150879786432,-0.996575856078205,"Top 5 DISCO taxon","Bacteroides
-thetaiotaomicron","bold"
-"Bacteroides uniformis",-0.243188975450634,-0.402829642598427,"Top 5 DISCO taxon","Bacteroides uniformis","bold"
-"Bilophila wadsworthia",0.13236438442493,-0.70565915863989,"Top 5 DISCO taxon","Bilophila wadsworthia","bold"
-"Enterocloster bolteae",0.436741745140437,1,"Partner taxon","Enterocloster bolteae","plain"
-"Flavonifractor plautii",0.391825451977688,0.251680693675076,"Top 5 DISCO taxon","Flavonifractor
-plautii","bold"
-"Parabacteroides distasonis",0.409782819841544,-0.482964350114501,"Partner taxon","Parabacteroides
+"[Ruminococcus] gnavus",-0.525910203134168,0.927180963887456,"Partner taxon","[Ruminococcus] gnavus","plain"
+"[Ruminococcus] torques",-0.938152192146486,-0.0692396788861321,"Partner taxon","[Ruminococcus]
+torques","plain"
+"Agathobaculum butyriciproducens",-0.21899013146512,0.310504738426164,"Top 10 DISCO taxon","Agathobaculum
+butyriciproducens","bold"
+"Alistipes putredinis",0.59857982347423,0.688581052289196,"Partner taxon","Alistipes putredinis","plain"
+"Alistipes shahii",-0.766052356503969,0.0629039503004574,"Top 10 DISCO taxon","Alistipes shahii","bold"
+"Anaerostipes hadrus",-0.812776908337419,0.452484726957501,"Top 10 DISCO taxon","Anaerostipes hadrus","bold"
+"Bacteroides caccae",0.198961407617492,-0.0751952987753528,"Partner taxon","Bacteroides caccae","plain"
+"Bacteroides intestinalis",0.655694067519706,-0.578276693697659,"Top 10 DISCO taxon","Bacteroides
+intestinalis","bold"
+"Bacteroides ovatus",0.343635912075844,0.409455080602643,"Partner taxon","Bacteroides ovatus","plain"
+"Bacteroides thetaiotaomicron",0.29967259113315,0.0904561393320322,"Partner taxon","Bacteroides
+thetaiotaomicron","plain"
+"Bacteroides uniformis",0.167599554393156,0.264686475538112,"Top 10 DISCO taxon","Bacteroides uniformis","bold"
+"Bifidobacterium longum",0.856836013155791,-0.812204844298352,"Top 10 DISCO taxon","Bifidobacterium
+longum","bold"
+"Bilophila wadsworthia",0.409662814183018,0.643868117122672,"Top 10 DISCO taxon","Bilophila wadsworthia","bold"
+"Blautia obeum",-0.500688961179613,0.149718777623088,"Partner taxon","Blautia obeum","plain"
+"Blautia wexlerae",-0.633072870955193,0.931731476411581,"Partner taxon","Blautia wexlerae","plain"
+"Butyricimonas virosa",0.286152276738669,0.554819067892032,"Partner taxon","Butyricimonas virosa","plain"
+"Collinsella aerofaciens",-0.0284195526826216,0.188573006511856,"Top 10 DISCO taxon","Collinsella
+aerofaciens","bold"
+"Coprococcus comes",1,-1,"Partner taxon","Coprococcus comes","plain"
+"Dorea formicigenerans",-0.860152094222161,-0.237865229742629,"Partner taxon","Dorea formicigenerans","plain"
+"Flavonifractor plautii",0.141421984069981,0.576700680132111,"Partner taxon","Flavonifractor
+plautii","plain"
+"Fusicatenibacter saccharivorans",-0.685324067372924,0.750695015002755,"Partner taxon","Fusicatenibacter
+saccharivorans","plain"
+"Lachnospira eligens",-0.54374845458356,0.603773434497143,"Top 10 DISCO taxon","Lachnospira eligens","bold"
+"Odoribacter splanchnicus",0.562815691088786,0.891326907311264,"Partner taxon","Odoribacter
+splanchnicus","plain"
+"Oscillibacter sp. 57_20",-0.972816823762528,0.647686290636363,"Partner taxon","Oscillibacter sp.
+57_20","plain"
+"Parabacteroides distasonis",-0.0372921620538218,0.370074124284709,"Partner taxon","Parabacteroides
 distasonis","plain"
-"Phascolarctobacterium faecium",-0.397496624191805,-1,"Partner taxon","Phascolarctobacterium
-faecium","plain"
-"Phocaeicola vulgatus",-1,-0.607562577546049,"Partner taxon","Phocaeicola vulgatus","plain"
-"Prevotella copri",-0.884602247365059,0.0152420054430675,"Partner taxon","Prevotella copri","plain"
+"Parabacteroides merdae",0.066372711239074,0.0578608134220324,"Partner taxon","Parabacteroides
+merdae","plain"
+"Parasutterella excrementihominis",-1,0.429674610955128,"Partner taxon","Parasutterella
+excrementihominis","plain"
+"Prevotella copri",0.426655546970378,-0.188486411476207,"Top 10 DISCO taxon","Prevotella copri","bold"
+"Roseburia faecis",-0.296748925192819,0.068134070577992,"Partner taxon","Roseburia faecis","plain"
+"Ruthenibacterium lactatiformans",0.46846912718563,1,"Partner taxon","Ruthenibacterium
+lactatiformans","plain"
+"Streptococcus salivarius",0.715732665535583,-0.861477531451831,"Partner taxon","Streptococcus
+salivarius","plain"

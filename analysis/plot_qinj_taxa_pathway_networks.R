@@ -137,7 +137,7 @@ plot <- ggplot2::ggplot() +
     caption = paste0(
       "Gold nodes: top taxa ranked by cross-modality DISCO q, then p. Grey nodes: pathways (IDs shown; full names in network_nodes.csv).\n",
       "Red: positive correlation; blue: negative correlation. Width: |r|. Identical nodes, edges and positions in both groups.\n",
-      "Inputs: robust CLR (zeros left NA), adjusted separately within each group for gender, BMI and age category.\n",
+      "Inputs: robust CLR (zeros left NA), adjusted separately within each group for gender and BMI.\n",
       "Raw edge p-values are unadjusted and do not imply within-group significance. Selected DISCO filter: ", result$selected_threshold, ".")) +
   ggplot2::theme_void(base_size = 12) +
   ggplot2::theme(strip.text = ggplot2::element_text(size = 15, face = "bold"),

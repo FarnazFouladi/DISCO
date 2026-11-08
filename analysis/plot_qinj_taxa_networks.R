@@ -12,7 +12,7 @@
 # No neighbour-neighbour edges are added unless incident to a selected top taxon.
 
 # Change this number to select how many significant DISCO taxa to highlight.
-top_n <- 5L
+top_n <- 10L
 
 script_file <- local({
   files <- as.character(unlist(lapply(sys.frames(), function(frame) frame$ofile),
@@ -140,7 +140,7 @@ plot <- ggplot2::ggplot() +
                        " | ", nrow(nodes), " taxa, ", nrow(edges), " unique pairs per group"),
     caption = paste0(
       "Gold nodes and bold labels: top ", top_n, " taxa ranked by DISCO q, then p. Identical nodes, edges and positions in both groups.\n",
-      "Red: positive correlation; blue: negative correlation. Width: |r|. Inputs: robust CLR (zeros left NA), adjusted for gender, BMI and age category within each group.\n",
+      "Red: positive correlation; blue: negative correlation. Width: |r|. Inputs: robust CLR (zeros left NA), adjusted for gender and BMI within each group.\n",
       "Edges connect a selected top taxon to its differential-correlation partners; presence does not imply within-group significance. Raw edge p-values are unadjusted. Selected DISCO filter: ",
       result$selected_threshold, "."
     )

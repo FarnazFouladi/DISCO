@@ -44,11 +44,12 @@ containing **one or two numeric matrices or data frames**, with
 - **Two modalities:** DISCO compares cross-modality correlations and
   scores features in the **first modality**. For example, list microbes
   first and metabolites second to score microbes by changes in their
-  metabolite associations. Use the same modality order in both groups.
+  metabolite associations. The order of two data modalities should be
+  the same in both groups.
 
-Features are matched by column name separately within each modality.
-DISCO keeps features shared between groups and reorders group 2 to match
-group 1; you do not need to align columns manually.
+Features are matched between the two groups by column name separately
+within each modality. DISCO keeps features shared between groups and
+reorders group 2 to match group 1.
 
 For two modalities, row names must identify samples consistently. Within
 each group, the modalities must share samples, but their sample sets and
@@ -57,16 +58,17 @@ measurements from an unavailable modality as missing. Each feature pair
 must have at least `cooccur` paired, nonmissing observations **in each
 group** to be tested.
 
-**Normalize inputs appropriately before running DISCO.** The function
-does not normalize data or adjust for covariates. Supply normalized and,
-when needed, covariate-adjusted measurements. In the examples below we
-use a robust centered log-ratio (CLR) transformation for microbiome
-data: each sample is centred over its observed positive features, and
-abundance zeros are represented as `NA`. DISCO then uses complete
-observations separately for each feature pair; it does not require a
-sample to be observed for every feature. Other data types may require
-different preprocessing. DISCO itself treats numeric zeros as observed
-values; missing values are excluded separately for each pair.
+**Please normalize inputs appropriately before running DISCO.** The
+function does not normalize data or adjust for covariates. Users should
+supply normalized and, when needed, covariate-adjusted measurements. In
+the examples below we use a robust centered log-ratio (CLR)
+transformation for microbiome data: each sample is centred over its
+observed positive features, and abundance zeros are represented as `NA`.
+DISCO then uses complete observations separately for each feature pair;
+it does not require a sample to be observed for every feature. Other
+data types may require different preprocessing. DISCO itself treats
+numeric zeros as observed values; missing values are excluded separately
+for each pair.
 
 | Argument | Default | Meaning |
 |----|---:|----|
@@ -86,17 +88,17 @@ values; missing values are excluded separately for each pair.
 DISCO estimates a Spearman correlation for each eligible pair in each
 group, tests whether the correlations differ, and combines the raw
 differential-test p-values separately for each focal feature. In
-high-dimensional data, screening out weak correlations can reduce the
-number of uninformative pairs contributing to a score and increase the
-power, although this could be at the expense of increasing false
-positives.
-
-`filter_threshold` screens pairs using their **single-group correlation
-p-values**, not their differential-correlation p-values. A pair is
-retained if its correlation p-value is below the threshold in **at least
-one group**. For example, `filter_threshold = 0.05` excludes pairs whose
-correlation p-values are ≥0.05 in both groups. A threshold of `1` retain
-all correlations.
+high-dimensional data, the number of pairwise correlations is
+considerably high and therefore screening out weak correlations can
+reduce the number of uninformative pairs contributing to a score and
+increase the power, although sometimes this could be at the expense of
+increasing false positives. Users can remove correlations using
+`filter_threshold` which screens pairs using their **single-group
+correlation p-values**, not their differential-correlation p-values. A
+pair is retained if its correlation p-value is below the threshold in
+**at least one group**. For example, `filter_threshold = 0.05` excludes
+pairs whose correlation p-values are ≥0.05 in both groups. A threshold
+of `1` retain all correlations.
 
 Since the choice of filter_threshold could be arbitrary, DISCO can
 derive a data-driven threshold empirically. By default, DISCO
@@ -173,34 +175,33 @@ and feature tables are saved as `<prefix>_cor_diff.csv` and
 
 This example uses **QinJ_2012**, comparing type 2 diabetes (**T2D**)
 with strictly healthy controls in `curatedMetagenomicData`. Both the
-one-modality and two-modality examples use this same comparison; studies
-are not pooled.
+one-modality and two-modality examples use this same comparison.
 
 The workflow follows these steps:
 
 1.  Select one independent sample per participant, excluding conflicting
-    disease labels and samples missing **gender, BMI, or age category**.
-    Retain the earliest covariate-complete sample, breaking
-    collection-day ties by sample ID.
-2.  Retain features present in **≥20% of each group**, testing
+    disease labels and samples missing **gender or BMI**. Retain the
+    earliest covariate-complete sample, breaking collection-day ties by
+    sample ID.
+2.  Retain features present in **≥50% of each group**, testing
     prevalence separately in controls and T2D.
 3.  Apply **robust CLR** within each sample, centring log positive
     abundances over the retained observed features. Abundance zeros and
-    existing missing values remain `NA`; no zero replacement or matrix
-    completion is performed.
-4.  Fit **`~ gender + BMI + age_category` separately within controls and
-    T2D**, using each feature’s observed values. Gender and age category
-    are categorical; BMI is continuous. Preserve missing residuals.
-    Models are fitted once in the original groups, before permutations.
+    existing missing values remain `NA`; no zero imputation is
+    performed.
+4.  Fit **`~ gender + BMI` separately within controls and T2D**, using
+    each feature’s observed values. Gender is categorical and BMI is
+    continuous. Preserve missing residuals. Models are fitted once in
+    the original groups before permutations.
 5.  Run DISCO on the residuals, using complete observations separately
     for each pair and requiring at least **20 observations in each
-    group**. A sample missing one feature can contribute to other pairs.
+    group**.
 
 The saved run uses **1000 permutations**, 12 workers, seed 1, BY
-adjustment, feature q \< 0.2, and global p \< 0.05. Age categories are
-adult, schoolage, and senior. Each group has only one schoolage
-participant; a feature with an unestimable adjustment model is left
-missing and its model status is recorded.
+adjustment, feature q \< 0.2, and global p \< 0.05. Age category is not
+included in the adjustment or used to exclude participants. A feature
+with an unestimable adjustment model is left missing and its model
+status is recorded.
 
 ### Retrieve and preprocess the data
 
@@ -219,10 +220,10 @@ helpers](analysis/qinj_readme_preprocessing.R).
 settings <- list(
   workers = 12L,
   n_resamples = 1000L, random_seed = 1L, cooccur = 20L, adj_method = "BY",
-  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.2,
+  q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.5,
   transformation = "robust CLR; zeros remain NA",
   prevalence_scope = "at least 20% in each of healthy and T2D",
-  covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI + age_category"
+  covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI"
 )
 results_dir <- file.path(analysis_dir, "qinj_readme_results")
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
@@ -233,10 +234,10 @@ The selection helper handles independent participants and complete
 covariates:
 
 ``` r
-# Select one independent, gender/BMI/age-category-complete sample per QinJ participant.
+# Select one independent, gender/BMI-complete sample per QinJ participant.
 select_qinj_metadata <- function(metadata) {
   metadata <- as.data.frame(metadata)
-  required <- c("study_name", "sample_id", "subject_id", "disease", "gender", "BMI", "age_category")
+  required <- c("study_name", "sample_id", "subject_id", "disease", "gender", "BMI")
   if (!all(required %in% names(metadata))) stop("Required QinJ metadata columns are missing.")
   metadata <- metadata[!is.na(metadata$study_name) & metadata$study_name == "QinJ_2012" &
     metadata$disease %in% c("healthy", "T2D"), , drop = FALSE]
@@ -250,11 +251,10 @@ select_qinj_metadata <- function(metadata) {
   conflict <- metadata[metadata$subject_id %in% conflicting, , drop = FALSE]
   conflict$exclusion_reason <- rep("Subject has conflicting disease groups", nrow(conflict))
   metadata <- metadata[!metadata$subject_id %in% conflicting, , drop = FALSE]
-  complete <- stats::complete.cases(metadata[, c("gender", "BMI", "age_category")]) &
-    is.finite(metadata$BMI) & nzchar(trimws(as.character(metadata$gender))) &
-    nzchar(trimws(as.character(metadata$age_category)))
+  complete <- stats::complete.cases(metadata[, c("gender", "BMI")]) &
+    is.finite(metadata$BMI) & nzchar(trimws(as.character(metadata$gender)))
   excluded_covariates <- metadata[!complete, , drop = FALSE]
-  excluded_covariates$exclusion_reason <- rep("Missing or invalid gender, BMI, or age category", nrow(excluded_covariates))
+  excluded_covariates$exclusion_reason <- rep("Missing or invalid gender or BMI", nrow(excluded_covariates))
   metadata <- metadata[complete, , drop = FALSE]
   day <- if ("days_from_first_collection" %in% names(metadata))
     metadata$days_from_first_collection else rep(NA_real_, nrow(metadata))
@@ -277,7 +277,7 @@ metadata <- selection$metadata
 excluded_covariates <- selection$excluded_covariates
 sample_metadata <- metadata
 rownames(sample_metadata) <- sample_metadata$sample_id
-message("Excluded ", nrow(excluded_covariates), " sample(s) missing gender, BMI or age category; ",
+message("Excluded ", nrow(excluded_covariates), " sample(s) missing gender or BMI; ",
         nrow(selection$excluded_subjects), " conflicting or repeated sample(s).")
 taxa_se <- curatedMetagenomicData::returnSamples(
   metadata, dataType = "relative_abundance", counts = FALSE, rownames = "short"
@@ -347,7 +347,7 @@ Each feature is adjusted separately within each group using its observed
 values:
 
 ``` r
-# Fit independent gender/BMI/age-category models within the original disease groups.
+# Fit independent gender/BMI models within the original disease groups.
 residualize_abundance <- function(clr, metadata, group) {
   stopifnot(identical(rownames(clr), rownames(metadata)),
             all(is.na(clr) | is.finite(clr)),
@@ -361,16 +361,11 @@ residualize_abundance <- function(clr, metadata, group) {
     rows <- which(group == group_name)
     model_data <- metadata[rows, , drop = FALSE]
     model_data$gender <- factor(trimws(as.character(model_data$gender)))
-    model_data$age_category <- factor(trimws(as.character(model_data$age_category)))
     if (anyNA(model_data$gender) || any(!nzchar(as.character(model_data$gender))) ||
         nlevels(model_data$gender) < 2L) {
       stop("At least two non-missing gender levels are required in ", group_name, ".")
     }
-    if (anyNA(model_data$age_category) || any(!nzchar(as.character(model_data$age_category))) ||
-        nlevels(model_data$age_category) < 2L) {
-      stop("At least two non-missing age categories are required in ", group_name, ".")
-    }
-    design <- stats::model.matrix(~ gender + BMI + age_category, data = model_data)
+    design <- stats::model.matrix(~ gender + BMI, data = model_data)
     if (qr(design)$rank < ncol(design) || nrow(design) <= ncol(design)) {
       stop("Covariate model requires full rank and positive residual degrees of freedom in ",
            group_name, ".")
@@ -453,22 +448,31 @@ and **0** conflicting or repeated samples. Package versions: DISCO
 
 | control | T2D | retained_taxa |
 |--------:|----:|--------------:|
-|     174 | 170 |           128 |
+|     174 | 170 |            62 |
 
-**7 taxa have DISCO q \< 0.2.** The table includes all significant taxa,
-ranked by q and then raw p. The DISCO score combines
+**16 taxa have DISCO q \< 0.2.** The table includes all significant
+taxa, ranked by q and then raw p. The DISCO score combines
 differential-correlation evidence; the p and q columns are feature-level
 results, and “Pairs” counts contributing feature pairs.
 
-| Taxon                        | DISCO score | DISCO p  | DISCO q  | Pairs |
-|:-----------------------------|:------------|:---------|:---------|------:|
-| Bilophila wadsworthia        | 84.75       | 3.76e-03 | 1.87e-01 |    12 |
-| Bacteroides thetaiotaomicron | 74.01       | 4.30e-03 | 1.87e-01 |    14 |
-| Bacteroides uniformis        | 72.58       | 4.39e-03 | 1.87e-01 |    17 |
-| Alistipes putredinis         | 68.21       | 4.67e-03 | 1.87e-01 |    13 |
-| Flavonifractor plautii       | 54.22       | 5.87e-03 | 1.87e-01 |    13 |
-| Phocaeicola vulgatus         | 50.94       | 6.25e-03 | 1.87e-01 |     7 |
-| Parabacteroides distasonis   | 45.60       | 6.98e-03 | 1.87e-01 |    16 |
+| Taxon                            | DISCO score | DISCO p  | DISCO q  | Pairs |
+|:---------------------------------|:------------|:---------|:---------|------:|
+| Lachnospira eligens              | 293.85      | 1.08e-03 | 1.78e-01 |     8 |
+| Bacteroides intestinalis         | 178.69      | 1.78e-03 | 1.78e-01 |     6 |
+| Collinsella aerofaciens          | 123.81      | 2.57e-03 | 1.78e-01 |     7 |
+| Prevotella copri                 | 75.03       | 4.24e-03 | 1.78e-01 |     6 |
+| Anaerostipes hadrus              | 68.07       | 4.68e-03 | 1.78e-01 |    24 |
+| Alistipes shahii                 | 54.36       | 5.85e-03 | 1.78e-01 |    12 |
+| Bifidobacterium longum           | 47.97       | 6.63e-03 | 1.78e-01 |    11 |
+| Bacteroides uniformis            | 45.26       | 7.03e-03 | 1.78e-01 |    28 |
+| Bilophila wadsworthia            | 41.55       | 7.66e-03 | 1.78e-01 |    17 |
+| Agathobaculum butyriciproducens  | 37.88       | 8.40e-03 | 1.78e-01 |    23 |
+| Fusicatenibacter saccharivorans  | 36.97       | 8.61e-03 | 1.78e-01 |    15 |
+| Butyricimonas virosa             | 36.75       | 8.66e-03 | 1.78e-01 |    14 |
+| Bacteroides thetaiotaomicron     | 35.42       | 8.98e-03 | 1.78e-01 |    30 |
+| Blautia wexlerae                 | 33.65       | 9.46e-03 | 1.78e-01 |    10 |
+| Parasutterella excrementihominis | 33.50       | 9.50e-03 | 1.78e-01 |     3 |
+| Streptococcus salivarius         | 28.15       | 1.13e-02 | 1.98e-01 |     7 |
 
 These scores measure changes in taxon–taxon relationships after
 group-specific covariate adjustment. They are not differential-abundance
@@ -476,8 +480,8 @@ or causal-effect tests.
 
 ### Diagnostics for threshold selection
 
-The global permutation p-value is **0.01299**; the selected
-correlation-filtering threshold is **0.01**. The global test passes, so
+The global permutation p-value is **0.001998**; the selected
+correlation-filtering threshold is **0.005**. The global test passes, so
 DISCO selects the threshold using the maximum real-to-null discovery
 ratio, with the documented tie rule.
 
@@ -498,9 +502,9 @@ percentages are diagnostics, not formal feature-level FDR estimates.
 
 ### Taxon–taxon network
 
-The network highlights the **top five significant taxa**, ranked by
-DISCO q, then p. Edges are selected by **raw differential-correlation p
-\< 0.05** from the saved pair table after DISCO’s selected correlation
+The network highlights the **top ten significant taxa**, ranked by DISCO
+q, then p. Edges are selected by **raw differential-correlation p \<
+0.05** from the saved pair table after DISCO’s selected correlation
 filter. This edge rule is separate from the feature-level DISCO q
 cutoff. The panels share nodes, edges, and positions; red/blue indicate
 positive/negative group correlations, and edge width shows \|Spearman
@@ -510,13 +514,12 @@ r\|. Edge presence does not imply within-group correlation significance.
 
 ### Example pairwise scatterplot
 
-The highest-ranked retained pair is **Bacteroides thetaiotaomicron
-versus Bacteroides uniformis**, ranked by differential-correlation q,
-then p. The plot uses the exact adjusted inputs passed to DISCO and only
-complete pairs. Its annotations report saved Spearman correlations and
-paired sample counts; dashed linear fits are visual guides. The
-displayed pair p/q are distinct from the feature-level DISCO results
-above.
+The highest-ranked retained pair is **Anaerostipes hadrus versus
+Lachnospira eligens**, ranked by differential-correlation q, then p. The
+plot uses the exact adjusted inputs passed to DISCO and only complete
+pairs. Its annotations report saved Spearman correlations and paired
+sample counts; dashed linear fits are visual guides. The displayed pair
+p/q are distinct from the feature-level DISCO results above.
 
 <img src="man/figures/README-qinj-taxa-scatterplot.png" alt="" width="100%" />
 
@@ -529,9 +532,9 @@ are unstratified community totals, excluding `UNMAPPED` and
 `UNINTEGRATED`.
 
 Restrict both modalities to common usable participants, then repeat the
-≥20% per-group prevalence filter and robust CLR separately for taxa and
-pathways. Adjust **both modalities** for gender, BMI, and age category
-in separate control/T2D models, preserving missing values throughout.
+≥50% per-group prevalence filter and robust CLR separately for taxa and
+pathways. Adjust **both modalities** for gender and BMI in separate
+control/T2D models, preserving missing values throughout.
 
 ``` r
 pathway_se <- curatedMetagenomicData::returnSamples(metadata, dataType = "pathway_abundance")
@@ -585,33 +588,37 @@ if (is.null(two)) {
 
 | control | T2D | retained_taxa | retained_pathways |
 |--------:|----:|--------------:|------------------:|
-|     174 | 170 |           128 |               385 |
+|     174 | 170 |            62 |               351 |
 
-**14 taxa have DISCO q \< 0.2.** The table lists all significant taxa,
+**18 taxa have DISCO q \< 0.2.** The table lists all significant taxa,
 using the same columns and ordering as the one-modality analysis. Here
 “Pairs” counts contributing taxon–pathway pairs.
 
 | Taxon                           | DISCO score | DISCO p  | DISCO q  | Pairs |
 |:--------------------------------|:------------|:---------|:---------|------:|
-| Bilophila wadsworthia           | 852.73      | 3.73e-04 | 7.18e-02 |    59 |
-| \[Ruminococcus\] gnavus         | 229.21      | 1.39e-03 | 8.95e-02 |   116 |
-| Blautia wexlerae                | 221.60      | 1.44e-03 | 8.95e-02 |    62 |
-| Agathobaculum butyriciproducens | 171.07      | 1.86e-03 | 8.95e-02 |    98 |
-| Prevotella copri                | 89.78       | 3.55e-03 | 1.36e-01 |   133 |
-| Eggerthella lenta               | 50.68       | 6.28e-03 | 1.63e-01 |    48 |
-| Gemmiger formicilis             | 40.99       | 7.76e-03 | 1.63e-01 |    16 |
-| Intestinibacter bartlettii      | 39.42       | 8.07e-03 | 1.63e-01 |     2 |
-| Lachnospira pectinoschiza       | 38.81       | 8.20e-03 | 1.63e-01 |     8 |
-| Ruminococcus bromii             | 34.48       | 9.23e-03 | 1.63e-01 |    35 |
-| Bacteroides uniformis           | 34.12       | 9.33e-03 | 1.63e-01 |   121 |
-| Bacteroides fragilis            | 29.02       | 1.10e-02 | 1.73e-01 |    50 |
-| Parabacteroides distasonis      | 27.28       | 1.17e-02 | 1.73e-01 |   122 |
-| Phocaeicola plebeius            | 25.15       | 1.27e-02 | 1.74e-01 |    49 |
+| Bilophila wadsworthia           | 342.19      | 9.30e-04 | 1.21e-01 |    40 |
+| Collinsella aerofaciens         | 216.52      | 1.47e-03 | 1.21e-01 |    43 |
+| Agathobaculum butyriciproducens | 206.41      | 1.54e-03 | 1.21e-01 |    60 |
+| \[Ruminococcus\] gnavus         | 192.62      | 1.65e-03 | 1.21e-01 |    92 |
+| Butyricimonas virosa            | 147.91      | 2.15e-03 | 1.26e-01 |    27 |
+| Blautia wexlerae                | 110.42      | 2.88e-03 | 1.40e-01 |    47 |
+| Bacteroides caccae              | 60.11       | 5.29e-03 | 1.69e-01 |    31 |
+| Ruminococcus bromii             | 59.53       | 5.35e-03 | 1.69e-01 |     2 |
+| Bifidobacterium longum          | 57.97       | 5.49e-03 | 1.69e-01 |    62 |
+| Bacteroides uniformis           | 49.76       | 6.40e-03 | 1.69e-01 |   115 |
+| Lachnospira pectinoschiza       | 46.75       | 6.81e-03 | 1.69e-01 |     9 |
+| Prevotella copri                | 45.94       | 6.93e-03 | 1.69e-01 |   116 |
+| Gordonibacter pamelaeae         | 40.28       | 7.90e-03 | 1.78e-01 |    11 |
+| Flavonifractor plautii          | 37.39       | 8.51e-03 | 1.78e-01 |    84 |
+| Phocaeicola plebeius            | 30.87       | 1.03e-02 | 1.85e-01 |    41 |
+| Oscillibacter sp. 57_20         | 30.63       | 1.04e-02 | 1.85e-01 |    12 |
+| Alistipes shahii                | 29.49       | 1.08e-02 | 1.85e-01 |    17 |
+| Eggerthella lenta               | 26.43       | 1.20e-02 | 1.95e-01 |    29 |
 
 ### Diagnostics for threshold selection
 
 The global permutation p-value is **0.000999**; the selected threshold
-is **0.01**. The global test passes and DISCO selects the threshold
+is **0.005**. The global test passes and DISCO selects the threshold
 using the real-to-null discovery ratio. These diagnostics are calculated
 separately from taxa-only DISCO.
 
@@ -636,10 +643,10 @@ taxa-only network.
 
 ### Example pairwise scatterplot
 
-The highest-ranked retained pair is **Bilophila wadsworthia versus
-PWY-6612** (superpathway of tetrahydrofolate biosynthesis). The plotted
-values are the separately adjusted robust CLR taxon and pathway
-measurements, with complete pairs only. Saved group Spearman
+The highest-ranked retained pair is **\[Ruminococcus\] gnavus versus
+PWY-241** (C4 photosynthetic carbon assimilation cycle, NADP-ME type).
+The plotted values are the separately adjusted robust CLR taxon and
+pathway measurements, with complete pairs only. Saved group Spearman
 correlations, sample counts, and pair-level differential p/q are shown;
 dashed lines remain visual guides.
 
@@ -647,18 +654,20 @@ dashed lines remain visual guides.
 
 ## Overall example results
 
-Across the two analyses, **18 unique taxa** have DISCO q \< 0.2 in at
-least one analysis: seven in taxa–taxa DISCO, 14 in taxon–pathway DISCO,
-and three in both. The heatmap compares the **raw feature-level DISCO
+Across the two analyses, **25 unique taxa** have DISCO q \< 0.2 in at
+least one analysis: 16 in taxa–taxa DISCO, 18 in taxon–pathway DISCO,
+and 9 in both. The heatmap compares the **raw feature-level DISCO
 p-values** for this union, including each taxon’s nonsignificant result
 in the other column.
 
 Colors show **−log10(raw DISCO p)** without row scaling. An asterisk
-marks **DISCO q \< 0.2** in that cell. Rows are hierarchically clustered
-by Euclidean distance on the displayed values using complete linkage;
-the two analysis columns stay in a fixed order. Thus the stars summarize
-adjusted significance, while the colors retain the raw p-value
-magnitude.
+marks **DISCO q \< 0.2** in that cell. Rows with both results are
+hierarchically clustered by Euclidean distance on the displayed values
+using complete linkage. Taxa without a testable result in one analysis
+are shown in a separate unclustered block, with unavailable values grey;
+no p-values are imputed. The two analysis columns stay in a fixed order.
+Thus the stars summarize adjusted significance, while the colors retain
+the raw p-value magnitude.
 
 <img src="man/figures/README-qinj-DISCO-heatmap.png" alt="" width="100%" />
 
@@ -698,7 +707,7 @@ diagnostic_names <- paste0("README-qinj-",
 assets <- stats::setNames(
   file.path("analysis/qinj_readme_results/figures", diagnostic_names), diagnostic_names)
 assets <- c(assets,
-  "README-qinj-taxa-network.png" = "analysis/qinj_taxa_networks/top5_taxa_combined_control_T2D_networks.png",
+  "README-qinj-taxa-network.png" = "analysis/qinj_taxa_networks/top10_taxa_combined_control_T2D_networks.png",
   "README-qinj-taxa-scatterplot.png" = "analysis/qinj_differential_scatterplots/top10_page01_preview.png",
   "README-qinj-taxa_pathways-network.png" = "analysis/qinj_taxa_pathway_networks/top5_taxa_pathways_control_T2D_networks.png",
   "README-qinj-taxa_pathways-scatterplot.png" = "analysis/qinj_taxa_pathway_scatterplots/top1_page01_preview.png",

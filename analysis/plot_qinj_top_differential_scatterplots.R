@@ -100,7 +100,7 @@ for (i in seq_len(nrow(pairs))) {
       y = paste0(pair$t2, "\nCovariate-adjusted robust CLR abundance"),
       caption = paste0(
         "Each point is one sample. Identical axis scales across groups within each page.\n",
-        "Inputs are robust CLR abundances residualized against gender, BMI and age category separately within each group.\n",
+        "Inputs are robust CLR abundances residualized against gender and BMI separately within each group.\n",
         "Only complete residual pairs are plotted; abundance zeros remain missing.\n",
         "Dashed lines: linear visual guides; annotations report saved Spearman correlations. ",
         "Pairs ranked by differential q, then p; selected DISCO filter = ", result$selected_threshold, "."

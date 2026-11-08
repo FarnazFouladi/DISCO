@@ -1,8 +1,8 @@
 ## ---- readme-select-helper ----
-# Select one independent, gender/BMI/age-category-complete sample per QinJ participant.
+# Select one independent, gender/BMI-complete sample per QinJ participant.
 select_qinj_metadata <- function(metadata) {
   metadata <- as.data.frame(metadata)
-  required <- c("study_name", "sample_id", "subject_id", "disease", "gender", "BMI", "age_category")
+  required <- c("study_name", "sample_id", "subject_id", "disease", "gender", "BMI")
   if (!all(required %in% names(metadata))) stop("Required QinJ metadata columns are missing.")
   metadata <- metadata[!is.na(metadata$study_name) & metadata$study_name == "QinJ_2012" &
     metadata$disease %in% c("healthy", "T2D"), , drop = FALSE]
@@ -16,11 +16,10 @@ select_qinj_metadata <- function(metadata) {
   conflict <- metadata[metadata$subject_id %in% conflicting, , drop = FALSE]
   conflict$exclusion_reason <- rep("Subject has conflicting disease groups", nrow(conflict))
   metadata <- metadata[!metadata$subject_id %in% conflicting, , drop = FALSE]
-  complete <- stats::complete.cases(metadata[, c("gender", "BMI", "age_category")]) &
-    is.finite(metadata$BMI) & nzchar(trimws(as.character(metadata$gender))) &
-    nzchar(trimws(as.character(metadata$age_category)))
+  complete <- stats::complete.cases(metadata[, c("gender", "BMI")]) &
+    is.finite(metadata$BMI) & nzchar(trimws(as.character(metadata$gender)))
   excluded_covariates <- metadata[!complete, , drop = FALSE]
-  excluded_covariates$exclusion_reason <- rep("Missing or invalid gender, BMI, or age category", nrow(excluded_covariates))
+  excluded_covariates$exclusion_reason <- rep("Missing or invalid gender or BMI", nrow(excluded_covariates))
   metadata <- metadata[complete, , drop = FALSE]
   day <- if ("days_from_first_collection" %in% names(metadata))
     metadata$days_from_first_collection else rep(NA_real_, nrow(metadata))
@@ -82,7 +81,7 @@ preprocess_abundance <- function(x, group, prevalence_cutoff = 0.10) {
 }
 
 ## ---- readme-residual-helper ----
-# Fit independent gender/BMI/age-category models within the original disease groups.
+# Fit independent gender/BMI models within the original disease groups.
 residualize_abundance <- function(clr, metadata, group) {
   stopifnot(identical(rownames(clr), rownames(metadata)),
             all(is.na(clr) | is.finite(clr)),
@@ -96,16 +95,11 @@ residualize_abundance <- function(clr, metadata, group) {
     rows <- which(group == group_name)
     model_data <- metadata[rows, , drop = FALSE]
     model_data$gender <- factor(trimws(as.character(model_data$gender)))
-    model_data$age_category <- factor(trimws(as.character(model_data$age_category)))
     if (anyNA(model_data$gender) || any(!nzchar(as.character(model_data$gender))) ||
         nlevels(model_data$gender) < 2L) {
       stop("At least two non-missing gender levels are required in ", group_name, ".")
     }
-    if (anyNA(model_data$age_category) || any(!nzchar(as.character(model_data$age_category))) ||
-        nlevels(model_data$age_category) < 2L) {
-      stop("At least two non-missing age categories are required in ", group_name, ".")
-    }
-    design <- stats::model.matrix(~ gender + BMI + age_category, data = model_data)
+    design <- stats::model.matrix(~ gender + BMI, data = model_data)
     if (qr(design)$rank < ncol(design) || nrow(design) <= ncol(design)) {
       stop("Covariate model requires full rank and positive residual degrees of freedom in ",
            group_name, ".")

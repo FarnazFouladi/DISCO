@@ -71,39 +71,64 @@ if (!is.null(row_clusters) && (!cluster_rows || !is.numeric(row_clusters) ||
     length(row_clusters) != 1L || !is.finite(row_clusters) ||
     row_clusters < 1 || row_clusters != floor(row_clusters) || row_clusters > length(taxa)))
   stop("row_clusters must be an integer between 1 and the number of rows, with cluster_rows=TRUE.")
+# Cluster only taxa with both DISCO results. Incomplete rows are displayed
+# separately below the clustered block, with missing cells grey and no imputation.
+complete_rows <- which(stats::complete.cases(heatmap_values))
+main_rows <- if (cluster_rows && length(complete_rows)) complete_rows else seq_along(taxa)
+partial_rows <- if (cluster_rows && length(complete_rows)) setdiff(seq_along(taxa), complete_rows) else integer(0)
+if (!is.null(row_clusters) && row_clusters > length(main_rows))
+  stop("row_clusters exceeds the number of rows available for clustering.")
 row_tree <- FALSE
-if (cluster_rows && length(taxa) > 1L) {
-  # Euclidean distances use observed columns, with stats::dist's usual scaling
-  # for missing coordinates. No missing heatmap values are imputed.
-  distances <- stats::dist(heatmap_values, method = "euclidean")
-  if (any(!is.finite(distances)))
-    stop("Some rows have no comparable observed columns; set cluster_rows <- FALSE.")
-  row_tree <- stats::hclust(distances, method = row_clustering_method)
+if (cluster_rows && length(main_rows) > 1L && length(complete_rows)) {
+  row_tree <- stats::hclust(stats::dist(heatmap_values[main_rows, , drop = FALSE]),
+    method = row_clustering_method)
 }
 upper <- max(heatmap_values, na.rm = TRUE)
 if (!is.finite(upper) || upper <= 0) upper <- 1
-heatmap <- pheatmap::pheatmap(heatmap_values,
-  cluster_rows = row_tree, cluster_cols = FALSE, cutree_rows = if (is.null(row_clusters)) NA_integer_ else row_clusters,
-  scale = "none", color = grDevices::colorRampPalette(c("#FFF7EC", "#FDBB84", "#D7301F", "#7F0000"))(100),
-  breaks = seq(0, upper, length.out = 101), na_col = "#D1D5DB",
-  display_numbers = stars, number_color = "black", fontsize_number = 16,
-  fontsize_row = 10, fontsize_col = 11, angle_col = "0", border_color = "white",
-  cellwidth = 105, cellheight = 22,
-  main = paste0("QinJ_2012: significant DISCO taxa\nColor: -log10(raw DISCO p); *: DISCO q < ", q_cutoff),
-  silent = TRUE)
-row_order <- if (inherits(row_tree, "hclust")) row_tree$order else seq_along(taxa)
-clusters <- if (!is.null(row_clusters) && inherits(row_tree, "hclust"))
-  stats::cutree(row_tree, k = row_clusters) else stats::setNames(rep(NA_integer_, length(taxa)), taxa)
+make_heatmap <- function(rows, tree = FALSE, title, legend = TRUE, show_colnames = TRUE, groups = NULL) {
+  pheatmap::pheatmap(heatmap_values[rows, , drop = FALSE],
+    cluster_rows = tree, cluster_cols = FALSE,
+    cutree_rows = if (is.null(groups)) NA_integer_ else groups,
+    scale = "none", color = grDevices::colorRampPalette(c("#FFF7EC", "#FDBB84", "#D7301F", "#7F0000"))(100),
+    breaks = seq(0, upper, length.out = 101), na_col = "#D1D5DB",
+    display_numbers = stars[rows, , drop = FALSE], number_color = "black", fontsize_number = 16,
+    fontsize_row = 10, fontsize_col = 11, angle_col = "0", border_color = "white",
+    cellwidth = 105, cellheight = 22, main = title, legend = legend,
+    show_colnames = show_colnames, silent = TRUE)
+}
+heatmap <- make_heatmap(main_rows, tree = row_tree,
+  title = paste0("QinJ_2012: significant DISCO taxa\nColor: -log10(raw DISCO p); *: DISCO q < ", q_cutoff),
+  show_colnames = !length(partial_rows), groups = row_clusters)
+partial_heatmap <- NULL
+if (length(partial_rows)) {
+  partial_heatmap <- make_heatmap(partial_rows,
+    title = "Unclustered rows: grey cells indicate unavailable DISCO results", legend = FALSE)
+  widths <- grid::unit.pmax(heatmap$gtable$widths, partial_heatmap$gtable$widths)
+  heatmap$gtable$widths <- partial_heatmap$gtable$widths <- widths
+}
+row_order <- c(if (inherits(row_tree, "hclust")) main_rows[row_tree$order] else main_rows, partial_rows)
+clusters <- stats::setNames(rep(NA_integer_, length(taxa)), taxa)
+if (!is.null(row_clusters) && inherits(row_tree, "hclust"))
+  clusters[taxa[main_rows]] <- stats::cutree(row_tree, k = row_clusters)
 if (!dir.exists(output_dir) && !dir.create(output_dir, recursive = TRUE)) stop("Could not create output directory.")
 base_path <- file.path(output_dir, "significant_taxa_DISCO_heatmap")
-plot_height <- max(6, 2.5 + .31 * length(taxa))
+plot_height <- max(6, (if (length(partial_rows)) 3.5 else 2.5) + .31 * length(taxa))
 save_heatmap <- function(type) {
   if (type == "pdf") grDevices::pdf(paste0(base_path, ".pdf"), width = 10, height = plot_height,
     useDingbats = FALSE) else grDevices::png(paste0(base_path, ".png"), width = 10,
     height = plot_height, units = "in", res = 180)
   on.exit(grDevices::dev.off(), add = TRUE)
   grid::grid.newpage()
-  grid::grid.draw(heatmap$gtable)
+  if (length(partial_rows)) {
+    grid::pushViewport(grid::viewport(layout = grid::grid.layout(2, 1,
+      heights = grid::unit(c(2 + .31 * length(main_rows), 1.5 + .31 * length(partial_rows)), "null"))))
+    grid::pushViewport(grid::viewport(layout.pos.row = 1))
+    grid::grid.draw(heatmap$gtable)
+    grid::popViewport()
+    grid::pushViewport(grid::viewport(layout.pos.row = 2))
+    grid::grid.draw(partial_heatmap$gtable)
+    grid::popViewport(2)
+  } else grid::grid.draw(heatmap$gtable)
 }
 save_heatmap("png")
 save_heatmap("pdf")
@@ -116,8 +141,11 @@ utils::write.csv(data.frame(taxon = taxa[row_order], row_order = seq_along(taxa)
   row_cluster = unname(clusters[taxa[row_order]])), file.path(output_dir, "row_order.csv"), row.names = FALSE)
 saveRDS(list(raw_p = p_values, q = q_values, neg_log10_p = heatmap_values, stars = stars,
   row_tree = row_tree, row_order = taxa[row_order], row_clusters = clusters,
+  clustered_taxa = if (inherits(row_tree, "hclust")) taxa[main_rows] else character(),
+  unclustered_partial_taxa = taxa[partial_rows],
   settings = list(q_cutoff = q_cutoff, cluster_rows = cluster_rows,
     row_clusters = row_clusters, row_clustering_method = row_clustering_method,
-    p_zero_floor = .Machine$double.xmin, column_clustering = FALSE)),
+    p_zero_floor = .Machine$double.xmin, column_clustering = FALSE,
+    missing_value_handling = "no imputation; incomplete rows appended outside clustering")),
   file.path(output_dir, "heatmap_data.rds"))
 message("Saved heatmap for ", length(taxa), " taxa in ", normalizePath(output_dir))

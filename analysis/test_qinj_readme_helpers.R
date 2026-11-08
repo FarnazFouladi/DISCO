@@ -35,7 +35,7 @@ for (group_name in c("healthy", "T2D")) {
   design <- adjusted$models[[group_name]]$design
   for (i in seq_len(ncol(prepared$clr))) {
     observed <- !is.na(prepared$clr[rows, i])
-    reference <- stats::lm(prepared$clr[rows[observed], i] ~ gender + BMI + age_category,
+    reference <- stats::lm(prepared$clr[rows[observed], i] ~ gender + BMI,
                            data = metadata[rows[observed], , drop = FALSE])
     stopifnot(isTRUE(all.equal(unname(adjusted$residuals[rows[observed], i]),
                               unname(stats::residuals(reference)))),
@@ -52,7 +52,7 @@ complete <- matrix(stats::rnorm(120), nrow = 24, dimnames = dimnames(abundance))
 complete_adjusted <- residualize_abundance(complete, metadata, group)
 for (group_name in c("healthy", "T2D")) {
   rows <- which(group == group_name)
-  design <- stats::model.matrix(~ gender + BMI + age_category, metadata[rows, ])
+  design <- stats::model.matrix(~ gender + BMI, metadata[rows, ])
   reference <- stats::lm.fit(design, complete[rows, ])$residuals
   stopifnot(isTRUE(all.equal(unname(complete_adjusted$residuals[rows, ]), unname(reference))))
 }
@@ -113,6 +113,11 @@ selected <- select_qinj_metadata(selection_metadata)
 stopifnot(identical(selected$metadata$sample_id, c("s2","s3","s4")),
   identical(selected$excluded_covariates$sample_id, "s1"),
   setequal(selected$excluded_subjects$sample_id,c("s5","s6")))
+# Age data are not required, and missing ages must not exclude participants.
+without_age <- selection_metadata
+without_age$age_category <- NULL
+without_age_selection <- select_qinj_metadata(without_age)
+stopifnot(identical(selected$metadata$sample_id, without_age_selection$metadata$sample_id))
 message("QinJ participant selection checks passed.")
 
 # Check the installed metadata, source() setup, and numerical settings without
@@ -134,8 +139,11 @@ for (expr in parse(runner)) {
 # checks remain runnable after the separate Nielsen analysis is archived.
 reference_settings <- list(workers = 12L, n_resamples = 1000L, random_seed = 1L,
   cooccur = 20L, adj_method = "BY", q_value = .2, global_p_cutoff = .05,
-  prevalence_cutoff = .2, transformation = "robust CLR; zeros remain NA")
-stopifnot(identical(setup$settings[names(reference_settings)], reference_settings))
+  transformation = "robust CLR; zeros remain NA")
+stopifnot(identical(setup$settings[names(reference_settings)], reference_settings),
+  is.numeric(setup$settings$prevalence_cutoff), length(setup$settings$prevalence_cutoff)==1L,
+  is.finite(setup$settings$prevalence_cutoff), setup$settings$prevalence_cutoff > 0,
+  setup$settings$prevalence_cutoff <= 1)
 bootstrap <- new.env(parent = globalenv())
 bootstrap$source <- function(file, ...) {
   stopifnot(identical(normalizePath(file),file.path(analysis_dir,"qinj_readme_preprocessing.R")))
@@ -171,4 +179,4 @@ for (mode in c("taxa","taxa_pathways")) {
   stopifnot(r$global_test$n_valid_resamples==2L,
     all(r$cor_diff$n1 >= 20),all(r$cor_diff$n2 >= 20),all(file.exists(r$output_files)))
 }
-message("QinJ real metadata, Nielsen settings parity, source() startup, and both DISCO modalities passed.")
+message("QinJ real metadata, settings validation, source() startup, and both DISCO modalities passed.")
