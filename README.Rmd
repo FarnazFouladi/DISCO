@@ -7,14 +7,14 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE)
-readme_results <- readRDS("README-results.rds")
-source("analysis/yachida_readme_preprocessing.R")
+readme_results <- readRDS("analysis/qinj_readme_results/README-results.rds")
+source("analysis/qinj_readme_preprocessing.R")
 if (!identical(readme_results$source_md5, readme_source_hashes(normalizePath(".")))) {
-  stop("Example code has changed. Run Rscript analysis/run_yachida_readme_examples.R before rendering.")
+  stop("Example code has changed. Run Rscript analysis/run_qinj_readme_examples.R before rendering.")
 }
-knitr::read_chunk("analysis/run_yachida_readme_examples.R")
-knitr::read_chunk("analysis/yachida_readme_preprocessing.R")
-example_chunks <- c("readme-settings", "retrieve-taxa", "readme-preprocess-helper",
+knitr::read_chunk("analysis/run_qinj_readme_examples.R")
+knitr::read_chunk("analysis/qinj_readme_preprocessing.R")
+example_chunks <- c("readme-settings", "readme-select-helper", "retrieve-taxa", "readme-preprocess-helper",
                     "readme-residual-helper", "run-taxa", "run-two-modalities")
 for (label in example_chunks) {
   if (!nzchar(paste(knitr::knit_code$get(label), collapse = "\n"))) {
@@ -23,12 +23,20 @@ for (label in example_chunks) {
 }
 example_q <- format(readme_results$settings$q_value)
 example_prevalence <- 100 * readme_results$settings$prevalence_cutoff
-top_taxa_table <- function(x) {
+example_results <- lapply(c("taxa", "taxa_pathways"), function(mode) {
+  readRDS(file.path("analysis/qinj_readme_results", mode, "disco_analysis.rds"))
+})
+names(example_results) <- c("taxa", "taxa_pathways")
+disco_taxa_table <- function(x) {
+  x <- x[is.finite(x$q) & x$q < readme_results$settings$q_value, , drop = FALSE]
+  x <- x[order(x$q, x$p, x$species), c("species", "t", "p", "q", "num_corr")]
+  x$t <- format(x$t, digits = 4)
   x$p <- format(x$p, digits = 3, scientific = TRUE)
   x$q <- format(x$q, digits = 3, scientific = TRUE)
   knitr::kable(x, row.names = FALSE,
-               col.names = c("Taxon", "DISCO p", "DISCO q", "Comparisons"))
+    col.names = c("Taxon", "DISCO score", "DISCO p", "DISCO q", "Pairs"))
 }
+
 ```
 
 # DISCO
@@ -39,21 +47,19 @@ DISCO (**DIS**ruption in **CO**rrelations) identifies features whose correlation
 patterns differ between two groups, such as healthy controls and people with a
 disease. It combines evidence from pairwise differential-correlation tests into
 a score, p-value, and adjusted p-value (q-value) for each feature. This helps
-identify features whose relationships with other measurements change between
-groups, even when their average abundance is not the focus of the analysis.
+identify features whose relationships with other features change between
+groups, regardless of changes in average abundances of features between the two groups.
 
 DISCO supports one modality (for example, correlations among microbial taxa)
 or two modalities (for example, correlations between microbes and metabolites).
-It can be applied to quantitative features such as microbial abundances, gene
-expression, protein levels, and metabolites, with preprocessing appropriate to
-the data type. Correlations describe statistical associations, not necessarily
-direct biological interactions.
+It can be applied to any high dimensional data such as microbiome, transcriptome, and metabolome. Data should be normalized appropriate to
+the data type before applying DISCO.
 
-The implementation uses Spearman correlations with Fisher transformations and
+DISCO uses Spearman correlations with Fisher transformations and
 [Bonett–Wright standard errors (2000)](https://doi.org/10.1007/BF02294183),
 then combines differential-correlation p-values using the
 [Cauchy combination test (Liu and Xie, 2020)](https://doi.org/10.1080/01621459.2018.1554485).
-DISCO was introduced by [Fouladi et al. (2025)](https://doi.org/10.1038/s41467-025-64822-z).
+
 
 ## Installation
 
@@ -79,7 +85,7 @@ columns**.
 
 Features are matched by column name separately within each modality. DISCO
 keeps features shared between groups and reorders group 2 to match group 1;
-you do not need to align columns manually. Supply unique, nonempty feature names.
+you do not need to align columns manually.
 
 For two modalities, row names must identify samples consistently. Within each
 group, the modalities must share samples, but their sample sets and row order
@@ -89,14 +95,17 @@ an unavailable modality as missing. Each feature pair must have at least
 
 **Normalize inputs appropriately before running DISCO.** The function does not
 normalize data or adjust for covariates. Supply normalized and, when needed,
-covariate-adjusted measurements. The abundance examples below use a centered
-log-ratio (CLR) transformation; other data types may require different
-preprocessing. Zeros are treated as observed values, while missing values are
-excluded separately for each pair.
+covariate-adjusted measurements. In the examples below we use a robust centered
+log-ratio (CLR) transformation for microbiome data: each sample is centred over
+its observed positive features, and abundance zeros are represented as `NA`.
+DISCO then uses complete observations separately for each feature pair; it does
+not require a sample to be observed for every feature. Other data types may
+require different preprocessing. DISCO itself treats numeric zeros as observed
+values; missing values are excluded separately for each pair.
 
 | Argument | Default | Meaning |
 |---|---:|---|
-| `cooccur` | `10` | Minimum pairwise non-missing observations in **each** group; integer ≥10. |
+| `cooccur` | `20` | Minimum pairwise non-missing observations in **each** group; integer ≥10. |
 | `empirically_derive_threshold` | `TRUE` | Select the correlation filtering threshold using label permutations. |
 | `filter_threshold` | `1` | Fixed correlation p-value threshold when empirical selection is disabled. |
 | `q_value` | `0.2` | Feature-level q-value cutoff used to count discoveries in empirical mode. |
@@ -114,24 +123,19 @@ DISCO estimates a Spearman correlation for each eligible pair in each group,
 tests whether the correlations differ, and combines the raw differential-test
 p-values separately for each focal feature. In high-dimensional data, screening
 out weak correlations can reduce the number of uninformative pairs contributing
-to a score.
+to a score and increase the power, although this could be at the expense of increasing false positives.
 
 `filter_threshold` screens pairs using their **single-group correlation
 p-values**, not their differential-correlation p-values. A pair is retained if
 its correlation p-value is below the threshold in **at least one group**. For
 example, `filter_threshold = 0.05` excludes pairs whose correlation p-values are
-both ≥0.05. A threshold of `1` is the least restrictive setting; minimum sample
-counts and valid correlation tests are still required. The implementation uses
-a strict `<` comparison, so a pair with p-values exactly `1` in both groups is
-also excluded.
+ ≥0.05 in both groups. A threshold of `1` retain all correlations.
 
-By default, `empirically_derive_threshold = TRUE`. DISCO compares the observed
-data with size-matched random label permutations at thresholds
+Since the choice of filter_threshold could be arbitrary, DISCO can derive a data-driven threshold empirically. By default, DISCO (`empirically_derive_threshold = TRUE`) compares the observed
+data with size-matched random label permutations at different filtering thresholds
 `c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1)`. At each threshold, it calculates
 the percentage of tested features with DISCO `q < q_value` in the observed data
-and in each permutation.
-
-A global permutation test compares the maximum observed discovery percentage
+and in each permutation. Then, a global permutation test compares the maximum observed discovery percentage
 across thresholds with the corresponding maximum from each valid permutation:
 
 ```text
@@ -142,8 +146,6 @@ If `global p < global_p_cutoff`, DISCO selects the threshold that maximizes
 `max(real percentage, 1) / max(mean null percentage, 1)`. The floors are in
 percentage points and prevent ratios from being dominated by near-zero values.
 Ties select the largest threshold. Otherwise, DISCO uses threshold `1`.
-This global test accounts for searching across thresholds; it does not further
-adjust the individual feature q-values for threshold selection.
 
 For two modalities, permutations preserve each modality's group sizes and
 sample overlap. A shared sample receives the same shuffled group label in both
@@ -181,7 +183,7 @@ head(result$disco)
 
 In `feature_null_summary`, a column such as `q_less_than_0.2` indicates whether
 the real-data feature q-value is below `0.2`. Its name follows the supplied
-`q_value`. Null discovery percentages use all requested permutations as the
+`q_value` by the user. Null discovery percentages use all requested permutations as the
 denominator, counting absent or untested features as non-discoveries.
 
 `feature_null_plot` shows **−log10(real-data p-value)** on the x-axis and the
@@ -194,216 +196,300 @@ In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and `output_files` are
 returned; the diagnostic components are `NULL`. Pair and feature tables are
 saved as `<prefix>_cor_diff.csv` and `<prefix>_disco.csv`.
 
-## Example: One modality — microbial composition
+## Example: One modality — taxon–taxon correlations in type 2 diabetes
 
-For this example, we use healthy controls and CRC metagenomes from
-[Yachida et al. (2019)](https://www.nature.com/articles/s41591-019-0458-7),
-accessed through
-[curatedMetagenomicData](https://waldronlab.io/curatedMetagenomicData/reference/returnSamples.html).
+This example uses **QinJ_2012**, comparing type 2 diabetes (**T2D**) with
+strictly healthy controls in `curatedMetagenomicData`. Both the one-modality
+and two-modality examples use this same comparison; studies are not pooled.
 
-The workflow preprocesses the data as follows:
+The workflow follows these steps:
 
-1. Retrieve microbial relative abundances from `curatedMetagenomicData` and
-   exclude samples missing age, gender, or BMI.
-2. Retain features present in **≥`r example_prevalence`% of samples in each
-   group**, requiring the cutoff separately in controls and CRC.
-3. Replace zeros with half of each feature's minimum positive relative
-   abundance, estimated across the combined retained cohort.
-4. Apply the **CLR transformation** within each sample.
-5. Regress each transformed feature on **age, gender, and BMI**, fitting
-   separate models in controls and CRC. Use the residuals as DISCO inputs.
-   These models are fitted once in the original groups, before permutations.
+1. Select one independent sample per participant, excluding conflicting disease
+   labels and samples missing **gender, BMI, or age category**. Retain the
+   earliest covariate-complete sample, breaking collection-day ties by sample ID.
+2. Retain features present in **≥`r example_prevalence`% of each group**, testing
+   prevalence separately in controls and T2D.
+3. Apply **robust CLR** within each sample, centring log positive abundances
+   over the retained observed features. Abundance zeros and existing missing
+   values remain `NA`; no zero replacement or matrix completion is performed.
+4. Fit **`~ gender + BMI + age_category` separately within controls and T2D**,
+   using each feature's observed values. Gender and age category are categorical;
+   BMI is continuous. Preserve missing residuals. Models are fitted once in the
+   original groups, before permutations.
+5. Run DISCO on the residuals, using complete observations separately for each
+   pair and requiring at least **`r readme_results$settings$cooccur` observations
+   in each group**. A sample missing one feature can contribute to other pairs.
 
-The example uses `r readme_results$settings$n_resamples` label permutations,
-a feature q-value cutoff of `r example_q`, and a global p-value cutoff of
-`r readme_results$settings$global_p_cutoff`.
+The saved run uses **`r readme_results$settings$n_resamples` permutations**,
+`r readme_results$settings$workers` workers, seed
+`r readme_results$settings$random_seed`, BY adjustment, feature q <
+`r example_q`, and global p < `r readme_results$settings$global_p_cutoff`.
+Age categories are adult, schoolage, and senior. Each group has only one
+schoolage participant; a feature with an unestimable adjustment model is left
+missing and its model status is recorded.
 
-Install the example dependencies if needed:
+### Retrieve and preprocess the data
+
+Install the data dependencies if needed:
 
 ```{r example-install, eval=FALSE}
 install.packages("BiocManager")
 BiocManager::install(c("curatedMetagenomicData", "SummarizedExperiment"))
 ```
 
-### Retrieve and preprocess the data
-
-The blocks below are read directly from the
-[analysis script](analysis/run_yachida_readme_examples.R) and its
-[helpers](analysis/yachida_readme_preprocessing.R). The script initializes the
-local package and repository paths (`analysis_dir`, `repo_dir`), then runs these
-exact blocks. Cached runs are reused only when inputs, settings, and source-code
-hashes match.
+The following blocks are imported directly from the
+[analysis script](analysis/run_qinj_readme_examples.R) and
+[preprocessing helpers](analysis/qinj_readme_preprocessing.R).
 
 ```{r readme-settings, eval=FALSE}
 ```
 
-Samples missing age, gender, or BMI are excluded **before prevalence filtering
-and normalization**. The excluded-sample table is saved with the analysis.
+The selection helper handles independent participants and complete covariates:
+
+```{r readme-select-helper, eval=FALSE}
+```
 
 ```{r retrieve-taxa, eval=FALSE}
 ```
 
-The preprocessing helper applies the prevalence filter, half-minimum zero
-replacement, and CLR transformation. It is used independently for each modality.
+Prevalence filtering and robust CLR are applied independently to each modality:
 
 ```{r readme-preprocess-helper, eval=FALSE}
 ```
 
-The covariate-adjustment helper fits a separate response model for each feature
-within each group. Residuals keep the original sample and feature names.
+Each feature is adjusted separately within each group using its observed values:
 
 ```{r readme-residual-helper, eval=FALSE}
 ```
 
-Run DISCO on the covariate-adjusted measurements:
+Run taxa-only DISCO using the adjusted residuals:
 
 ```{r run-taxa, eval=FALSE}
 ```
 
-### Results
+### DISCO results
 
-These outputs come from the completed analysis, saved before rendering this
-README. Package version: `r readme_results$versions[["DISCO"]]`;
-curatedMetagenomicData version: `r readme_results$versions[["curatedMetagenomicData"]]`.
-Downloading a different resource version can change results.
-The complete-case restriction excluded
-**`r readme_results$excluded_covariate_samples`** sample(s) with missing covariates.
+The saved analysis excluded **`r readme_results$excluded_covariate_samples`**
+samples with incomplete covariates and
+**`r readme_results$excluded_subject_samples`** conflicting or repeated samples.
+Package versions: DISCO `r readme_results$versions[["DISCO"]]` and
+curatedMetagenomicData `r readme_results$versions[["curatedMetagenomicData"]]`.
 
 ```{r taxa-cohort, echo=FALSE}
-knitr::kable(readme_results$taxa$cohort[, c("control", "CRC", "retained_taxa")],
-             row.names = FALSE)
+knitr::kable(readme_results$taxa$cohort[, c("control", "T2D", "retained_taxa")],
+  row.names = FALSE)
 ```
 
-Global p-value: **`r format(readme_results$taxa$global_test$global_p_value, digits=4)`**.
-Selected threshold: **`r readme_results$taxa$selected_threshold`**.
-Taxa with DISCO q < `r example_q` at the selected threshold:
-**`r readme_results$taxa$significant_taxa`**.
-
-Top 10 taxa by DISCO q-value, breaking ties by p-value:
+**`r readme_results$taxa$significant_taxa` taxa have DISCO q < `r example_q`.**
+The table includes all significant taxa, ranked by q and then raw p. The DISCO
+score combines differential-correlation evidence; the p and q columns are
+feature-level results, and “Pairs” counts contributing feature pairs.
 
 ```{r taxa-top, echo=FALSE}
-top_taxa_table(readme_results$taxa$top_taxa)
+disco_taxa_table(example_results$taxa$disco)
 ```
 
-The two highest-ranked taxa are *Parvimonas micra* and *Fusobacterium ulcerans*.
-*P. micra* has been associated with CRC and shown to promote colorectal
-tumorigenesis in experimental models
-([Zhao et al., 2022](https://pmc.ncbi.nlm.nih.gov/articles/PMC9439953/)).
-For *F. ulcerans*, the evidence is more specific: a lineage including
-*F. ulcerans* and *F. varium* was associated with lymphovascular invasion in CRC
-tumours, although that lineage was not enriched in CRC overall
-([Bi et al., 2022](https://www.nature.com/articles/s41467-022-30957-6)).
-These studies provide biological context; DISCO identifies changes in
-correlation patterns rather than testing abundance differences or causality.
+These scores measure changes in taxon–taxon relationships after group-specific
+covariate adjustment. They are not differential-abundance or causal-effect tests.
+
+### Diagnostics for threshold selection
+
+The global permutation p-value is
+**`r format(readme_results$taxa$global_test$global_p_value, digits=4)`**;
+the selected correlation-filtering threshold is
+**`r readme_results$taxa$selected_threshold`**. The global test passes, so DISCO
+selects the threshold using the maximum real-to-null discovery ratio, with the
+documented tie rule.
 
 The discovery plot compares observed discovery percentages with the permutation
-mean ± SD. Here, the global p-value is
-**`r format(readme_results$taxa$global_test$global_p_value, digits=4)`**,
-and the selected threshold is **`r readme_results$taxa$selected_threshold`**.
-The ratio plot shows the criterion used to select that threshold.
+mean ± SD. The ratio plot shows the criterion used for threshold selection.
 
 ```{r taxa-discoveries, echo=FALSE, out.width="100%"}
-knitr::include_graphics("man/figures/README-yachida-taxa-discovery_plot.png")
+knitr::include_graphics("man/figures/README-qinj-taxa-discovery_plot.png")
 ```
 
 ```{r taxa-ratios, echo=FALSE, out.width="100%"}
-knitr::include_graphics("man/figures/README-yachida-taxa-ratio_plot.png")
+knitr::include_graphics("man/figures/README-qinj-taxa-ratio_plot.png")
 ```
 
-In the next figure, each point is a taxon and each panel is a filtering
-threshold. Orange points have real-data DISCO q < `r example_q`. The x-axis
-shows −log10 of the real-data p-value; the y-axis shows the percentage of label
-permutations in which the taxon has DISCO q < `r example_q`. Compare panels
-to see how filtering changes both the observed discoveries and their null
-discovery frequencies.
+The feature diagnostic shows −log10(raw DISCO p) against the percentage of
+permutations with DISCO q < `r example_q`, separately at each filtering
+threshold. Orange points are real-data discoveries. Null discovery percentages
+are diagnostics, not formal feature-level FDR estimates.
 
 ```{r taxa-features, echo=FALSE, out.width="100%"}
-knitr::include_graphics("man/figures/README-yachida-taxa-feature_null_plot.png")
+knitr::include_graphics("man/figures/README-qinj-taxa-feature_null_plot.png")
 ```
 
-## Example: Two modalities — microbial composition and pathways
+### Taxon–taxon network
 
-We now compare **taxon–pathway correlations** between CRC and healthy controls.
-The first modality is taxa, so the DISCO scores describe taxa whose relationships
-with pathways differ between groups. Pathways are unstratified community totals;
-`UNMAPPED` and `UNINTEGRATED` rows are removed. Both modalities are restricted to
-common usable samples, then prevalence-filtered and normalized separately using
-the same ≥`r example_prevalence`%, half-minimum, CLR workflow above. **Both taxa and pathways** are
-then residualized against age, gender, and BMI separately within each group,
-and DISCO compares correlations between those residuals.
+The network highlights the **top five significant taxa**, ranked by DISCO q,
+then p. Edges are selected by **raw differential-correlation p < 0.05** from
+the saved pair table after DISCO's selected correlation filter. This edge rule
+is separate from the feature-level DISCO q cutoff. The panels share nodes,
+edges, and positions; red/blue indicate positive/negative group correlations,
+and edge width shows |Spearman r|. Edge presence does not imply within-group
+correlation significance.
+
+```{r taxa-network, echo=FALSE, out.width="100%"}
+knitr::include_graphics("man/figures/README-qinj-taxa-network.png")
+```
+
+### Example pairwise scatterplot
+
+The highest-ranked retained pair is **Bacteroides thetaiotaomicron versus
+Bacteroides uniformis**, ranked by differential-correlation q, then p. The plot
+uses the exact adjusted inputs passed to DISCO and only complete pairs. Its
+annotations report saved Spearman correlations and paired sample counts;
+dashed linear fits are visual guides. The displayed pair p/q are distinct
+from the feature-level DISCO results above.
+
+```{r taxa-scatterplot, echo=FALSE, out.width="100%"}
+knitr::include_graphics("man/figures/README-qinj-taxa-scatterplot.png")
+```
+
+## Example: Two modalities — taxon–pathway correlations
+
+The same T2D/control comparison now tests **taxon–pathway correlations**.
+Taxa are the first modality, so DISCO assigns scores to taxa according to
+changes in their relationships with pathways. Pathways are unstratified
+community totals, excluding `UNMAPPED` and `UNINTEGRATED`.
+
+Restrict both modalities to common usable participants, then repeat the
+≥`r example_prevalence`% per-group prevalence filter and robust CLR separately
+for taxa and pathways. Adjust **both modalities** for gender, BMI, and age
+category in separate control/T2D models, preserving missing values throughout.
 
 ```{r run-two-modalities, eval=FALSE}
 ```
 
-### Results
+### DISCO results
 
 ```{r two-cohort, echo=FALSE}
 knitr::kable(readme_results$taxa_pathways$cohort, row.names = FALSE)
 ```
 
-Global p-value: **`r format(readme_results$taxa_pathways$global_test$global_p_value, digits=4)`**.
-Selected threshold: **`r readme_results$taxa_pathways$selected_threshold`**.
-Taxa with DISCO q < `r example_q` at the selected threshold:
-**`r readme_results$taxa_pathways$significant_taxa`**.
-
-`r if (!readme_results$taxa_pathways$global_test$signal_detected) "The global test does not detect an excess of discoveries in this taxon–pathway analysis, so DISCO uses the least restrictive threshold, 1." else "The global test detects excess discoveries, so DISCO selects the threshold by the real-to-null ratio."`
-
-The table below lists the top 10 taxa by DISCO q-value, breaking ties by
-p-value. At the selected threshold, **`r readme_results$taxa_pathways$significant_taxa`**
-taxa have q < `r example_q`.
-
-In this cohort and with this preprocessing, the one-modality analysis detects
-changes in taxon–taxon correlation patterns. The taxon–pathway analysis does not
-provide comparable evidence of a global excess of discoveries. This result does
-not establish that microbial functions or individual taxon–pathway relationships
-are unchanged.
+**`r readme_results$taxa_pathways$significant_taxa` taxa have DISCO q <
+`r example_q`.** The table lists all significant taxa, using the same columns
+and ordering as the one-modality analysis. Here “Pairs” counts contributing
+taxon–pathway pairs.
 
 ```{r two-top, echo=FALSE}
-top_taxa_table(readme_results$taxa_pathways$top_taxa)
+disco_taxa_table(example_results$taxa_pathways$disco)
 ```
 
+### Diagnostics for threshold selection
+
+The global permutation p-value is
+**`r format(readme_results$taxa_pathways$global_test$global_p_value, digits=4)`**;
+the selected threshold is **`r readme_results$taxa_pathways$selected_threshold`**.
+The global test passes and DISCO selects the threshold using the real-to-null
+discovery ratio. These diagnostics are calculated separately from taxa-only DISCO.
+
 ```{r two-discoveries, echo=FALSE, out.width="100%"}
-knitr::include_graphics("man/figures/README-yachida-taxa_pathways-discovery_plot.png")
+knitr::include_graphics("man/figures/README-qinj-taxa_pathways-discovery_plot.png")
 ```
 
 ```{r two-ratios, echo=FALSE, out.width="100%"}
-knitr::include_graphics("man/figures/README-yachida-taxa_pathways-ratio_plot.png")
+knitr::include_graphics("man/figures/README-qinj-taxa_pathways-ratio_plot.png")
 ```
 
 ```{r two-features, echo=FALSE, out.width="100%"}
-knitr::include_graphics("man/figures/README-yachida-taxa_pathways-feature_null_plot.png")
+knitr::include_graphics("man/figures/README-qinj-taxa_pathways-feature_null_plot.png")
 ```
 
-## Rebuilding these examples
+### Taxon–pathway network
 
-`README.Rmd` is the source for this README. Rendering reads the portable saved
-summaries in `README-results.rds` and figures under `man/figures/`; it does not
-download data or rerun permutations. Analysis code blocks are imported from the
-script with `knitr::read_chunk()`, so they are never maintained separately in
-the Rmd. Rendering stops if source-code hashes differ from the saved results,
-preventing changed code from being shown with stale outputs. From the repository root:
+The bipartite network links the **top five significant DISCO taxa** to pathways
+with **raw differential-correlation p < 0.05**, using the saved filtered pair
+table. Gold nodes are taxa and grey nodes are pathways. Pathways are labelled
+by their IDs; full names are exported in
+[network_nodes.csv](analysis/qinj_taxa_pathway_networks/network_nodes.csv).
+Both panels use identical nodes, edges, and positions. Edge colors and widths
+show the group-specific Spearman correlations, as in the taxa-only network.
+
+```{r two-network, echo=FALSE, out.width="100%"}
+knitr::include_graphics("man/figures/README-qinj-taxa_pathways-network.png")
+```
+
+### Example pairwise scatterplot
+
+The highest-ranked retained pair is **Bilophila wadsworthia versus PWY-6612**
+(superpathway of tetrahydrofolate biosynthesis). The plotted values
+are the separately adjusted robust CLR taxon and pathway measurements, with
+complete pairs only. Saved group Spearman correlations, sample counts, and
+pair-level differential p/q are shown; dashed lines remain visual guides.
+
+```{r two-scatterplot, echo=FALSE, out.width="100%"}
+knitr::include_graphics("man/figures/README-qinj-taxa_pathways-scatterplot.png")
+```
+
+## Overall example results
+
+Across the two analyses, **18 unique taxa** have DISCO q < `r example_q` in at
+least one analysis: seven in taxa–taxa DISCO, 14 in taxon–pathway DISCO, and three
+in both. The heatmap compares the **raw feature-level DISCO p-values** for this
+union, including each taxon's nonsignificant result in the other column.
+
+Colors show **−log10(raw DISCO p)** without row scaling. An asterisk marks
+**DISCO q < `r example_q`** in that cell. Rows are hierarchically clustered by
+Euclidean distance on the displayed values using complete linkage; the two
+analysis columns stay in a fixed order. Thus the stars summarize adjusted
+significance, while the colors retain the raw p-value magnitude.
+
+```{r overall-heatmap, echo=FALSE, out.width="100%"}
+knitr::include_graphics("man/figures/README-qinj-DISCO-heatmap.png")
+```
+
+### Rebuilding these examples
+
+`README.Rmd` is the source for this README. Rendering reads the saved QinJ
+summary and results under `analysis/qinj_readme_results/` and the portable
+figures under `man/figures/`; it does not download data or rerun permutations.
+Analysis blocks are imported from their source scripts, and rendering checks
+that their hashes match the saved run.
 
 ```{r render, eval=FALSE}
-install.packages(c("rmarkdown", "knitr")) # If needed; Pandoc is also required
 rmarkdown::render("README.Rmd")
 ```
 
-To regenerate the analysis outputs and README assets with the current local
-package, run:
+Regenerate the analysis with `Rscript analysis/run_qinj_readme_examples.R`
+(or `source()` with its full path). Set `DISCO_README_RECOMPUTE=true` to force
+recomputation; matching cached analyses are otherwise reused. Recreate the
+additional visualizations with:
 
 ```sh
-Rscript analysis/run_yachida_readme_examples.R
+Rscript analysis/plot_qinj_taxa_networks.R
+Rscript analysis/plot_qinj_top_differential_scatterplots.R
+Rscript analysis/plot_qinj_taxa_pathway_networks.R
+Rscript analysis/plot_qinj_top_taxa_pathway_scatterplots.R
+Rscript analysis/plot_qinj_disco_heatmap.R
 ```
 
-This requires the example dependencies and `pkgload`, may download resources
-through ExperimentHub, and reuses existing results only when inputs and settings
-and source hashes match. Set `DISCO_README_RECOMPUTE=true` to recompute both
-examples. Results stay under `analysis/yachida_readme_groupwise_10pct_results/`;
-previous pooled-adjustment and unadjusted results are retained. The README bundle contains only cohort summaries and
-top-result tables. Package checks can be run with `devtools::test()` and
-`devtools::check()`.
-Preprocessing and residualization helpers can be checked without downloading
-data using `Rscript analysis/test_yachida_readme_helpers.R`.
+Refresh the portable copies used in this README after regenerating the plots:
+
+```{r copy-example-figures, eval=FALSE}
+diagnostic_names <- paste0("README-qinj-",
+  rep(c("taxa", "taxa_pathways"), each = 3), "-",
+  rep(c("discovery_plot", "ratio_plot", "feature_null_plot"), 2), ".png")
+assets <- stats::setNames(
+  file.path("analysis/qinj_readme_results/figures", diagnostic_names), diagnostic_names)
+assets <- c(assets,
+  "README-qinj-taxa-network.png" = "analysis/qinj_taxa_networks/top5_taxa_combined_control_T2D_networks.png",
+  "README-qinj-taxa-scatterplot.png" = "analysis/qinj_differential_scatterplots/top10_page01_preview.png",
+  "README-qinj-taxa_pathways-network.png" = "analysis/qinj_taxa_pathway_networks/top5_taxa_pathways_control_T2D_networks.png",
+  "README-qinj-taxa_pathways-scatterplot.png" = "analysis/qinj_taxa_pathway_scatterplots/top1_page01_preview.png",
+  "README-qinj-DISCO-heatmap.png" = "analysis/qinj_disco_heatmap/significant_taxa_DISCO_heatmap.png")
+stopifnot(all(file.exists(assets)))
+file.copy(assets, file.path("man/figures", names(assets)), overwrite = TRUE)
+rmarkdown::render("README.Rmd")
+```
+
+The scripts save PNG/PDF plots and the underlying CSV tables in their respective
+`analysis/qinj_*` directories. The network scripts expose `top_n`; the heatmap
+script exposes `cluster_rows` and `row_clusters`. Numerical preprocessing and
+adjustment checks can be run with
+`Rscript analysis/test_qinj_readme_helpers.R`.
 
 ## License
 

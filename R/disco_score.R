@@ -98,7 +98,7 @@
 #' @export
 disco <- function(data1,
                   data2,
-                  cooccur = 10,
+                  cooccur = 20,
                   empirically_derive_threshold = TRUE,
                   filter_threshold = 1,
                   q_value = 0.2,

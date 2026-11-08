@@ -166,7 +166,7 @@ build_cor_diff_table <- function(base, pvals_tmp, adj_method) {
 }
 
 # Run one fixed threshold for legacy sensitivity-analysis scripts
-calculate_fixed_threshold_disco <- function(data1, data2, cooccur = 10,
+calculate_fixed_threshold_disco <- function(data1, data2, cooccur = 20,
                                             filt_threshold,
                                             adj_method = "BY",
                                             output_dir, prefix) {
