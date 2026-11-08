@@ -173,9 +173,16 @@ and feature tables are saved as `<prefix>_cor_diff.csv` and
 
 ## Example: One modality — taxon–taxon correlations in type 2 diabetes
 
-This example uses **QinJ_2012**, comparing type 2 diabetes (**T2D**)
-with strictly healthy controls in `curatedMetagenomicData`. Both the
-one-modality and two-modality examples use this same comparison.
+This example uses **QinJ_2012** from [Qin et
+al. (2012)](https://doi.org/10.1038/nature11450), comparing type 2
+diabetes (**T2D**) with healthy controls in `curatedMetagenomicData`.
+Both the one-modality and two-modality examples use this same
+comparison.
+
+Dataset reference: Qin J, Li Y, Cai Z, et al. **A metagenome-wide
+association study of gut microbiota in type 2 diabetes.** *Nature*.
+2012;490:55–60.
+[doi:10.1038/nature11450](https://doi.org/10.1038/nature11450).
 
 The workflow follows these steps:
 
@@ -191,17 +198,13 @@ The workflow follows these steps:
     performed.
 4.  Fit **`~ gender + BMI` separately within controls and T2D**, using
     each feature’s observed values. Gender is categorical and BMI is
-    continuous. Preserve missing residuals. Models are fitted once in
-    the original groups before permutations.
+    continuous. Preserve missing residuals.
 5.  Run DISCO on the residuals, using complete observations separately
     for each pair and requiring at least **20 observations in each
     group**.
 
 The saved run uses **1000 permutations**, 12 workers, seed 1, BY
-adjustment, feature q \< 0.2, and global p \< 0.05. Age category is not
-included in the adjustment or used to exclude participants. A feature
-with an unestimable adjustment model is left missing and its model
-status is recorded.
+adjustment, feature q \< 0.2, and global p \< 0.05.
 
 ### Retrieve and preprocess the data
 
@@ -453,7 +456,9 @@ and **0** conflicting or repeated samples. Package versions: DISCO
 **16 taxa have DISCO q \< 0.2.** The table includes all significant
 taxa, ranked by q and then raw p. The DISCO score combines
 differential-correlation evidence; the p and q columns are feature-level
-results, and “Pairs” counts contributing feature pairs.
+results, and “Pairs” counts contributing feature pairs. Based on DISCO,
+these taxa had the most disruptions in their correlations compared to
+other taxa.
 
 | Taxon                            | DISCO score | DISCO p  | DISCO q  | Pairs |
 |:---------------------------------|:------------|:---------|:---------|------:|
@@ -473,10 +478,6 @@ results, and “Pairs” counts contributing feature pairs.
 | Blautia wexlerae                 | 33.65       | 9.46e-03 | 1.78e-01 |    10 |
 | Parasutterella excrementihominis | 33.50       | 9.50e-03 | 1.78e-01 |     3 |
 | Streptococcus salivarius         | 28.15       | 1.13e-02 | 1.98e-01 |     7 |
-
-These scores measure changes in taxon–taxon relationships after
-group-specific covariate adjustment. They are not differential-abundance
-or causal-effect tests.
 
 ### Diagnostics for threshold selection
 
@@ -505,10 +506,10 @@ percentages are diagnostics, not formal feature-level FDR estimates.
 The network highlights the **top ten significant taxa**, ranked by DISCO
 q, then p. Edges are selected by **raw differential-correlation p \<
 0.05** from the saved pair table after DISCO’s selected correlation
-filter. This edge rule is separate from the feature-level DISCO q
-cutoff. The panels share nodes, edges, and positions; red/blue indicate
-positive/negative group correlations, and edge width shows \|Spearman
-r\|. Edge presence does not imply within-group correlation significance.
+filter (diff_cor.csv). The panels share nodes, edges, and positions;
+red/blue indicate positive/negative group correlations, and edge width
+shows \|Spearman r\|. Edge presence does not imply within-group
+correlation significance.
 
 <img src="man/figures/README-qinj-taxa-network.png" alt="" width="100%" />
 
