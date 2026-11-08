@@ -94,11 +94,11 @@ make_heatmap <- function(rows, tree = FALSE, title, legend = TRUE, show_colnames
     display_numbers = stars[rows, , drop = FALSE], number_color = "black", fontsize_number = 16,
     fontsize_row = 10, fontsize_col = 11, angle_col = "0", border_color = "white",
     cellwidth = 105, cellheight = 22, main = title, legend = legend,
-    show_colnames = show_colnames, silent = TRUE)
+    show_colnames = show_colnames, labels_col = c("Taxa", "Pathway"), silent = TRUE)
 }
 heatmap <- make_heatmap(main_rows, tree = row_tree,
   title = paste0("QinJ_2012: significant DISCO taxa\nColor: -log10(raw DISCO p); *: DISCO q < ", q_cutoff),
-  show_colnames = !length(partial_rows), groups = row_clusters)
+  show_colnames = TRUE, groups = row_clusters)
 partial_heatmap <- NULL
 if (length(partial_rows)) {
   partial_heatmap <- make_heatmap(partial_rows,

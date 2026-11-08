@@ -110,7 +110,7 @@ the observed data and in each permutation. Then, a global permutation
 test compares the maximum observed discovery percentage across
 thresholds with the corresponding maximum from each valid permutation:
 
-```text
+``` text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -506,10 +506,17 @@ percentages are diagnostics, not formal feature-level FDR estimates.
 The network highlights the **top ten significant taxa**, ranked by DISCO
 q, then p. Edges are selected by **raw differential-correlation p \<
 0.05** from the saved pair table after DISCO’s selected correlation
-filter (diff_cor.csv). The panels share nodes, edges, and positions;
-red/blue indicate positive/negative group correlations, and edge width
-shows \|Spearman r\|. Edge presence does not imply within-group
-correlation significance.
+filter. The panels share nodes, edges, and positions; red/blue indicate
+positive/negative group correlations, and edge width shows \|Spearman
+r\|. Edge presence does not imply within-group correlation significance.
+
+Correlation source:
+[QinJ_2012_taxa_cor_diff.csv](analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv).
+Its columns identify the pair (`t1`, `t2`), control/T2D Spearman
+correlations (`r1`, `r2`), complete-pair sample counts (`n1`, `n2`), and
+differential-correlation `p` and `q`. The exact subset drawn as edges is
+saved in
+[network_edges.csv](analysis/qinj_taxa_networks/network_edges.csv).
 
 <img src="man/figures/README-qinj-taxa-network.png" alt="" width="100%" />
 
@@ -521,6 +528,15 @@ plot uses the exact adjusted inputs passed to DISCO and only complete
 pairs. Its annotations report saved Spearman correlations and paired
 sample counts; dashed linear fits are visual guides. The displayed pair
 p/q are distinct from the feature-level DISCO results above.
+
+Pair statistics come from
+[QinJ_2012_taxa_cor_diff.csv](analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv);
+the selected pairs and their annotations are exported in
+[top10_pairs.csv](analysis/qinj_differential_scatterplots/top10_pairs.csv).
+The plotted sample values are exported in
+[scatterplot_data.csv](analysis/qinj_differential_scatterplots/scatterplot_data.csv),
+extracted from the adjusted matrices in
+[disco_inputs.rds](analysis/qinj_readme_results/taxa/disco_inputs.rds).
 
 <img src="man/figures/README-qinj-taxa-scatterplot.png" alt="" width="100%" />
 
@@ -640,6 +656,13 @@ Both panels use identical nodes, edges, and positions. Edge colors and
 widths show the group-specific Spearman correlations, as in the
 taxa-only network.
 
+Correlation source:
+[QinJ_2012_taxa_pathways_cor_diff.csv](analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+Here `t1` is the taxon and `t2` is the pathway; `r1`/`r2`, `n1`/`n2`,
+and `p`/`q` have the same meanings as in the taxa-only pair table. The
+exact plotted edge subset is exported in
+[network_edges.csv](analysis/qinj_taxa_pathway_networks/network_edges.csv).
+
 <img src="man/figures/README-qinj-taxa_pathways-network.png" alt="" width="100%" />
 
 ### Example pairwise scatterplot
@@ -650,6 +673,16 @@ The plotted values are the separately adjusted robust CLR taxon and
 pathway measurements, with complete pairs only. Saved group Spearman
 correlations, sample counts, and pair-level differential p/q are shown;
 dashed lines remain visual guides.
+
+Pair statistics come from
+[QinJ_2012_taxa_pathways_cor_diff.csv](analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+The selected example and its annotations are saved in
+[top1_pairs.csv](analysis/qinj_taxa_pathway_scatterplots/top1_pairs.csv),
+and its sample values are exported in
+[scatterplot_data.csv](analysis/qinj_taxa_pathway_scatterplots/scatterplot_data.csv).
+Those values are extracted from the adjusted taxon and pathway matrices
+in
+[disco_inputs.rds](analysis/qinj_readme_results/taxa_pathways/disco_inputs.rds).
 
 <img src="man/figures/README-qinj-taxa_pathways-scatterplot.png" alt="" width="100%" />
 
