@@ -461,24 +461,24 @@ counts the feature pairs contributing to each taxon’s DISCO score. These
 taxa show evidence of altered correlation patterns between controls and
 T2D cases.
 
-| Taxon                            | DISCO score | DISCO p  | DISCO q  | Pairs |
-|:---------------------------------|:------------|:---------|:---------|------:|
-| Lachnospira eligens              | 293.85      | 1.08e-03 | 1.78e-01 |     8 |
-| Bacteroides intestinalis         | 178.69      | 1.78e-03 | 1.78e-01 |     6 |
-| Collinsella aerofaciens          | 123.81      | 2.57e-03 | 1.78e-01 |     7 |
-| Prevotella copri                 | 75.03       | 4.24e-03 | 1.78e-01 |     6 |
-| Anaerostipes hadrus              | 68.07       | 4.68e-03 | 1.78e-01 |    24 |
-| Alistipes shahii                 | 54.36       | 5.85e-03 | 1.78e-01 |    12 |
-| Bifidobacterium longum           | 47.97       | 6.63e-03 | 1.78e-01 |    11 |
-| Bacteroides uniformis            | 45.26       | 7.03e-03 | 1.78e-01 |    28 |
-| Bilophila wadsworthia            | 41.55       | 7.66e-03 | 1.78e-01 |    17 |
-| Agathobaculum butyriciproducens  | 37.88       | 8.40e-03 | 1.78e-01 |    23 |
-| Fusicatenibacter saccharivorans  | 36.97       | 8.61e-03 | 1.78e-01 |    15 |
-| Butyricimonas virosa             | 36.75       | 8.66e-03 | 1.78e-01 |    14 |
-| Bacteroides thetaiotaomicron     | 35.42       | 8.98e-03 | 1.78e-01 |    30 |
-| Blautia wexlerae                 | 33.65       | 9.46e-03 | 1.78e-01 |    10 |
-| Parasutterella excrementihominis | 33.50       | 9.50e-03 | 1.78e-01 |     3 |
-| Streptococcus salivarius         | 28.15       | 1.13e-02 | 1.98e-01 |     7 |
+| Taxon                            | DISCO p  | DISCO q  | Pairs |
+|:---------------------------------|:---------|:---------|------:|
+| Lachnospira eligens              | 1.08e-03 | 1.78e-01 |     8 |
+| Bacteroides intestinalis         | 1.78e-03 | 1.78e-01 |     6 |
+| Collinsella aerofaciens          | 2.57e-03 | 1.78e-01 |     7 |
+| Prevotella copri                 | 4.24e-03 | 1.78e-01 |     6 |
+| Anaerostipes hadrus              | 4.68e-03 | 1.78e-01 |    24 |
+| Alistipes shahii                 | 5.85e-03 | 1.78e-01 |    12 |
+| Bifidobacterium longum           | 6.63e-03 | 1.78e-01 |    11 |
+| Bacteroides uniformis            | 7.03e-03 | 1.78e-01 |    28 |
+| Bilophila wadsworthia            | 7.66e-03 | 1.78e-01 |    17 |
+| Agathobaculum butyriciproducens  | 8.40e-03 | 1.78e-01 |    23 |
+| Fusicatenibacter saccharivorans  | 8.61e-03 | 1.78e-01 |    15 |
+| Butyricimonas virosa             | 8.66e-03 | 1.78e-01 |    14 |
+| Bacteroides thetaiotaomicron     | 8.98e-03 | 1.78e-01 |    30 |
+| Blautia wexlerae                 | 9.46e-03 | 1.78e-01 |    10 |
+| Parasutterella excrementihominis | 9.50e-03 | 1.78e-01 |     3 |
+| Streptococcus salivarius         | 1.13e-02 | 1.98e-01 |     7 |
 
 ### Diagnostics for threshold selection
 
@@ -619,26 +619,26 @@ if (is.null(two)) {
 using the same columns and ordering as the one-modality analysis. Here
 “Pairs” counts contributing taxon–pathway pairs.
 
-| Taxon                           | DISCO score | DISCO p  | DISCO q  | Pairs |
-|:--------------------------------|:------------|:---------|:---------|------:|
-| Bilophila wadsworthia           | 342.19      | 9.30e-04 | 1.21e-01 |    40 |
-| Collinsella aerofaciens         | 216.52      | 1.47e-03 | 1.21e-01 |    43 |
-| Agathobaculum butyriciproducens | 206.41      | 1.54e-03 | 1.21e-01 |    60 |
-| \[Ruminococcus\] gnavus         | 192.62      | 1.65e-03 | 1.21e-01 |    92 |
-| Butyricimonas virosa            | 147.91      | 2.15e-03 | 1.26e-01 |    27 |
-| Blautia wexlerae                | 110.42      | 2.88e-03 | 1.40e-01 |    47 |
-| Bacteroides caccae              | 60.11       | 5.29e-03 | 1.69e-01 |    31 |
-| Ruminococcus bromii             | 59.53       | 5.35e-03 | 1.69e-01 |     2 |
-| Bifidobacterium longum          | 57.97       | 5.49e-03 | 1.69e-01 |    62 |
-| Bacteroides uniformis           | 49.76       | 6.40e-03 | 1.69e-01 |   115 |
-| Lachnospira pectinoschiza       | 46.75       | 6.81e-03 | 1.69e-01 |     9 |
-| Prevotella copri                | 45.94       | 6.93e-03 | 1.69e-01 |   116 |
-| Gordonibacter pamelaeae         | 40.28       | 7.90e-03 | 1.78e-01 |    11 |
-| Flavonifractor plautii          | 37.39       | 8.51e-03 | 1.78e-01 |    84 |
-| Phocaeicola plebeius            | 30.87       | 1.03e-02 | 1.85e-01 |    41 |
-| Oscillibacter sp. 57_20         | 30.63       | 1.04e-02 | 1.85e-01 |    12 |
-| Alistipes shahii                | 29.49       | 1.08e-02 | 1.85e-01 |    17 |
-| Eggerthella lenta               | 26.43       | 1.20e-02 | 1.95e-01 |    29 |
+| Taxon                           | DISCO p  | DISCO q  | Pairs |
+|:--------------------------------|:---------|:---------|------:|
+| Bilophila wadsworthia           | 9.30e-04 | 1.21e-01 |    40 |
+| Collinsella aerofaciens         | 1.47e-03 | 1.21e-01 |    43 |
+| Agathobaculum butyriciproducens | 1.54e-03 | 1.21e-01 |    60 |
+| \[Ruminococcus\] gnavus         | 1.65e-03 | 1.21e-01 |    92 |
+| Butyricimonas virosa            | 2.15e-03 | 1.26e-01 |    27 |
+| Blautia wexlerae                | 2.88e-03 | 1.40e-01 |    47 |
+| Bacteroides caccae              | 5.29e-03 | 1.69e-01 |    31 |
+| Ruminococcus bromii             | 5.35e-03 | 1.69e-01 |     2 |
+| Bifidobacterium longum          | 5.49e-03 | 1.69e-01 |    62 |
+| Bacteroides uniformis           | 6.40e-03 | 1.69e-01 |   115 |
+| Lachnospira pectinoschiza       | 6.81e-03 | 1.69e-01 |     9 |
+| Prevotella copri                | 6.93e-03 | 1.69e-01 |   116 |
+| Gordonibacter pamelaeae         | 7.90e-03 | 1.78e-01 |    11 |
+| Flavonifractor plautii          | 8.51e-03 | 1.78e-01 |    84 |
+| Phocaeicola plebeius            | 1.03e-02 | 1.85e-01 |    41 |
+| Oscillibacter sp. 57_20         | 1.04e-02 | 1.85e-01 |    12 |
+| Alistipes shahii                | 1.08e-02 | 1.85e-01 |    17 |
+| Eggerthella lenta               | 1.20e-02 | 1.95e-01 |    29 |
 
 ### Diagnostics for threshold selection
 

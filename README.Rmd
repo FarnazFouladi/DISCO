@@ -37,12 +37,11 @@ example_pairs <- list(
   taxa_pathways = read.csv("analysis/qinj_taxa_pathway_scatterplots/top1_pairs.csv"))
 disco_taxa_table <- function(x) {
   x <- x[is.finite(x$q) & x$q < readme_results$settings$q_value, , drop = FALSE]
-  x <- x[order(x$q, x$p, x$species), c("species", "t", "p", "q", "num_corr")]
-  x$t <- format(x$t, digits = 4)
+  x <- x[order(x$q, x$p, x$species), c("species", "p", "q", "num_corr")]
   x$p <- format(x$p, digits = 3, scientific = TRUE)
   x$q <- format(x$q, digits = 3, scientific = TRUE)
   knitr::kable(x, row.names = FALSE,
-    col.names = c("Taxon", "DISCO score", "DISCO p", "DISCO q", "Pairs"))
+    col.names = c("Taxon", "DISCO p", "DISCO q", "Pairs"))
 }
 
 ```
