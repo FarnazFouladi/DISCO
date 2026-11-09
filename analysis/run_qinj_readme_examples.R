@@ -2,7 +2,7 @@
 # Run from any directory: Rscript /path/to/DISCO/analysis/run_qinj_readme_examples.R
 # Or in R: source("/path/to/DISCO/analysis/run_qinj_readme_examples.R")
 # Both modalities use separate healthy/T2D gender/BMI models after robust CLR; zeros remain NA.
-# Both taxa-only and taxon-pathway analyses use the current local DISCO code.
+# Both analyses use the installed DISCO package, loaded with library(DISCO).
 # Set DISCO_README_RECOMPUTE=true to recompute both examples.
 
 script_file <- local({
@@ -18,10 +18,16 @@ script_file <- local({
 analysis_dir <- dirname(script_file)
 repo_dir <- dirname(analysis_dir)
 source(file.path(analysis_dir, "qinj_readme_preprocessing.R"))
-required <- c("pkgload", "curatedMetagenomicData", "SummarizedExperiment", "ggplot2")
+required <- c("DISCO", "curatedMetagenomicData", "SummarizedExperiment", "ggplot2")
 missing <- required[!vapply(required, requireNamespace, logical(1L), quietly = TRUE)]
 if (length(missing)) stop("Install: ", paste(missing, collapse = ", "))
-pkgload::load_all(repo_dir, quiet = TRUE, export_all = FALSE)
+## ---- readme-package ----
+library(DISCO)
+
+## ---- internal-readme-startup ----
+expected <- c("workers", "empirically_derive_threshold", "global_p_cutoff")
+if (!all(expected %in% names(formals(DISCO::disco))))
+  stop("Install an updated DISCO package before running this example.")
 recompute <- identical(tolower(Sys.getenv("DISCO_README_RECOMPUTE")), "true")
 
 ## ---- readme-settings ----
@@ -30,7 +36,7 @@ settings <- list(
   n_resamples = 1000L, random_seed = 1L, cooccur = 20L, adj_method = "BY",
   q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.5,
   transformation = "robust CLR; zeros remain NA",
-  prevalence_scope = "at least 20% in each of healthy and T2D",
+  prevalence_scope = "at least 50% in each of healthy and T2D",
   covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI"
 )
 results_dir <- file.path(analysis_dir, "qinj_readme_results")
@@ -160,6 +166,7 @@ summarize_example <- function(result, group, taxa, n_pathways = NA_integer_) {
 }
 bundle <- list(
   study = "QinJ_2012", comparison = "T2D versus healthy controls",
+  DISCO_package_path = find.package("DISCO"),
   settings = settings,
   source_md5 = source_md5,
   excluded_covariate_samples = nrow(excluded_covariates),

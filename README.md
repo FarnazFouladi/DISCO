@@ -44,12 +44,12 @@ containing **one or two numeric matrices or data frames**, with
 - **Two modalities:** DISCO compares cross-modality correlations and
   scores features in the **first modality**. For example, list microbes
   first and metabolites second to score microbes by changes in their
-  metabolite associations. The order of two data modalities should be
-  the same in both groups.
+  metabolite associations. The order of two data modalities must be the
+  same in both groups.
 
-Features are matched between the two groups by column name separately
-within each modality. DISCO keeps features shared between groups and
-reorders group 2 to match group 1.
+DISCO matches the features between the two groups by column name
+separately within each modality: it keeps features shared between groups
+and reorders group 2 to match group 1.
 
 For two modalities, row names must identify samples consistently. Within
 each group, the modalities must share samples, but their sample sets and
@@ -68,7 +68,8 @@ DISCO then uses complete observations separately for each feature pair;
 it does not require a sample to be observed for every feature. Other
 data types may require different preprocessing. DISCO itself treats
 numeric zeros as observed values; missing values are excluded separately
-for each pair.
+for each pair. Therefore, if you would like to work on complete data
+(excluding zeros), zeros should represent as missing values.
 
 | Argument | Default | Meaning |
 |----|---:|----|
@@ -89,16 +90,16 @@ DISCO estimates a Spearman correlation for each eligible pair in each
 group, tests whether the correlations differ, and combines the raw
 differential-test p-values separately for each focal feature. In
 high-dimensional data, the number of pairwise correlations is
-considerably high and therefore screening out weak correlations can
+considerably high, and therefore, screening out weak correlations can
 reduce the number of uninformative pairs contributing to a score and
 increase the power, although sometimes this could be at the expense of
-increasing false positives. Users can remove correlations using
+increasing false positives. Users can remove weak correlations using
 `filter_threshold` which screens pairs using their **single-group
 correlation p-values**, not their differential-correlation p-values. A
 pair is retained if its correlation p-value is below the threshold in
 **at least one group**. For example, `filter_threshold = 0.05` excludes
 pairs whose correlation p-values are ≥0.05 in both groups. A threshold
-of `1` retain all correlations.
+of `1` retains all correlations.
 
 Since the choice of filter_threshold could be arbitrary, DISCO can
 derive a data-driven threshold empirically. By default, DISCO
@@ -117,8 +118,8 @@ global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations
 If `global p < global_p_cutoff`, DISCO selects the threshold that
 maximizes `max(real percentage, 1) / max(mean null percentage, 1)`. The
 floors are in percentage points and prevent ratios from being dominated
-by near-zero values. Ties select the largest threshold. Otherwise, DISCO
-uses threshold `1`.
+by near-zero values. Ties select the largest threshold. If
+`global p > global_p_cutoff`, DISCO uses threshold `1`.
 
 For two modalities, permutations preserve each modality’s group sizes
 and sample overlap. A shared sample receives the same shuffled group
@@ -163,8 +164,8 @@ features as non-discoveries.
 `feature_null_plot` shows **−log10(real-data p-value)** on the x-axis
 and the percentage of permutations in which the feature has
 `q < q_value` on the y-axis. Orange points identify real-data
-discoveries. Low null discovery frequencies provide a useful diagnostic,
-but are not formal feature-level FDR estimates.
+discoveries. Please note that low null discovery frequencies provide a
+useful diagnostic, but are not formal feature-level FDR estimates.
 
 In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and
 `output_files` are returned; the diagnostic components are `NULL`. Pair
@@ -187,9 +188,7 @@ association study of gut microbiota in type 2 diabetes.** *Nature*.
 The workflow follows these steps:
 
 1.  Select one independent sample per participant, excluding conflicting
-    disease labels and samples missing **gender or BMI**. Retain the
-    earliest covariate-complete sample, breaking collection-day ties by
-    sample ID.
+    disease labels and samples missing **gender or BMI**.
 2.  Retain features present in **≥50% of each group**, testing
     prevalence separately in controls and T2D.
 3.  Apply **robust CLR** within each sample, centring log positive
@@ -219,13 +218,19 @@ The following blocks are imported directly from the [analysis
 script](analysis/run_qinj_readme_examples.R) and [preprocessing
 helpers](analysis/qinj_readme_preprocessing.R).
 
+Load the installed DISCO package (see Installation above):
+
+``` r
+library(DISCO)
+```
+
 ``` r
 settings <- list(
   workers = 12L,
   n_resamples = 1000L, random_seed = 1L, cooccur = 20L, adj_method = "BY",
   q_value = 0.2, global_p_cutoff = 0.05, prevalence_cutoff = 0.5,
   transformation = "robust CLR; zeros remain NA",
-  prevalence_scope = "at least 20% in each of healthy and T2D",
+  prevalence_scope = "at least 50% in each of healthy and T2D",
   covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI"
 )
 results_dir <- file.path(analysis_dir, "qinj_readme_results")
@@ -445,20 +450,17 @@ if (is.null(single)) {
 
 ### DISCO results
 
-The saved analysis excluded **19** samples with incomplete covariates
-and **0** conflicting or repeated samples. Package versions: DISCO
-0.0.0.9000 and curatedMetagenomicData 3.14.0.
+Package versions: DISCO 0.0.0.9000 and curatedMetagenomicData 3.14.0.
+The saved analysis excluded **19** samples with incomplete covariates.
 
 | control | T2D | retained_taxa |
 |--------:|----:|--------------:|
 |     174 | 170 |            62 |
 
-**16 taxa have DISCO q \< 0.2.** The table includes all significant
-taxa, ranked by q and then raw p. The DISCO score combines
-differential-correlation evidence; the p and q columns are feature-level
-results, and “Pairs” counts contributing feature pairs. Based on DISCO,
-these taxa had the most disruptions in their correlations compared to
-other taxa.
+Results show that **16 taxa have DISCO q \< 0.2.** These taxa are shown
+in the following table. “Pairs” counts contributing feature pairs to the
+DISCO score per taxon. Based on DISCO, these taxa had the most
+disruptions in their correlations compared to other taxa.
 
 | Taxon                            | DISCO score | DISCO p  | DISCO q  | Pairs |
 |:---------------------------------|:------------|:---------|:---------|------:|
@@ -481,10 +483,11 @@ other taxa.
 
 ### Diagnostics for threshold selection
 
-The global permutation p-value is **0.001998**; the selected
-correlation-filtering threshold is **0.005**. The global test passes, so
-DISCO selects the threshold using the maximum real-to-null discovery
-ratio, with the documented tie rule.
+The global permutation p-value is **0.001998**, suggesting the number of
+discoveries in real data is significantly higher than permuted null
+data. The global test passes, so DISCO selects the threshold using the
+maximum real-to-null discovery ratio. The selected correlation-filtering
+threshold is **0.005**.
 
 The discovery plot compares observed discovery percentages with the
 permutation mean ± SD. The ratio plot shows the criterion used for
@@ -494,21 +497,28 @@ threshold selection.
 
 <img src="man/figures/README-qinj-taxa-ratio_plot.png" alt="" width="100%" />
 
-The feature diagnostic shows −log10(raw DISCO p) against the percentage
-of permutations with DISCO q \< 0.2, separately at each filtering
-threshold. Orange points are real-data discoveries. Null discovery
-percentages are diagnostics, not formal feature-level FDR estimates.
+The following feature diagnostic shows −log10(raw DISCO p) against the
+percentage of permutations with DISCO q \< 0.2, separately at each
+filtering threshold. Orange points are real-data discoveries. Null
+discovery percentages are diagnostics, not formal feature-level FDR
+estimates. We can see that at the selected threshold **0.005**, the
+significant DISCO taxa have a low null discovery percentage (less than
+5%).
 
 <img src="man/figures/README-qinj-taxa-feature_null_plot.png" alt="" width="100%" />
 
 ### Taxon–taxon network
 
-The network highlights the **top ten significant taxa**, ranked by DISCO
-q, then p. Edges are selected by **raw differential-correlation p \<
-0.05** from the saved pair table after DISCO’s selected correlation
-filter. The panels share nodes, edges, and positions; red/blue indicate
-positive/negative group correlations, and edge width shows \|Spearman
-r\|. Edge presence does not imply within-group correlation significance.
+Once we identify taxa with significant disco scores, we can further
+investigate how their correlations with other taxa differ between the
+two groups using the output `cor_diff`. For example, the following
+network highlights the **top ten significant taxa**, ranked by DISCO q,
+then p. Edges are selected by **raw differential-correlation p \< 0.05**
+from the saved pair table after DISCO’s selected correlation filter. The
+panels share nodes, edges, and positions across the two groups; red/blue
+indicate positive/negative group correlations, and edge width shows
+\|Spearman r\|. Edge presence does not imply within-group correlation
+significance.
 
 Correlation source:
 [QinJ_2012_taxa_cor_diff.csv](analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv).
@@ -522,12 +532,12 @@ saved in
 
 ### Example pairwise scatterplot
 
-The highest-ranked retained pair is **Anaerostipes hadrus versus
-Lachnospira eligens**, ranked by differential-correlation q, then p. The
-plot uses the exact adjusted inputs passed to DISCO and only complete
-pairs. Its annotations report saved Spearman correlations and paired
-sample counts; dashed linear fits are visual guides. The displayed pair
-p/q are distinct from the feature-level DISCO results above.
+In addition to the network, we can visualize the correlations for a pair
+using scatterplots. In this example, the highest-ranked retained pair is
+**Anaerostipes hadrus versus Lachnospira eligens**, ranked by
+differential-correlation q, then p. The plot uses the exact adjusted
+inputs passed to DISCO and only complete pairs. Its annotations report
+saved Spearman correlations and paired sample counts in `cor_diff`;
 
 Pair statistics come from
 [QinJ_2012_taxa_cor_diff.csv](analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv);
@@ -637,7 +647,7 @@ using the same columns and ordering as the one-modality analysis. Here
 The global permutation p-value is **0.000999**; the selected threshold
 is **0.005**. The global test passes and DISCO selects the threshold
 using the real-to-null discovery ratio. These diagnostics are calculated
-separately from taxa-only DISCO.
+separately from taxa-only DISCO because the first modality was taxa.
 
 <img src="man/figures/README-qinj-taxa_pathways-discovery_plot.png" alt="" width="100%" />
 
@@ -647,10 +657,11 @@ separately from taxa-only DISCO.
 
 ### Taxon–pathway network
 
-The bipartite network links the **top five significant DISCO taxa** to
-pathways with **raw differential-correlation p \< 0.05**, using the
-saved filtered pair table. Gold nodes are taxa and grey nodes are
-pathways. Pathways are labelled by their IDs; full names are exported in
+The following bipartite network links the **top five significant DISCO
+taxa** to pathways with **raw differential-correlation p \< 0.05**,
+using the saved filtered pair table. Gold nodes are taxa and grey nodes
+are pathways. Pathways are labelled by their IDs; full names are
+exported in
 [network_nodes.csv](analysis/qinj_taxa_pathway_networks/network_nodes.csv).
 Both panels use identical nodes, edges, and positions. Edge colors and
 widths show the group-specific Spearman correlations, as in the
@@ -718,24 +729,30 @@ git clone https://github.com/FarnazFouladi/DISCO.git
 cd DISCO
 ```
 
-The analysis runner loads DISCO directly from this checkout using
-`pkgload::load_all(repo_dir, quiet = TRUE, export_all = FALSE)`, where
-`repo_dir` is resolved from the script’s location. DISCO itself does not
-need to be installed separately. Install its package dependencies and
-the example tools (`pkgload`, `curatedMetagenomicData`,
-`SummarizedExperiment`, and `ggplot2`) before running the analysis. The
-additional network and heatmap scripts use `igraph`, `ggrepel`, and
-`pheatmap`; rendering requires `rmarkdown`, `knitr`, and Pandoc.
+The analysis runner uses the **installed DISCO package**, loaded
+explicitly with `library(DISCO)`. Install it as shown in the
+Installation section above; the runner does not load package code from
+the checkout with `load_all()`. The checkout supplies the example
+scripts, helpers, and saved outputs.
+
+The analysis also requires `curatedMetagenomicData`,
+`SummarizedExperiment`, and `ggplot2`. The additional network and
+heatmap scripts use `igraph`, `ggrepel`, and `pheatmap`; rendering
+requires `rmarkdown`, `knitr`, and Pandoc.
 
 For applying DISCO to your own prepared data, an installed package
-loaded with `library(DISCO)` is sufficient; a repository checkout is
-needed for reproducing the complete example workflow described here.
+loaded with `library(DISCO)` is sufficient. The repository copy is
+needed only to obtain the complete example workflow. Saved example
+provenance includes hashes of the example scripts and installed DISCO
+package files, so changing unused local files under `R/` does not
+invalidate results from the installed package.
 
 `README.Rmd` is the source for this README. Rendering reads the saved
 QinJ summary and results under `analysis/qinj_readme_results/` and the
 portable figures under `man/figures/`; it does not download data or
 rerun permutations. Analysis blocks are imported from their source
-scripts, and rendering checks that their hashes match the saved run.
+scripts, and rendering checks that their hashes and the installed
+package match the saved run.
 
 ``` r
 rmarkdown::render("README.Rmd")

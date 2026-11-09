@@ -144,14 +144,20 @@ residualize_abundance <- function(clr, metadata, group) {
 }
 
 ## ---- internal-readme-helpers ----
-# Hash relative paths so moving the checkout does not invalidate provenance.
+# Track example scripts and the installed package actually used for analysis.
+# Relative keys keep provenance independent of checkout/library locations.
 readme_source_hashes <- function(repo_dir) {
   paths <- c("analysis/run_qinj_readme_examples.R",
-             "analysis/qinj_readme_preprocessing.R",
-             list.files(file.path(repo_dir, "R"), pattern = "[.]R$",
-                        full.names = FALSE))
-  paths[-c(1L, 2L)] <- file.path("R", paths[-c(1L, 2L)])
-  stats::setNames(unname(tools::md5sum(file.path(repo_dir, paths))), paths)
+             "analysis/qinj_readme_preprocessing.R")
+  example_hashes <- stats::setNames(
+    unname(tools::md5sum(file.path(repo_dir, paths))), paths)
+  package_dir <- find.package("DISCO")
+  package_paths <- c("DESCRIPTION", "NAMESPACE",
+    file.path("R", list.files(file.path(package_dir, "R"))))
+  package_hashes <- stats::setNames(
+    unname(tools::md5sum(file.path(package_dir, package_paths))),
+    file.path("installed_DISCO", package_paths))
+  c(example_hashes, package_hashes)
 }
 
 readme_cached_result <- function(output_dir, input, recompute) {
