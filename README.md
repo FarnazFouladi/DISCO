@@ -754,10 +754,6 @@ Rscript analysis/render_qinj_readme.R
 This last step requires Pandoc and reads saved results without rerunning
 DISCO.
 
-## License
-
-DISCO is licensed under the MIT License.
-
 ## Citation
 
 If you use DISCO, please cite the paper that introduced the method:
