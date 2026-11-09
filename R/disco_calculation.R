@@ -33,6 +33,11 @@ prepare_disco_inputs <- function(data1, data2, report_overlap = TRUE) {
     d_merged2 <- data2[[1]]
   }
 
+  if (!identical(colnames(d_merged1), colnames(d_merged2))) {
+    stop("Prepared inputs must have identical feature names and column order between groups",
+         call. = FALSE)
+  }
+
   list(
     data1 = data1,
     data2 = data2,

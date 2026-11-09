@@ -12,10 +12,5 @@ two groups, including changes in relationships across data modalities.
 \author{
 \strong{Maintainer}: Farnaz Fouladi \email{farnaz.fouladi@nih.gov}
 
-Authors:
-\itemize{
-  \item Farnaz Fouladi \email{farnaz.fouladi@nih.gov}
-}
-
 }
 \keyword{internal}

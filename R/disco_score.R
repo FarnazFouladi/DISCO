@@ -86,15 +86,12 @@
 #'   Thresholds without a finite real discovery percentage are excluded from
 #'   both maxima; permutations missing any remaining threshold are excluded from
 #'   the global test. An error is raised if no thresholds or permutations remain.
-#'   The test uses unfloored percentages. It accounts for the search across
-#'   thresholds but does not adjust individual feature-level DISCO q-values for
-#'   threshold selection. With 100 permutations the smallest possible global
-#'   p-value is `1/101`.
+#'   With 100 permutations the smallest possible global p-value is `1/101`.
 #'   Feature null discovery frequencies use all `n_resamples` permutations as
 #'   their denominator; features absent or untested in a permutation count as
 #'   non-discoveries. These frequencies are not formal feature-level FDR
-#'   estimates. In two-modality mode the diagnostic covers modality-1 features.
-#'   For plotting only, real p-values below `1e-8` are displayed at `1e-8`.
+#'   estimates. 
+#'   In two-modality mode the diagnostic covers modality-1 features.
 #' @export
 disco <- function(data1,
                   data2,

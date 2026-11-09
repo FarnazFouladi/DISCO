@@ -110,7 +110,7 @@ the observed data and in each permutation. Then, a global permutation
 test compares the maximum observed discovery percentage across
 thresholds with the corresponding maximum from each valid permutation:
 
-``` text
+```text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -706,6 +706,30 @@ the raw p-value magnitude.
 <img src="man/figures/README-qinj-DISCO-heatmap.png" alt="" width="100%" />
 
 ### Rebuilding these examples
+
+To reproduce the complete workflow, first obtain a local copy of the
+repository by cloning it or downloading and extracting the GitHub ZIP.
+The `analysis/` scripts are excluded from the installed R package, so
+installing DISCO with `remotes::install_github()` alone does not provide
+these scripts.
+
+``` sh
+git clone https://github.com/FarnazFouladi/DISCO.git
+cd DISCO
+```
+
+The analysis runner loads DISCO directly from this checkout using
+`pkgload::load_all(repo_dir, quiet = TRUE, export_all = FALSE)`, where
+`repo_dir` is resolved from the script’s location. DISCO itself does not
+need to be installed separately. Install its package dependencies and
+the example tools (`pkgload`, `curatedMetagenomicData`,
+`SummarizedExperiment`, and `ggplot2`) before running the analysis. The
+additional network and heatmap scripts use `igraph`, `ggrepel`, and
+`pheatmap`; rendering requires `rmarkdown`, `knitr`, and Pandoc.
+
+For applying DISCO to your own prepared data, an installed package
+loaded with `library(DISCO)` is sufficient; a repository checkout is
+needed for reproducing the complete example workflow described here.
 
 `README.Rmd` is the source for this README. Rendering reads the saved
 QinJ summary and results under `analysis/qinj_readme_results/` and the
