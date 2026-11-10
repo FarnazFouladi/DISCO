@@ -108,7 +108,7 @@ permutation test then compares the maximum observed discovery percentage
 across thresholds with the corresponding maximum from each valid
 permutation:
 
-```text
+``` text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -124,19 +124,36 @@ label in both modalities.
 
 To use a fixed threshold, set `empirically_derive_threshold = FALSE` and
 supply `filter_threshold` (default `1`). This skips permutations and
-diagnostic plots. For example, with already preprocessed matrices
-`controls` and `cases`:
+diagnostic plots. Here is a self-contained toy example with 30 samples
+per group and five features. Feature 1 and feature 2 are correlated in
+controls but independent in cases. These simulated values represent
+preprocessed data.
 
 ``` r
+# A toy example
+library(DISCO)
+
+set.seed(1)
+controls <- matrix(rnorm(30 * 5), nrow = 30, ncol = 5)
+cases <- matrix(rnorm(30 * 5), nrow = 30, ncol = 5)
+colnames(controls) <- colnames(cases) <- paste0("feature", 1:5)
+controls[, 2] <- controls[, 1] + rnorm(30, sd = 0.2)
+
 result <- disco(
   data1 = list(controls),
   data2 = list(cases),
-  empirically_derive_threshold = FALSE,
+  cooccur = 20,
+  empirically_derive_threshold = FALSE, # empirical mode is turned off
   filter_threshold = 1,
+  q_value = 0.2,       # Used only in empirical mode
+  n_resamples = 100,  # Used only in empirical mode
+  random_seed = 1L,   # Used only in empirical mode
+  adj_method = "BY",
   output_dir = "disco_results",
-  prefix = "controls_vs_cases"
+  prefix = "controls_vs_cases",
+  global_p_cutoff = 0.05, # Used only in empirical mode
+  workers = 1L           # Used only in empirical mode
 )
-head(result$disco)
 ```
 
 ## Returned results
