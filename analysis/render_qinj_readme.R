@@ -27,4 +27,14 @@ assets <- c(assets,
 if (!all(file.exists(assets))) stop("Missing example figures; rerun the plotting scripts first.")
 copied <- file.copy(assets, file.path(repo_dir, "man", "figures", names(assets)), overwrite = TRUE)
 if (!all(copied)) stop("Could not refresh all README figures.")
-rmarkdown::render(file.path(repo_dir, "README.Rmd"), knit_root_dir = repo_dir)
+# Render in a clean R process: a development session using load_all() points
+# find.package("DISCO") at the checkout, while these cached examples record the
+# installed package. Keep the provenance check intact and use that installation.
+render_code <- paste(
+  "args <- commandArgs(trailingOnly = TRUE);",
+  "rmarkdown::render(args[[1L]], knit_root_dir = args[[2L]])"
+)
+status <- system2(file.path(R.home("bin"), "Rscript"),
+  args = c("--vanilla", "-e", shQuote(render_code),
+    shQuote(file.path(repo_dir, "README.Rmd")), shQuote(repo_dir)))
+if (status != 0L) stop("README rendering failed; see the error above.", call. = FALSE)

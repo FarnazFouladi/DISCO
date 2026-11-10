@@ -3,13 +3,13 @@
 
 <!-- README.md is generated from README.Rmd. Please edit README.Rmd. -->
 
-DISCO (**DIS**ruption in **CO**rrelations) identifies features whose
-correlation patterns differ between two groups, such as healthy controls
-and people with a disease. It combines evidence from pairwise
-differential-correlation tests into a score, p-value, and adjusted
-p-value (q-value) for each feature. This helps identify features whose
-relationships with other features differ between groups, even when their
-average abundances are similar.
+DISCO (**DIS**ruption in **CO**rrelations) is an exploratory tool that
+attempts to identify features whose correlation patterns differ between
+two groups, such as healthy controls and people with a disease. It
+combines evidence from pairwise differential-correlation tests into a
+score, p-value, and adjusted p-value (q-value) for each feature. This
+helps identify features whose relationships with other features differ
+between groups, even when their average abundances are similar.
 
 DISCO supports one modality (for example, correlations among microbial
 taxa) or two modalities (for example, correlations between microbes and
@@ -59,20 +59,19 @@ group** to be tested.
 
 **Normalize inputs appropriately before running DISCO.** The function
 does not normalize data or adjust for covariates. Supply normalized and,
-when needed, covariate-adjusted measurements. In the examples below we
-use a robust centered log-ratio (CLR) transformation for microbiome
-data: each sample is centred over its observed positive features, and
+when needed, covariate-adjusted measurements. In the examples below, we
+use a robust centred log-ratio (CLR) transformation for microbiome data:
+each sample is centred over its observed positive features, and
 abundance zeros are represented as `NA`. DISCO then uses complete
-observations separately for each feature pair; it does not require a
-sample to be observed for every feature. Other data types may require
-different preprocessing. DISCO itself treats numeric zeros as observed
-values; missing values are excluded separately for each pair. If zeros
-should be excluded from the correlation calculations, represent them as
-`NA` before running DISCO.
+observations separately for each feature pair. Other data types may
+require different preprocessing. DISCO itself treats numeric zeros as
+observed values; missing values are excluded separately for each pair.
+If zeros should be excluded from the correlation calculations, represent
+them as `NA` before running DISCO.
 
 | Argument | Default | Meaning |
 |----|---:|----|
-| `cooccur` | `20` | Minimum pairwise non-missing observations in **each** group; integer ≥10. |
+| `cooccur` | `20` | Minimum number of pairwise nonmissing observations in **each** group; integer ≥10. |
 | `empirically_derive_threshold` | `TRUE` | Select the correlation filtering threshold using label permutations. |
 | `filter_threshold` | `1` | Fixed correlation p-value threshold when empirical selection is disabled. |
 | `q_value` | `0.2` | Feature-level q-value cutoff used to count discoveries in empirical mode. |
@@ -157,8 +156,8 @@ In `feature_null_summary`, a column such as `q_less_than_0.2` indicates
 whether the real-data feature q-value is below `0.2`. The column name
 reflects the supplied `q_value`. For each feature, its null discovery
 frequency is the percentage of all requested permutations in which it
-has DISCO q \< `q_value`. Permutations where that feature is absent or
-untested contribute zero to its discovery count.
+has DISCO q \< `q_value`. Permutations in which that feature is absent
+or untested contribute zero to its discovery count.
 
 `feature_null_plot` shows **−log10(real-data p-value)** on the x-axis
 and the percentage of permutations in which the feature has
@@ -167,11 +166,11 @@ discoveries. Low null discovery frequencies provide a useful diagnostic,
 but are not formal feature-level FDR estimates.
 
 In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and
-`output_files` are returned; the diagnostic components are `NULL`. Pair
-and feature tables are saved as `<prefix>_cor_diff.csv` and
-`<prefix>_disco.csv`.
+`output_files` are returned; the diagnostic components are `NULL`.
+Pair-level and feature-level tables are saved as `<prefix>_cor_diff.csv`
+and `<prefix>_disco.csv`.
 
-## Example: One modality — taxon–taxon correlations in type 2 diabetes
+## Example of one data modality: taxon–taxon correlations in type 2 diabetes
 
 This example uses **QinJ_2012** from [Qin et
 al. (2012)](https://doi.org/10.1038/nature11450), comparing type 2
@@ -548,7 +547,7 @@ extracted from the adjusted matrices in
 
 <img src="man/figures/README-qinj-taxa-scatterplot.png" alt="" width="100%" />
 
-## Example: Two modalities — taxon–pathway correlations
+## Example of two data modalities: taxon–pathway correlations
 
 The same T2D/control comparison now tests **taxon–pathway
 correlations**. Taxa are the first modality, so DISCO assigns scores to
@@ -616,7 +615,7 @@ if (is.null(two)) {
 |     174 | 170 |            62 |               351 |
 
 **18 taxa have DISCO q \< 0.2.** The table lists all significant taxa,
-using the same columns and ordering as the one-modality analysis. Here
+using the same columns and ordering as the one-modality analysis. Here,
 “Pairs” counts contributing taxon–pathway pairs.
 
 | Taxon                           | DISCO p  | DISCO q  | Pairs |
@@ -679,9 +678,10 @@ exact plotted edge subset is exported in
 The highest-ranked retained pair is **\[Ruminococcus\] gnavus versus
 PWY-241** (C4 photosynthetic carbon assimilation cycle, NADP-ME type).
 The plotted values are the separately adjusted robust CLR taxon and
-pathway measurements, with complete pairs only. Saved group Spearman
-correlations, sample counts, and pair-level differential p/q are shown;
-dashed lines remain visual guides.
+pathway measurements, with complete pairs only. Saved group-specific
+Spearman correlations, sample counts, and pair-level
+differential-correlation p-values and q-values are shown; dashed lines
+remain visual guides.
 
 Pair statistics come from
 [QinJ_2012_taxa_pathways_cor_diff.csv](analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
