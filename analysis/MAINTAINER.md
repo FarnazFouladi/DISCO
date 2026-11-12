@@ -31,6 +31,11 @@ After rendering, refresh the documentation website if needed:
 pkgdown::build_site(preview = FALSE)
 ```
 
-The `Build documentation` GitHub Actions workflow also builds the site on
-pull requests and pushes to `main`, and saves a `documentation-site` artifact.
-Website publishing is configured separately.
+The `Build and publish documentation` GitHub Actions workflow builds the site
+on pull requests and saves a downloadable `documentation-site` artifact.
+Pushes to `main` also publish the site to GitHub Pages after the build succeeds.
+A manual workflow run publishes only when run from `main`.
+
+For the initial setup, select **Settings > Pages > Build and deployment >
+Source > GitHub Actions** in the GitHub repository. The site address is
+<https://farnazfouladi.github.io/DISCO/>.

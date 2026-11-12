@@ -1,5 +1,4 @@
-# Set url when publishing. Leaving it unset also avoids the DISCO/disco
-# alias redirect collision on case-insensitive local filesystems.
+url: https://farnazfouladi.github.io/DISCO/
 template:
   bootstrap: 5
 development:

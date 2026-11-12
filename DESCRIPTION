@@ -10,7 +10,8 @@ Description: Implements DISCO (DISruption in COrrelations), a method for
     including those from different data modalities, are disrupted in a group
     of interest relative to a reference group.
 License: MIT + file LICENSE
-URL: https://github.com/FarnazFouladi/DISCO
+URL: https://farnazfouladi.github.io/DISCO/,
+    https://github.com/FarnazFouladi/DISCO
 BugReports: https://github.com/FarnazFouladi/DISCO/issues
 Encoding: UTF-8
 Roxygen: list(markdown = TRUE)
