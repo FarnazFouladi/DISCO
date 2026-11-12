@@ -1,6 +1,10 @@
 # Run from the DISCO repository root after downloading the counts (see README).
 # Adapted from DISCO_Analysis's example_ibd_workflow.R; only the Hallmark
 # significance heatmap is generated here. This runs the full analysis.
+# Script order: (1) fetch_srp042228_metadata.R, (2) explore_srp042228_metadata.R,
+# (3) fetch_srp042228_counts.R, (4) run_ibd_hallmark_disco.R,
+# (5) plot_ibd_hallmark_significance.R. Steps 1-2 can be skipped with bundled
+# metadata. This wrapper configures and runs steps 4-5; helpers load automatically.
 
 ## ---- ibd-workflow
 library(DISCO)

@@ -794,10 +794,11 @@ differential expression or assign a pathway enrichment p-value.
 
 ### Preprocessing and analysis
 
-The workflow preserves the preprocessing in the original IBD analysis:
+Before running DISCO, the RNA-seq data are preprocessed as follows:
 
-1.  Match audited GEO patient metadata to recount3 samples, require
-    complete age-at-diagnosis and sex, and keep one sample per patient.
+1.  Match GEO sample metadata to the recount3 expression data using
+    sample identifiers. Require complete age-at-diagnosis and sex
+    information, and require unique patient identifiers.
 2.  Convert recount3 coverage sums to rounded read counts by dividing
     each sample by its average mapped read length. Resolve
     annotation-redundant gene pairs using the saved GENCODE exon-overlap
@@ -850,6 +851,29 @@ included under `analysis/ibd_transcriptomics/`; the expression count
 download is separate. These files are not part of the installed R
 package.
 
+The scripts run in the following order, all under
+`analysis/ibd_transcriptomics/code/`:
+
+| Order | Script | Purpose | Needed with bundled metadata? |
+|----|----|----|----|
+| 1 | `fetch_srp042228_metadata.R` | Download GEO, recount3, and ENA sample metadata. | No |
+| 2 | `explore_srp042228_metadata.R` | Check sample/patient identifiers, disease labels, and GEO/recount3 agreement; write `sample_metadata.csv`. | No |
+| 3 | `fetch_srp042228_counts.R` | Download the recount3 gene coverage sums. | Yes, once |
+| 4 | `run_ibd_hallmark_disco.R` | Match metadata to expression columns, preprocess expression, and run pathway DISCO. | Yes |
+| 5 | `plot_ibd_hallmark_significance.R` | Plot significant-gene percentages from the completed results. | Yes, to generate the heatmap |
+
+`example_ibd_workflow.R` configures and runs **steps 4 and 5** together;
+it is an alternative to running those scripts separately. The
+`ibd_*_helpers.R` files are loaded automatically and do not need to be
+run separately.
+
+The metadata-to-expression matching in step 4 is performed by
+`ibd_load_count_inputs()` in `ibd_hallmark_disco_helpers.R`. It matches
+GEO accessions (`gsm`) to recount3’s `sra.sample_name`, assigns the
+corresponding run identifiers (`external_id`), and checks that
+expression columns follow the same sample order. Step 2 creates and
+checks the metadata table before this expression matching occurs.
+
 Install the example dependencies:
 
 ``` r
@@ -857,13 +881,31 @@ install.packages(c("BiocManager", "curl"))
 BiocManager::install(c("recount3", "edgeR", "limma"))
 ```
 
-Download the recount3 gene counts once (an existing download is reused):
+**Steps 1–2 are optional** because their metadata outputs are bundled.
+To retrieve and check the metadata again, write to a separate directory:
+
+``` sh
+# 1. Download metadata
+Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_metadata.R analysis/ibd_transcriptomics/outputs/metadata_refresh
+# 2. Check metadata and create sample_metadata.csv
+Rscript analysis/ibd_transcriptomics/code/explore_srp042228_metadata.R analysis/ibd_transcriptomics/outputs/metadata_refresh
+```
+
+If using this refreshed metadata, pass
+`analysis/ibd_transcriptomics/outputs/metadata_refresh` to the count
+downloader in step 3 and use the same path for `ibd.exploration_dir` in
+step 4. Freshly retrieved data may differ from the snapshots used for
+the bundled figure.
+
+**Step 3.** Download the recount3 gene counts once (an existing download
+is reused). Using the bundled metadata:
 
 ``` sh
 Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R analysis/ibd_transcriptomics/inputs
 ```
 
-Then run all 43 Hallmark pathways for the three comparisons:
+**Step 4.** Configure and run all 43 Hallmark pathways for the three
+comparisons:
 
 ``` r
 library(DISCO)
@@ -894,9 +936,8 @@ has no effect.
 
 ### Hallmark significance heatmap
 
-Generate the heatmap with the original
-`plot_ibd_hallmark_significance.R` workflow, adapted to the paths in
-this repository:
+**Step 5.** Generate the heatmap with
+`plot_ibd_hallmark_significance.R`:
 
 ``` r
 # To plot the bundled results without rerunning DISCO, use instead:
