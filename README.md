@@ -9,7 +9,7 @@
 - [Inputs and arguments](#inputs-and-arguments)
 - [Outputs](#outputs)
 - [Quick start](#quick-start)
-- [Examples of DISCO application](#Examples-of-DISCO-application)
+- [Examples of DISCO application](#examples-of-disco-application)
 - [Example 1: Microbiome, one
   modality](#example-of-one-data-modality-taxontaxon-correlations-in-type-2-diabetes)
 - [Example 2: Microbiome, two
@@ -123,7 +123,7 @@ permutation test then compares the maximum observed discovery percentage
 across thresholds with the corresponding maximum from each valid
 permutation:
 
-``` text
+```text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -212,7 +212,7 @@ Here we illustrate the application of DISCO to microbiome and
 transcriptomic data. The example files are organized by dataset under
 `analysis/`:
 
-``` text
+```text
 analysis/
   diabetes_microbiome/
     code/       # QinJ preprocessing, DISCO, plotting, and README scripts
