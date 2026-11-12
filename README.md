@@ -3,6 +3,20 @@
 
 <!-- README.md is generated from README.Rmd. Please edit README.Rmd. -->
 
+**On this page**
+
+- [Installation](#installation)
+- [Inputs and arguments](#inputs-and-arguments)
+- [Outputs](#returned-results)
+- [Example 1: Microbiome, one
+  modality](#example-of-one-data-modality-taxontaxon-correlations-in-type-2-diabetes)
+- [Example 2: Microbiome, two
+  modalities](#example-of-two-data-modalities-taxonpathway-correlations)
+- [Combined microbiome results](#overall-microbiome-example-results)
+- [Example 3: IBD
+  transcriptomics](#transcriptomics-example-gene-correlations-within-ibd-hallmark-pathways)
+- [Citation](#citation)
+
 DISCO (**DIS**ruption in **CO**rrelations) is an exploratory tool that
 attempts to identify features whose correlation patterns differ between
 two groups, such as healthy controls and people with a disease. It
