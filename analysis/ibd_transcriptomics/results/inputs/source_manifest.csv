@@ -1,0 +1,10 @@
+"file","url","available","md5"
+"sra.sra.SRP042228.MD.gz","https://recount-opendata.s3.amazonaws.com/recount3/release/human/data_sources/sra/metadata/28/SRP042228/sra.sra.SRP042228.MD.gz",TRUE,"850a9d9ca679f594e90be0393609ab6f"
+"sra.recount_project.SRP042228.MD.gz","https://recount-opendata.s3.amazonaws.com/recount3/release/human/data_sources/sra/metadata/28/SRP042228/sra.recount_project.SRP042228.MD.gz",TRUE,"7c49529f903ca627506f845ab91b7f70"
+"sra.recount_qc.SRP042228.MD.gz","https://recount-opendata.s3.amazonaws.com/recount3/release/human/data_sources/sra/metadata/28/SRP042228/sra.recount_qc.SRP042228.MD.gz",TRUE,"79646a48d88355c7072f53f14eb33b66"
+"sra.recount_seq_qc.SRP042228.MD.gz","https://recount-opendata.s3.amazonaws.com/recount3/release/human/data_sources/sra/metadata/28/SRP042228/sra.recount_seq_qc.SRP042228.MD.gz",TRUE,"9e9dd13acc00353740c5789af625ec11"
+"sra.recount_pred.SRP042228.MD.gz","https://recount-opendata.s3.amazonaws.com/recount3/release/human/data_sources/sra/metadata/28/SRP042228/sra.recount_pred.SRP042228.MD.gz",TRUE,"91729b08732176ac5bb0c56754c5756b"
+"GSE57945_family.soft.gz","https://ftp.ncbi.nlm.nih.gov/geo/series/GSE57nnn/GSE57945/soft/GSE57945_family.soft.gz",TRUE,"4d43cda22186f219c6af52ed23ffadec"
+"ena_runs.tsv","https://www.ebi.ac.uk/ena/portal/api/filereport?accession=SRP042228&result=read_run&fields=study_accession,sample_accession,secondary_sample_accession,experiment_accession,run_accession,sample_alias,sample_title,experiment_alias,experiment_title,library_name,library_strategy,library_source,library_selection,library_layout,instrument_model,instrument_platform,read_count,base_count,first_public,last_updated&format=tsv",TRUE,"72c72037ffbff9c237c67e316d1cff5b"
+"PMC4109533.xml","https://www.ebi.ac.uk/europepmc/webservices/rest/PMC4109533/fullTextXML",FALSE,NA
+"PMC4362234_corrigendum.xml","https://www.ebi.ac.uk/europepmc/webservices/rest/PMC4362234/fullTextXML",FALSE,NA
