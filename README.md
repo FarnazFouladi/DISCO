@@ -9,7 +9,7 @@
 - [Inputs and arguments](#inputs-and-arguments)
 - [Outputs](#outputs)
 - [Quick start](#quick-start)
-- [Examples of DISCO application](#disco-examples)
+- [Examples of DISCO application](#disco-application)
 - [Example 1: Microbiome, one
   modality](#example-of-one-data-modality-taxontaxon-correlations-in-type-2-diabetes)
 - [Example 2: Microbiome, two
@@ -206,9 +206,7 @@ In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and
 Pair-level and feature-level tables are saved as `<prefix>_cor_diff.csv`
 and `<prefix>_disco.csv`.
 
-<a name="disco-examples"></a>
-
-## Examples of DISCO application
+## DISCO application
 
 Here we illustrate the application of DISCO to microbiome and
 transcriptomic data. The example files are organized by dataset under
