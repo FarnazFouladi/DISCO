@@ -1,0 +1,4 @@
+"comparison","n_control","n_disease","n_paired_patients","n_expressed_genes","n_variable_genes","preprocessing_mode","adjustment_fitted_n_samples","adjustment_residual_df"
+"iCD",42,163,0,25391,25391,"joint_four_groups",322,316
+"cCD",42,55,0,25391,25391,"joint_four_groups",322,316
+"UC",42,62,0,25391,25391,"joint_four_groups",322,316

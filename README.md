@@ -108,7 +108,7 @@ permutation test then compares the maximum observed discovery percentage
 across thresholds with the corresponding maximum from each valid
 permutation:
 
-``` text
+```text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -230,8 +230,9 @@ BiocManager::install(c("curatedMetagenomicData", "SummarizedExperiment"))
 ```
 
 The following blocks are imported directly from the [analysis
-script](analysis/run_qinj_readme_examples.R) and [preprocessing
-helpers](analysis/qinj_readme_preprocessing.R).
+script](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/run_qinj_readme_examples.R)
+and [preprocessing
+helpers](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_preprocessing.R).
 
 Load the installed DISCO package (see Installation above):
 
@@ -534,12 +535,12 @@ indicate positive/negative group correlations, and edge width shows
 significance.
 
 Correlation source:
-[QinJ_2012_taxa_cor_diff.csv](analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv).
+[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv).
 Its columns identify the pair (`t1`, `t2`), control/T2D Spearman
 correlations (`r1`, `r2`), complete-pair sample counts (`n1`, `n2`), and
 differential-correlation `p` and `q`. The exact subset drawn as edges is
 saved in
-[network_edges.csv](analysis/qinj_taxa_networks/network_edges.csv).
+[network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_networks/network_edges.csv).
 
 <img src="man/figures/README-qinj-taxa-network.png" alt="" width="100%" />
 
@@ -554,13 +555,13 @@ and paired sample counts from `cor_diff`. Dashed linear fits are visual
 guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_cor_diff.csv](analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv);
+[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv);
 the selected pairs and their annotations are exported in
-[top10_pairs.csv](analysis/qinj_differential_scatterplots/top10_pairs.csv).
+[top10_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_differential_scatterplots/top10_pairs.csv).
 The plotted sample values are exported in
-[scatterplot_data.csv](analysis/qinj_differential_scatterplots/scatterplot_data.csv),
+[scatterplot_data.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_differential_scatterplots/scatterplot_data.csv),
 extracted from the adjusted matrices in
-[disco_inputs.rds](analysis/qinj_readme_results/taxa/disco_inputs.rds).
+[disco_inputs.rds](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa/disco_inputs.rds).
 
 <img src="man/figures/README-qinj-taxa-scatterplot.png" alt="" width="100%" />
 
@@ -676,17 +677,17 @@ taxa** to pathways with **raw differential-correlation p \< 0.05**,
 using the saved filtered pair table. Gold nodes are taxa and grey nodes
 are pathways. Pathways are labelled by their IDs; full names are
 exported in
-[network_nodes.csv](analysis/qinj_taxa_pathway_networks/network_nodes.csv).
+[network_nodes.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_networks/network_nodes.csv).
 Both panels use identical nodes, edges, and positions. Edge colors and
 widths show the group-specific Spearman correlations, as in the
 taxa-only network.
 
 Correlation source:
-[QinJ_2012_taxa_pathways_cor_diff.csv](analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
 Here `t1` is the taxon and `t2` is the pathway; `r1`/`r2`, `n1`/`n2`,
 and `p`/`q` have the same meanings as in the taxa-only pair table. The
 exact plotted edge subset is exported in
-[network_edges.csv](analysis/qinj_taxa_pathway_networks/network_edges.csv).
+[network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_networks/network_edges.csv).
 
 <img src="man/figures/README-qinj-taxa_pathways-network.png" alt="" width="100%" />
 
@@ -701,18 +702,18 @@ differential-correlation p-values and q-values are shown; dashed lines
 remain visual guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_pathways_cor_diff.csv](analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
 The selected example and its annotations are saved in
-[top1_pairs.csv](analysis/qinj_taxa_pathway_scatterplots/top1_pairs.csv),
+[top1_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_scatterplots/top1_pairs.csv),
 and its sample values are exported in
-[scatterplot_data.csv](analysis/qinj_taxa_pathway_scatterplots/scatterplot_data.csv).
+[scatterplot_data.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_scatterplots/scatterplot_data.csv).
 Those values are extracted from the adjusted taxon and pathway matrices
 in
-[disco_inputs.rds](analysis/qinj_readme_results/taxa_pathways/disco_inputs.rds).
+[disco_inputs.rds](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa_pathways/disco_inputs.rds).
 
 <img src="man/figures/README-qinj-taxa_pathways-scatterplot.png" alt="" width="100%" />
 
-## Overall example results
+## Overall microbiome example results
 
 Across the two analyses, **25 unique taxa** have DISCO q \< 0.2 in at
 least one analysis: 16 in taxa–taxa DISCO, 18 in taxon–pathway DISCO,
@@ -770,6 +771,198 @@ Rscript analysis/render_qinj_readme.R
 
 This last step requires Pandoc and reads saved results without rerunning
 DISCO.
+
+## Transcriptomics example: gene correlations within IBD Hallmark pathways
+
+This example uses diagnostic **ileal biopsy RNA-seq** from [GSE57945 /
+SRP042228](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57945),
+reported by [Haberman et al. (2014)](https://doi.org/10.1172/JCI75436).
+Expression measurements come from recount3 with **GENCODE v26**
+annotation. All samples are ileal biopsies, including those from
+patients with colon-only disease. The three independent-group
+comparisons reuse the same non-IBD controls:
+
+| Comparison                         | Disease samples | Non-IBD controls |
+|------------------------------------|----------------:|-----------------:|
+| Ileal Crohn’s disease (`iCD`)      |             163 |               42 |
+| Colon-only Crohn’s disease (`cCD`) |              55 |               42 |
+| Ulcerative colitis (`UC`)          |              62 |               42 |
+
+Here, DISCO scores **genes within each pathway**, based on changes in
+their correlations with other genes in that pathway. It does not test
+differential expression or assign a pathway enrichment p-value.
+
+### Preprocessing and analysis
+
+The workflow preserves the preprocessing in the original IBD analysis:
+
+1.  Match audited GEO patient metadata to recount3 samples, require
+    complete age-at-diagnosis and sex, and keep one sample per patient.
+2.  Convert recount3 coverage sums to rounded read counts by dividing
+    each sample by its average mapped read length. Resolve
+    annotation-redundant gene pairs using the saved GENCODE exon-overlap
+    audit: prefer the sole Hallmark member, otherwise the longer exon
+    union, breaking ties by gene ID.
+3.  Filter expression once across all four groups with
+    `edgeR::filterByExpr()` (`min.count = 10`, `min.total.count = 15`,
+    `large.n = 10`, `min.prop = 0.7`). Apply TMM normalization and
+    calculate log2 counts per million with `prior.count = 2`.
+4.  Use `limma::removeBatchEffect()` to adjust for centered
+    age-at-diagnosis and sex while preserving the four group effects.
+    Keep genes with finite adjusted variance greater than `1e-10` in
+    every group. No batch adjustment is applied because batch
+    identifiers are unavailable.
+5.  Select Hallmark sets from **MSigDB 2025.1.Hs** with at least **50
+    unique database gene symbols before expression filtering** (43
+    sets). Map gene IDs to each set and run one-modality DISCO
+    separately for each disease/control comparison and pathway, using
+    the same jointly preprocessed expression.
+
+The DISCO call inside the pathway runner is equivalent to the following,
+where `expr` contains the eligible genes for one pathway in rows and the
+comparison’s samples in columns, and `group` labels those columns:
+
+``` r
+result <- disco(
+  data1 = list(t(expr[, group == "Control", drop = FALSE])),
+  data2 = list(t(expr[, group == "Disease", drop = FALSE])),
+  cooccur = 10L,
+  empirically_derive_threshold = FALSE,
+  filter_threshold = 1,
+  adj_method = "BY",
+  output_dir = "ibd_pathway_results",
+  prefix = "pathway"
+)
+```
+
+BY adjustment is performed separately within each pathway and
+comparison; genes with **DISCO q \< 0.05** are counted as significant.
+Pathways can share genes, and the comparisons share controls. These are
+exploratory results: the ordinary differential-correlation tests do not
+account fully for the estimated age/sex adjustment.
+
+### Run the workflow
+
+Clone or download this repository and run from its root. The [example
+script](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/code/example_ibd_workflow.R),
+supporting helpers, audited metadata, and reference snapshots are
+included under `analysis/ibd_transcriptomics/`; the expression count
+download is separate. These files are not part of the installed R
+package.
+
+Install the example dependencies:
+
+``` r
+install.packages(c("BiocManager", "curl"))
+BiocManager::install(c("recount3", "edgeR", "limma"))
+```
+
+Download the recount3 gene counts once (an existing download is reused):
+
+``` sh
+Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R analysis/ibd_transcriptomics/inputs
+```
+
+Then run all 43 Hallmark pathways for the three comparisons:
+
+``` r
+library(DISCO)
+
+options(
+  ibd.exploration_dir = "analysis/ibd_transcriptomics/inputs",
+  ibd.pathway_reference = "analysis/ibd_transcriptomics/inputs/reference",
+  ibd.comparisons = c("iCD", "cCD", "UC"),
+  ibd.preprocessing_mode = "joint_four_groups",
+  ibd.msigdb_collection = "H",
+  ibd.msigdb_subcollection = NULL,
+  ibd.min_pathway_genes = 50L,
+  ibd.pathway_names = NULL,
+  ibd.pathway_preprocess_only = FALSE,
+  ibd.disco_workers = 1L
+)
+source("analysis/ibd_transcriptomics/code/run_ibd_hallmark_disco.R")
+ibd_results_dir <- output
+```
+
+The runner saves a new timestamped directory under
+`analysis/ibd_transcriptomics/outputs/`, including prepared expression
+matrices, gene eligibility audits, DISCO tables, sample counts, and
+provenance. To try just one pathway, set
+`ibd.pathway_names = "HALLMARK_TNFA_SIGNALING_VIA_NFKB"` in the options
+above. Fixed-threshold mode skips permutations, so `ibd.disco_workers`
+has no effect.
+
+### Hallmark significance heatmap
+
+Generate the heatmap with the original
+`plot_ibd_hallmark_significance.R` workflow, adapted to the paths in
+this repository:
+
+``` r
+# To plot the bundled results without rerunning DISCO, use instead:
+# ibd_results_dir <- "analysis/ibd_transcriptomics/results"
+options(
+  ibd.plot_input_dir = ibd_results_dir,
+  ibd.pathway_min_percent = 50,
+  ibd.pathway_label_max_chars = 60L,
+  ibd.pathway_cluster_rows = TRUE
+)
+source("analysis/ibd_transcriptomics/code/plot_ibd_hallmark_significance.R")
+```
+
+The bundled figure below uses the completed **November 2, 2026** run.
+Each cell shows **100 × significant genes / tested genes**, excluding
+genes without a finite within-pathway q-value. The same **23 pathways**
+are displayed in every column: those with at least 50% significant genes
+in any comparison. The display cutoff does not change the DISCO tests or
+their q-values. Rows are clustered using Euclidean distance and complete
+linkage on the unscaled percentages; columns retain the order iCD, cCD,
+UC. Right-hand counts give tested genes in that same order.
+
+<img src="man/figures/README-ibd-hallmark-significance.png" alt="" width="100%" />
+
+The figure is a descriptive summary of gene-level correlation
+disruption, rather than a formal pathway significance test. For example,
+the inflammatory response pathway has 85.7%, 68.4%, and 0.0% significant
+tested genes in iCD, cCD, and UC, respectively.
+
+The bundled [gene
+scores](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/all_pathway_gene_scores.csv),
+[sample
+counts](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/comparison_sample_counts.csv),
+[heatmap
+percentages](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/pathway_significance_percentages.csv),
+and [row
+order](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/heatmap_row_order.csv)
+allow inspection without rerunning the analysis. To redraw the heatmap
+from these saved results, set
+`ibd_results_dir <- "analysis/ibd_transcriptomics/results"` before the
+plotting chunk. The saved
+[provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
+and [session
+information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
+describe the original run; its recorded paths refer to the original
+analysis location.
+
+## Building the documentation website
+
+The pkgdown website uses this README as its home page and generates a
+function reference from the package help files. To build it locally:
+
+``` r
+install.packages("pkgdown") # If needed
+pkgdown::build_site(preview = FALSE)
+```
+
+Open `docs/index.html` to view the result. The build reads the rendered
+`README.md` and its saved figures; it does not rerun the example
+analyses or download their expression data. After editing `README.Rmd`,
+render it first with `Rscript analysis/render_qinj_readme.R`.
+
+The `Build documentation` GitHub Actions workflow builds the same site
+on pushes to `main`, pull requests, or manual runs, and saves it as the
+`documentation-site` artifact. Publishing to GitHub Pages can be
+configured after reviewing the site.
 
 ## Citation
 

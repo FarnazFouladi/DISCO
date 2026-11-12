@@ -1,0 +1,5 @@
+outputs/
+inputs/raw/*.gz
+inputs/raw/*.partial
+inputs/gene_counts_manifest.csv
+results/plots/

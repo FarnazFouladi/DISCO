@@ -1,0 +1,25 @@
+# Set url when publishing. Leaving it unset also avoids the DISCO/disco
+# alias redirect collision on case-insensitive local filesystems.
+template:
+  bootstrap: 5
+development:
+  mode: unreleased
+navbar:
+  structure:
+    left: [intro, reference, examples]
+    right: [search, github]
+  components:
+    intro:
+      text: Get started
+      href: index.html#installation
+    examples:
+      text: Examples
+      menu:
+        - text: Simulated data
+          href: index.html#inputs-and-arguments
+        - text: Microbiome — one modality
+          href: index.html#example-of-one-data-modality-taxontaxon-correlations-in-type-2-diabetes
+        - text: Microbiome — two modalities
+          href: index.html#example-of-two-data-modalities-taxonpathway-correlations
+        - text: IBD transcriptomics
+          href: index.html#transcriptomics-example-gene-correlations-within-ibd-hallmark-pathways

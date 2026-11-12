@@ -1,0 +1,323 @@
+"gsm","title","subject_label","tissue","sex","age_at_diagnosis","paris_age","diagnosis","subtype","histopathology","deep_ulcer","complete_age_sex","n_ena_runs","n_recount_runs"
+"GSM1598408","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_001)","CCFA_Risk_001","Ileal biopsy","female",15.25,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598409","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_002)","CCFA_Risk_002","Ileal biopsy","male",14.42,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598410","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_003)","CCFA_Risk_003","Ileal biopsy","female",12.5,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598411","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_004)","CCFA_Risk_004","Ileal biopsy","male",14.58,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598412","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_005)","CCFA_Risk_005","Ileal biopsy","female",10.17,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598413","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_006)","CCFA_Risk_006","Ileal biopsy","female",15.75,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598414","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_007)","CCFA_Risk_007","Ileal biopsy","male",14.33,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598415","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_008)","CCFA_Risk_008","Ileal biopsy","male",11.42,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598416","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_009)","CCFA_Risk_009","Ileal biopsy","female",9,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598417","Not IBD Male (CCFA_Risk_010)","CCFA_Risk_010","Ileal biopsy","male",10.33,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598418","Not IBD Male (CCFA_Risk_011)","CCFA_Risk_011","Ileal biopsy","male",10.83,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598419","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_012)","CCFA_Risk_012","Ileal biopsy","female",13.92,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598420","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_013)","CCFA_Risk_013","Ileal biopsy","male",9.25,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598421","Not IBD Female (CCFA_Risk_014)","CCFA_Risk_014","Ileal biopsy","female",9,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598422","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_015)","CCFA_Risk_015","Ileal biopsy","male",13.42,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598423","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_016)","CCFA_Risk_016","Ileal biopsy","male",15.17,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598424","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_017)","CCFA_Risk_017","Ileal biopsy","male",13.25,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598425","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_018)","CCFA_Risk_018","Ileal biopsy","female",16.08,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598426","Not IBD Female (CCFA_Risk_019)","CCFA_Risk_019","Ileal biopsy","female",15,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598427","Not IBD Female (CCFA_Risk_020)","CCFA_Risk_020","Ileal biopsy","female",10.75,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598428","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_021)","CCFA_Risk_021","Ileal biopsy","male",10.33,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598429","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_022)","CCFA_Risk_022","Ileal biopsy","female",10.83,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598430","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_023)","CCFA_Risk_023","Ileal biopsy","female",10.17,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598431","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_024)","CCFA_Risk_024","Ileal biopsy","male",4.5,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598432","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_025)","CCFA_Risk_025","Ileal biopsy","female",6.33,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598433","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_026)","CCFA_Risk_026","Ileal biopsy","male",5.08,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598434","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_027)","CCFA_Risk_027","Ileal biopsy","female",10.33,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598435","Not IBD Female (CCFA_Risk_028)","CCFA_Risk_028","Ileal biopsy","female",16.92,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598436","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_029)","CCFA_Risk_029","Ileal biopsy","female",10.83,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598437","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_030)","CCFA_Risk_030","Ileal biopsy","male",10.75,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598438","Not IBD Female (CCFA_Risk_031)","CCFA_Risk_031","Ileal biopsy","female",12.5,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598439","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_032)","CCFA_Risk_032","Ileal biopsy","female",8.67,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598440","Not IBD Male (CCFA_Risk_033)","CCFA_Risk_033","Ileal biopsy","male",9.33,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598441","Not IBD Male (CCFA_Risk_034)","CCFA_Risk_034","Ileal biopsy","male",7.75,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598442","Not IBD Male (CCFA_Risk_035)","CCFA_Risk_035","Ileal biopsy","male",11.5,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598443","Not IBD Male (CCFA_Risk_036)","CCFA_Risk_036","Ileal biopsy","male",10.5,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598444","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_037)","CCFA_Risk_037","Ileal biopsy","male",10.5,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598445","Not IBD Male (CCFA_Risk_038)","CCFA_Risk_038","Ileal biopsy","male",8.67,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598446","Not IBD Female (CCFA_Risk_039)","CCFA_Risk_039","Ileal biopsy","female",15.33,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598447","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_040)","CCFA_Risk_040","Ileal biopsy","female",9.17,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598448","Not IBD Male (CCFA_Risk_041)","CCFA_Risk_041","Ileal biopsy","male",4.83,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598449","Not IBD Male (CCFA_Risk_042)","CCFA_Risk_042","Ileal biopsy","male",12,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598450","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_043)","CCFA_Risk_043","Ileal biopsy","female",12.08,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598451","Not IBD Male (CCFA_Risk_044)","CCFA_Risk_044","Ileal biopsy","male",9.17,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598452","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_045)","CCFA_Risk_045","Ileal biopsy","male",5.42,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598453","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_046)","CCFA_Risk_046","Ileal biopsy","female",15.17,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598454","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_047)","CCFA_Risk_047","Ileal biopsy","female",15.83,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598455","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_048)","CCFA_Risk_048","Ileal biopsy","male",7.67,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598456","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_049)","CCFA_Risk_049","Ileal biopsy","female",10.08,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598457","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_050)","CCFA_Risk_050","Ileal biopsy","male",13.42,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598458","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_051)","CCFA_Risk_051","Ileal biopsy","male",8.75,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598459","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_052)","CCFA_Risk_052","Ileal biopsy","male",16.08,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598460","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_053)","CCFA_Risk_053","Ileal biopsy","female",9.17,"A1a","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598461","Not IBD Male (CCFA_Risk_054)","CCFA_Risk_054","Ileal biopsy","male",2.33,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598462","Not IBD Male (CCFA_Risk_055)","CCFA_Risk_055","Ileal biopsy","male",11.42,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598463","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_056)","CCFA_Risk_056","Ileal biopsy","female",13.25,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598464","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_057)","CCFA_Risk_057","Ileal biopsy","male",7.58,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598465","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_058)","CCFA_Risk_058","Ileal biopsy","male",16.17,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598466","CD Male with Microscopic inflammation and Deep Ulcer (CCFA_Risk_059)","CCFA_Risk_059","Ileal biopsy","male",9.42,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598467","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_060)","CCFA_Risk_060","Ileal biopsy","male",13.58,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598468","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_061)","CCFA_Risk_061","Ileal biopsy","male",10.42,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598469","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_062)","CCFA_Risk_062","Ileal biopsy","male",10.67,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598470","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_063)","CCFA_Risk_063","Ileal biopsy","female",8.5,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598471","Not IBD Male (CCFA_Risk_064)","CCFA_Risk_064","Ileal biopsy","male",14.25,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598472","Not IBD Female (CCFA_Risk_065)","CCFA_Risk_065","Ileal biopsy","female",12.33,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598473","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_066)","CCFA_Risk_066","Ileal biopsy","male",8.42,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598474","Not IBD Male (CCFA_Risk_067)","CCFA_Risk_067","Ileal biopsy","male",12.92,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598475","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_068)","CCFA_Risk_068","Ileal biopsy","male",10.33,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598476","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_069)","CCFA_Risk_069","Ileal biopsy","female",12.08,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598477","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_070)","CCFA_Risk_070","Ileal biopsy","female",8.58,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598478","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_071)","CCFA_Risk_071","Ileal biopsy","male",10.67,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598479","Not IBD Female (CCFA_Risk_072)","CCFA_Risk_072","Ileal biopsy","female",13.08,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598480","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_073)","CCFA_Risk_073","Ileal biopsy","female",8.58,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598481","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_074)","CCFA_Risk_074","Ileal biopsy","female",5.42,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598482","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_075)","CCFA_Risk_075","Ileal biopsy","male",16.5,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598483","Not IBD Female (CCFA_Risk_076)","CCFA_Risk_076","Ileal biopsy","female",11,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598484","Not IBD Male (CCFA_Risk_077)","CCFA_Risk_077","Ileal biopsy","male",7.25,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598485","Not IBD Male (CCFA_Risk_078)","CCFA_Risk_078","Ileal biopsy","male",12.83,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598486","Not IBD Male (CCFA_Risk_079)","CCFA_Risk_079","Ileal biopsy","male",8.5,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598487","Not IBD Male (CCFA_Risk_080)","CCFA_Risk_080","Ileal biopsy","male",14.17,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598488","Not IBD Male (CCFA_Risk_081)","CCFA_Risk_081","Ileal biopsy","male",15.83,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598489","Not IBD Male (CCFA_Risk_082)","CCFA_Risk_082","Ileal biopsy","male",15.58,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598490","Not IBD Male (CCFA_Risk_083)","CCFA_Risk_083","Ileal biopsy","male",11.42,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598491","Not IBD Male (CCFA_Risk_084)","CCFA_Risk_084","Ileal biopsy","male",10.25,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598492","Not IBD Female (CCFA_Risk_085)","CCFA_Risk_085","Ileal biopsy","female",6.58,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598493","Not IBD Female (CCFA_Risk_086)","CCFA_Risk_086","Ileal biopsy","female",14.75,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598494","Not IBD Female (CCFA_Risk_087)","CCFA_Risk_087","Ileal biopsy","female",11.58,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598495","Not IBD Female (CCFA_Risk_088)","CCFA_Risk_088","Ileal biopsy","female",10.33,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598496","Not IBD Male (CCFA_Risk_089)","CCFA_Risk_089","Ileal biopsy","male",15.75,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598497","Not IBD Female (CCFA_Risk_090)","CCFA_Risk_090","Ileal biopsy","female",9.92,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598498","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_091)","CCFA_Risk_091","Ileal biopsy","male",14.75,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598499","UC Male (CCFA_Risk_092)","CCFA_Risk_092","Ileal biopsy","male",9.83,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598500","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_093)","CCFA_Risk_093","Ileal biopsy","male",5.75,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598501","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_094)","CCFA_Risk_094","Ileal biopsy","female",9.75,"A1a","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598502","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_095)","CCFA_Risk_095","Ileal biopsy","male",14.75,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598503","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_096)","CCFA_Risk_096","Ileal biopsy","female",13.08,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598504","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_097)","CCFA_Risk_097","Ileal biopsy","female",14.17,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598505","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_098)","CCFA_Risk_098","Ileal biopsy","male",14.83,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598506","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_099)","CCFA_Risk_099","Ileal biopsy","female",15.5,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598507","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_100)","CCFA_Risk_100","Ileal biopsy","female",12.83,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598508","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_101)","CCFA_Risk_101","Ileal biopsy","female",2.25,"A1a","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598509","CD Female with Undetermined and No Deep Ulcer (CCFA_Risk_102)","CCFA_Risk_102","Ileal biopsy","female",11.58,"A1b","CD","cCD","Undetermined","no",TRUE,1,1
+"GSM1598510","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_103)","CCFA_Risk_103","Ileal biopsy","male",14.83,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598511","CD Male with Undetermined and No Deep Ulcer (CCFA_Risk_104)","CCFA_Risk_104","Ileal biopsy","male",14.08,"A1b","CD","cCD","Undetermined","no",TRUE,1,1
+"GSM1598512","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_105)","CCFA_Risk_105","Ileal biopsy","male",15.92,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598513","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_106)","CCFA_Risk_106","Ileal biopsy","female",13.17,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598514","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_107)","CCFA_Risk_107","Ileal biopsy","male",15.75,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598515","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_108)","CCFA_Risk_108","Ileal biopsy","male",15,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598516","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_109)","CCFA_Risk_109","Ileal biopsy","male",13.58,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598517","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_110)","CCFA_Risk_110","Ileal biopsy","male",11.33,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598518","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_111)","CCFA_Risk_111","Ileal biopsy","male",14.5,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598519","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_112)","CCFA_Risk_112","Ileal biopsy","female",14.33,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598520","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_113)","CCFA_Risk_113","Ileal biopsy","female",13.42,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598521","UC Male (CCFA_Risk_114)","CCFA_Risk_114","Ileal biopsy","male",9.92,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598522","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_115)","CCFA_Risk_115","Ileal biopsy","female",14.08,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598523","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_116)","CCFA_Risk_116","Ileal biopsy","male",11.33,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598524","Not IBD Male (CCFA_Risk_117)","CCFA_Risk_117","Ileal biopsy","male",7.83,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598525","Not IBD Male (CCFA_Risk_118)","CCFA_Risk_118","Ileal biopsy","male",9.67,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598526","UC Male (CCFA_Risk_119)","CCFA_Risk_119","Ileal biopsy","male",12.67,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598527","Not IBD Male (CCFA_Risk_120)","CCFA_Risk_120","Ileal biopsy","male",8,"A1a","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598528","Not IBD Female (CCFA_Risk_121)","CCFA_Risk_121","Ileal biopsy","female",10.67,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598529","UC Female (CCFA_Risk_122)","CCFA_Risk_122","Ileal biopsy","female",10.5,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598530","UC Female (CCFA_Risk_123)","CCFA_Risk_123","Ileal biopsy","female",8.5,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598531","UC Female (CCFA_Risk_124)","CCFA_Risk_124","Ileal biopsy","female",11.67,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598532","UC Male (CCFA_Risk_125)","CCFA_Risk_125","Ileal biopsy","male",5.75,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598533","UC Male (CCFA_Risk_126)","CCFA_Risk_126","Ileal biopsy","male",5.5,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598534","UC Female (CCFA_Risk_127)","CCFA_Risk_127","Ileal biopsy","female",14.5,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598535","UC Female (CCFA_Risk_128)","CCFA_Risk_128","Ileal biopsy","female",11.5,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598536","UC Male (CCFA_Risk_129)","CCFA_Risk_129","Ileal biopsy","male",11.83,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598537","UC Male (CCFA_Risk_130)","CCFA_Risk_130","Ileal biopsy","male",15.5,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598538","UC Female (CCFA_Risk_131)","CCFA_Risk_131","Ileal biopsy","female",8.25,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598539","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_132)","CCFA_Risk_132","Ileal biopsy","male",9.17,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598540","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_133)","CCFA_Risk_133","Ileal biopsy","male",13.67,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598541","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_134)","CCFA_Risk_134","Ileal biopsy","male",11.5,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598542","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_135)","CCFA_Risk_135","Ileal biopsy","male",14.42,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598543","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_136)","CCFA_Risk_136","Ileal biopsy","female",11.58,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598544","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_137)","CCFA_Risk_137","Ileal biopsy","male",15.83,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598545","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_138)","CCFA_Risk_138","Ileal biopsy","female",11.75,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598546","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_139)","CCFA_Risk_139","Ileal biopsy","male",11.5,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598547","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_140)","CCFA_Risk_140","Ileal biopsy","female",11,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598548","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_141)","CCFA_Risk_141","Ileal biopsy","female",12.33,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598549","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_142)","CCFA_Risk_142","Ileal biopsy","male",6.25,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598550","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_143)","CCFA_Risk_143","Ileal biopsy","female",10.67,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598551","UC Female (CCFA_Risk_144)","CCFA_Risk_144","Ileal biopsy","female",13.08,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598552","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_145)","CCFA_Risk_145","Ileal biopsy","female",11.25,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598553","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_146)","CCFA_Risk_146","Ileal biopsy","female",7.25,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598554","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_147)","CCFA_Risk_147","Ileal biopsy","male",11.08,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598555","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_148)","CCFA_Risk_148","Ileal biopsy","male",8.83,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598556","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_149)","CCFA_Risk_149","Ileal biopsy","male",11.17,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598557","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_150)","CCFA_Risk_150","Ileal biopsy","male",10.67,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598558","UC Female (CCFA_Risk_151)","CCFA_Risk_151","Ileal biopsy","female",6.75,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598559","UC Male (CCFA_Risk_152)","CCFA_Risk_152","Ileal biopsy","male",9.67,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598560","UC Male (CCFA_Risk_153)","CCFA_Risk_153","Ileal biopsy","male",8.5,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598561","UC Female (CCFA_Risk_154)","CCFA_Risk_154","Ileal biopsy","female",14.42,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598562","UC Female (CCFA_Risk_155)","CCFA_Risk_155","Ileal biopsy","female",13.17,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598563","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_156)","CCFA_Risk_156","Ileal biopsy","female",6.75,"A1a","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598564","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_157)","CCFA_Risk_157","Ileal biopsy","female",8.83,"A1a","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598565","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_158)","CCFA_Risk_158","Ileal biopsy","female",7.83,"A1a","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598566","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_159)","CCFA_Risk_159","Ileal biopsy","female",11.92,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598567","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_160)","CCFA_Risk_160","Ileal biopsy","male",12.58,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598568","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_161)","CCFA_Risk_161","Ileal biopsy","female",8.83,"A1a","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598569","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_162)","CCFA_Risk_162","Ileal biopsy","female",9.75,"A1a","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598570","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_163)","CCFA_Risk_163","Ileal biopsy","female",9.25,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598571","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_164)","CCFA_Risk_164","Ileal biopsy","female",8.83,"A1a","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598572","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_165)","CCFA_Risk_165","Ileal biopsy","female",9.75,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598573","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_166)","CCFA_Risk_166","Ileal biopsy","male",9.58,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598574","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_167)","CCFA_Risk_167","Ileal biopsy","male",9.58,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598575","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_168)","CCFA_Risk_168","Ileal biopsy","male",9.25,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598576","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_169)","CCFA_Risk_169","Ileal biopsy","male",9.08,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598577","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_170)","CCFA_Risk_170","Ileal biopsy","male",9,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598578","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_171)","CCFA_Risk_171","Ileal biopsy","male",16.42,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598579","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_172)","CCFA_Risk_172","Ileal biopsy","male",16.08,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598580","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_173)","CCFA_Risk_173","Ileal biopsy","female",8.92,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598581","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_174)","CCFA_Risk_174","Ileal biopsy","male",7.92,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598582","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_175)","CCFA_Risk_175","Ileal biopsy","male",7.92,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598583","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_176)","CCFA_Risk_176","Ileal biopsy","male",8.92,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598584","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_177)","CCFA_Risk_177","Ileal biopsy","male",9.58,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598585","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_178)","CCFA_Risk_178","Ileal biopsy","male",6.75,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598586","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_179)","CCFA_Risk_179","Ileal biopsy","male",8.83,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598587","Not IBD Female (CCFA_Risk_180)","CCFA_Risk_180","Ileal biopsy","female",12.67,"A1b","Non-IBD control","Non-IBD control",,,TRUE,1,1
+"GSM1598588","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_181)","CCFA_Risk_181","Ileal biopsy","male",8.42,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598589","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_182)","CCFA_Risk_182","Ileal biopsy","male",9.17,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598590","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_183)","CCFA_Risk_183","Ileal biopsy","male",7.33,"A1a","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598591","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_184)","CCFA_Risk_184","Ileal biopsy","male",5.67,"A1a","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598592","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_185)","CCFA_Risk_185","Ileal biopsy","male",8.75,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598593","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_186)","CCFA_Risk_186","Ileal biopsy","male",9.25,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598594","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_187)","CCFA_Risk_187","Ileal biopsy","male",8,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598595","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_188)","CCFA_Risk_188","Ileal biopsy","female",6.17,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598596","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_189)","CCFA_Risk_189","Ileal biopsy","female",8,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598597","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_190)","CCFA_Risk_190","Ileal biopsy","male",7.17,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598598","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_191)","CCFA_Risk_191","Ileal biopsy","female",14.5,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598599","CD Male with Undetermined and No Deep Ulcer (CCFA_Risk_192)","CCFA_Risk_192","Ileal biopsy","male",15.17,"A1b","CD","cCD","Undetermined","no",TRUE,1,1
+"GSM1598600","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_193)","CCFA_Risk_193","Ileal biopsy","female",15.25,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598601","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_194)","CCFA_Risk_194","Ileal biopsy","female",9.5,"A1a","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598602","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_195)","CCFA_Risk_195","Ileal biopsy","male",14.33,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598603","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_196)","CCFA_Risk_196","Ileal biopsy","female",13.92,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598604","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_197)","CCFA_Risk_197","Ileal biopsy","male",11.25,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598605","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_198)","CCFA_Risk_198","Ileal biopsy","male",13.75,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598606","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_199)","CCFA_Risk_199","Ileal biopsy","female",14.33,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598607","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_200)","CCFA_Risk_200","Ileal biopsy","female",15.58,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598608","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_201)","CCFA_Risk_201","Ileal biopsy","female",15,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598609","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_202)","CCFA_Risk_202","Ileal biopsy","female",14.75,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598610","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_203)","CCFA_Risk_203","Ileal biopsy","male",16.83,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598611","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_204)","CCFA_Risk_204","Ileal biopsy","female",16.92,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598612","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_205)","CCFA_Risk_205","Ileal biopsy","female",15.42,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598613","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_206)","CCFA_Risk_206","Ileal biopsy","female",15.33,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598614","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_207)","CCFA_Risk_207","Ileal biopsy","male",16.5,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598615","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_208)","CCFA_Risk_208","Ileal biopsy","male",12.75,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598616","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_209)","CCFA_Risk_209","Ileal biopsy","male",11.17,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598617","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_210)","CCFA_Risk_210","Ileal biopsy","male",15.33,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598618","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_211)","CCFA_Risk_211","Ileal biopsy","male",15,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598619","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_212)","CCFA_Risk_212","Ileal biopsy","female",12,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598620","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_213)","CCFA_Risk_213","Ileal biopsy","female",16.25,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598621","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_214)","CCFA_Risk_214","Ileal biopsy","female",15.58,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598622","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_215)","CCFA_Risk_215","Ileal biopsy","male",13.83,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598623","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_216)","CCFA_Risk_216","Ileal biopsy","male",12.42,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598624","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_217)","CCFA_Risk_217","Ileal biopsy","male",11.92,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598625","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_218)","CCFA_Risk_218","Ileal biopsy","female",15.83,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598626","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_219)","CCFA_Risk_219","Ileal biopsy","male",13.58,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598627","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_220)","CCFA_Risk_220","Ileal biopsy","male",12.67,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598628","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_221)","CCFA_Risk_221","Ileal biopsy","female",10.75,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598629","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_222)","CCFA_Risk_222","Ileal biopsy","female",16.5,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598630","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_223)","CCFA_Risk_223","Ileal biopsy","female",10.67,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598631","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_224)","CCFA_Risk_224","Ileal biopsy","male",12.08,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598632","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_225)","CCFA_Risk_225","Ileal biopsy","female",15.42,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598633","UC Female (CCFA_Risk_226)","CCFA_Risk_226","Ileal biopsy","female",11.92,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598634","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_227)","CCFA_Risk_227","Ileal biopsy","male",13.17,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598635","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_228)","CCFA_Risk_228","Ileal biopsy","male",10.83,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598636","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_229)","CCFA_Risk_229","Ileal biopsy","male",15.5,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598637","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_230)","CCFA_Risk_230","Ileal biopsy","male",16.75,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598638","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_231)","CCFA_Risk_231","Ileal biopsy","female",10.17,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598639","UC Male (CCFA_Risk_232)","CCFA_Risk_232","Ileal biopsy","male",8.5,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598640","UC Male (CCFA_Risk_233)","CCFA_Risk_233","Ileal biopsy","male",14,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598641","UC Male (CCFA_Risk_234)","CCFA_Risk_234","Ileal biopsy","male",13.75,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598642","UC Female (CCFA_Risk_235)","CCFA_Risk_235","Ileal biopsy","female",16.58,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598643","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_236)","CCFA_Risk_236","Ileal biopsy","female",12.42,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598644","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_237)","CCFA_Risk_237","Ileal biopsy","male",12.58,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598645","UC Male (CCFA_Risk_238)","CCFA_Risk_238","Ileal biopsy","male",5.75,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598646","UC Male (CCFA_Risk_239)","CCFA_Risk_239","Ileal biopsy","male",15,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598647","UC Female (CCFA_Risk_240)","CCFA_Risk_240","Ileal biopsy","female",11.83,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598648","UC Female (CCFA_Risk_241)","CCFA_Risk_241","Ileal biopsy","female",12,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598649","UC Male (CCFA_Risk_242)","CCFA_Risk_242","Ileal biopsy","male",13.25,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598650","UC Male (CCFA_Risk_243)","CCFA_Risk_243","Ileal biopsy","male",11.58,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598651","UC Female (CCFA_Risk_244)","CCFA_Risk_244","Ileal biopsy","female",15.58,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598652","UC Female (CCFA_Risk_245)","CCFA_Risk_245","Ileal biopsy","female",14.92,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598653","UC Male (CCFA_Risk_246)","CCFA_Risk_246","Ileal biopsy","male",14.92,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598654","UC Female (CCFA_Risk_247)","CCFA_Risk_247","Ileal biopsy","female",6.33,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598655","UC Female (CCFA_Risk_248)","CCFA_Risk_248","Ileal biopsy","female",13.67,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598656","UC Female (CCFA_Risk_249)","CCFA_Risk_249","Ileal biopsy","female",16.92,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598657","UC Male (CCFA_Risk_250)","CCFA_Risk_250","Ileal biopsy","male",6.92,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598658","UC Female (CCFA_Risk_251)","CCFA_Risk_251","Ileal biopsy","female",16.83,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598659","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_252)","CCFA_Risk_252","Ileal biopsy","female",14.92,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598660","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_253)","CCFA_Risk_253","Ileal biopsy","male",15.08,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598661","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_254)","CCFA_Risk_254","Ileal biopsy","female",13.17,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598662","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_255)","CCFA_Risk_255","Ileal biopsy","male",14.42,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598663","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_256)","CCFA_Risk_256","Ileal biopsy","female",12.83,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598664","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_257)","CCFA_Risk_257","Ileal biopsy","male",11.42,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598665","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_258)","CCFA_Risk_258","Ileal biopsy","male",11.92,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598666","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_259)","CCFA_Risk_259","Ileal biopsy","male",16.25,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598667","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_260)","CCFA_Risk_260","Ileal biopsy","male",12.75,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598668","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_261)","CCFA_Risk_261","Ileal biopsy","male",10.75,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598669","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_262)","CCFA_Risk_262","Ileal biopsy","male",15.67,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598670","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_263)","CCFA_Risk_263","Ileal biopsy","male",12,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598671","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_264)","CCFA_Risk_264","Ileal biopsy","male",15.5,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598672","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_265)","CCFA_Risk_265","Ileal biopsy","male",12.83,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598673","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_266)","CCFA_Risk_266","Ileal biopsy","male",15.92,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598674","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_267)","CCFA_Risk_267","Ileal biopsy","female",13.67,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598675","CD Male with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_268)","CCFA_Risk_268","Ileal biopsy","male",15.75,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598676","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_269)","CCFA_Risk_269","Ileal biopsy","male",13.92,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598677","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_270)","CCFA_Risk_270","Ileal biopsy","male",16.75,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598678","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_271)","CCFA_Risk_271","Ileal biopsy","male",11.67,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598679","UC Female (CCFA_Risk_272)","CCFA_Risk_272","Ileal biopsy","female",12,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598680","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_273)","CCFA_Risk_273","Ileal biopsy","male",16.92,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598681","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_274)","CCFA_Risk_274","Ileal biopsy","female",12.33,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598682","CD Female with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_275)","CCFA_Risk_275","Ileal biopsy","female",10.83,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598683","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_276)","CCFA_Risk_276","Ileal biopsy","male",13.25,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598684","UC Male (CCFA_Risk_277)","CCFA_Risk_277","Ileal biopsy","male",7.25,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598685","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_278)","CCFA_Risk_278","Ileal biopsy","male",15.83,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598686","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_279)","CCFA_Risk_279","Ileal biopsy","female",14.25,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598687","UC Female (CCFA_Risk_280)","CCFA_Risk_280","Ileal biopsy","female",16.58,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598688","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_281)","CCFA_Risk_281","Ileal biopsy","male",16.5,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598689","UC Male (CCFA_Risk_282)","CCFA_Risk_282","Ileal biopsy","male",16.5,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598690","UC Male (CCFA_Risk_283)","CCFA_Risk_283","Ileal biopsy","male",15.5,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598691","UC Male (CCFA_Risk_284)","CCFA_Risk_284","Ileal biopsy","male",15.33,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598692","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_285)","CCFA_Risk_285","Ileal biopsy","female",12.67,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598693","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_286)","CCFA_Risk_286","Ileal biopsy","male",6.58,"A1a","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598694","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_287)","CCFA_Risk_287","Ileal biopsy","female",16.25,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598695","UC Male (CCFA_Risk_288)","CCFA_Risk_288","Ileal biopsy","male",13.75,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598696","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_289)","CCFA_Risk_289","Ileal biopsy","female",14.08,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598697","UC Male (CCFA_Risk_290)","CCFA_Risk_290","Ileal biopsy","male",13.75,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598698","UC Male (CCFA_Risk_291)","CCFA_Risk_291","Ileal biopsy","male",7.42,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598699","UC Male (CCFA_Risk_292)","CCFA_Risk_292","Ileal biopsy","male",10.83,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598700","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_293)","CCFA_Risk_293","Ileal biopsy","female",12.5,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598701","UC Male (CCFA_Risk_294)","CCFA_Risk_294","Ileal biopsy","male",15.08,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598702","UC Male (CCFA_Risk_295)","CCFA_Risk_295","Ileal biopsy","male",9.42,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598703","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_296)","CCFA_Risk_296","Ileal biopsy","male",10.58,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598704","UC Male (CCFA_Risk_297)","CCFA_Risk_297","Ileal biopsy","male",15.83,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598705","UC Male (CCFA_Risk_298)","CCFA_Risk_298","Ileal biopsy","male",15.92,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598706","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_299)","CCFA_Risk_299","Ileal biopsy","male",12.75,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598707","CD Male with Macroscopic inflammation and Deep Ulcer (CCFA_Risk_300)","CCFA_Risk_300","Ileal biopsy","male",13,"A1b","CD","iCD","Macroscopic inflammation","yes",TRUE,1,1
+"GSM1598708","UC Famale (CCFA_Risk_301)","CCFA_Risk_301","Ileal biopsy","female",16.67,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598709","UC Male (CCFA_Risk_302)","CCFA_Risk_302","Ileal biopsy","male",17.08,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598710","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_303)","CCFA_Risk_303","Ileal biopsy","male",15.33,"A1b","CD","iCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598711","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_304)","CCFA_Risk_304","Ileal biopsy","male",10.83,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598712","UC Male (CCFA_Risk_305)","CCFA_Risk_305","Ileal biopsy","male",13.58,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598713","UC Female (CCFA_Risk_306)","CCFA_Risk_306","Ileal biopsy","female",16.33,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598714","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_307)","CCFA_Risk_307","Ileal biopsy","male",11.83,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598715","UC Male (CCFA_Risk_308)","CCFA_Risk_308","Ileal biopsy","male",15.75,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598716","CD Female with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_309)","CCFA_Risk_309","Ileal biopsy","female",13.67,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598717","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_310)","CCFA_Risk_310","Ileal biopsy","female",13.17,"A1b","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598718","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_311)","CCFA_Risk_311","Ileal biopsy","male",13.83,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598719","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_312)","CCFA_Risk_312","Ileal biopsy","male",10.67,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598720","CD Female with Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_313)","CCFA_Risk_313","Ileal biopsy","female",5.42,"A1a","CD","iCD","Macroscopic inflammation","no",TRUE,1,1
+"GSM1598721","CD Male with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_314)","CCFA_Risk_314","Ileal biopsy","male",11,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598722","UC Female (CCFA_Risk_315)","CCFA_Risk_315","Ileal biopsy","female",14.92,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598723","UC Female (CCFA_Risk_316)","CCFA_Risk_316","Ileal biopsy","female",16.91,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598724","CD Male with Microscopic inflammation and No Deep Ulcer (CCFA_Risk_317)","CCFA_Risk_317","Ileal biopsy","male",10.5,"A1b","CD","cCD","Microscopic inflammation","no",TRUE,1,1
+"GSM1598725","UC Female (CCFA_Risk_318)","CCFA_Risk_318","Ileal biopsy","female",4.5,"A1a","UC","UC",,,TRUE,1,1
+"GSM1598726","UC Male (CCFA_Risk_319)","CCFA_Risk_319","Ileal biopsy","male",11,"A1b","UC","UC",,,TRUE,1,1
+"GSM1598727","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_320)","CCFA_Risk_320","Ileal biopsy","female",15.75,"A1b","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598728","CD Female with No Microscopic or Macroscopic inflammation and No Deep Ulcer (CCFA_Risk_321)","CCFA_Risk_321","Ileal biopsy","female",9.58,"A1a","CD","cCD","Normal","no",TRUE,1,1
+"GSM1598729","UC Male (CCFA_Risk_322)","CCFA_Risk_322","Ileal biopsy","male",14.17,"A1b","UC","UC",,,TRUE,1,1
