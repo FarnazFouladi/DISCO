@@ -258,7 +258,7 @@ returned; the diagnostic components are `NULL`. Pair-level and feature-level tab
 saved as `<prefix>_cor_diff.csv` and `<prefix>_disco.csv`.
 
 
-## DISCO application
+## Examples of DISCO application
 
 Here we illustrate the application of DISCO to microbiome and transcriptomic data.
 The example files are organized by dataset under `analysis/`:

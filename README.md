@@ -206,7 +206,7 @@ In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and
 Pair-level and feature-level tables are saved as `<prefix>_cor_diff.csv`
 and `<prefix>_disco.csv`.
 
-## DISCO application
+## Examples of DISCO application
 
 Here we illustrate the application of DISCO to microbiome and
 transcriptomic data. The example files are organized by dataset under
