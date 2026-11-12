@@ -123,9 +123,15 @@ for (i in seq_len(nrow(pairs))) {
 dir.create(output_dir, recursive = TRUE, showWarnings = FALSE)
 pdf_path <- file.path(output_dir, paste0("top", top_n, "_differential_correlations_control_T2D.pdf"))
 save_pdf <- function() {
-  grDevices::pdf(pdf_path, width = 12, height = 7.5, onefile = TRUE, useDingbats = FALSE)
-  on.exit(grDevices::dev.off(), add = TRUE)
-  for (plot in plots) print(plot)
+  # Complete the PDF locally before replacing a file in a cloud-synced folder.
+  temporary_pdf <- tempfile(fileext = ".pdf")
+  on.exit(unlink(temporary_pdf), add = TRUE)
+  grDevices::pdf(temporary_pdf, width = 12, height = 7.5, onefile = TRUE, useDingbats = FALSE)
+  tryCatch({
+    for (plot in plots) print(plot)
+  }, finally = grDevices::dev.off())
+  if (!file.copy(temporary_pdf, pdf_path, overwrite = TRUE))
+    stop("Could not replace PDF: ", pdf_path)
 }
 save_pdf()
 ggplot2::ggsave(file.path(output_dir, paste0("top", top_n, "_page01_preview.png")), plots[[1L]],

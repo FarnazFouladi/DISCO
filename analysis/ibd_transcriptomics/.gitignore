@@ -1,4 +1,8 @@
 results/runs/
+results/comparison_*/
+results/joint_preprocessing/
+results/preparation/
+results/metadata_refresh/
 results/inputs/raw/*.gz
 results/inputs/raw/*.partial
 results/inputs/gene_counts_manifest.csv

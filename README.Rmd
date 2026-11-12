@@ -8,10 +8,6 @@ output:
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE)
 readme_results <- readRDS("analysis/diabetes_microbiome/results/README-results.rds")
-source("analysis/diabetes_microbiome/code/qinj_readme_preprocessing.R")
-if (!identical(readme_results$source_md5, readme_source_hashes(normalizePath(".")))) {
-  stop("Example code has changed. Run Rscript analysis/diabetes_microbiome/code/run_qinj_readme_examples.R before rendering.")
-}
 knitr::read_chunk("analysis/diabetes_microbiome/code/run_qinj_readme_examples.R")
 knitr::read_chunk("analysis/diabetes_microbiome/code/qinj_readme_preprocessing.R")
 knitr::read_chunk("analysis/ibd_transcriptomics/code/example_ibd_workflow.R")
@@ -36,6 +32,26 @@ example_overlap <- length(Reduce(intersect, example_significant))
 example_pairs <- list(
   taxa = read.csv("analysis/diabetes_microbiome/results/differential_scatterplots/top10_pairs.csv"),
   taxa_pathways = read.csv("analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/top1_pairs.csv"))
+ibd_dir <- "analysis/ibd_transcriptomics/results"
+ibd_provenance <- readRDS(file.path(ibd_dir, "provenance.rds"))
+ibd_settings <- ibd_provenance$settings
+ibd_plot_settings <- readRDS(file.path(ibd_dir, "figure/plot_settings.rds"))
+ibd_samples <- read.csv(file.path(ibd_dir, "comparison_sample_counts.csv"))
+ibd_percentages <- read.csv(file.path(ibd_dir, "figure/pathway_significance_percentages.csv"))
+ibd_displayed <- read.csv(file.path(ibd_dir, "figure/heatmap_row_order.csv"))
+ibd_q <- format(ibd_settings$q_value)
+ibd_n_pathways <- length(ibd_provenance$pathways)
+ibd_n_displayed <- nrow(ibd_displayed)
+ibd_comparisons <- ibd_settings$comparisons
+ibd_samples <- ibd_samples[match(ibd_comparisons, ibd_samples$comparison), ]
+ibd_group_names <- c(iCD = "Ileal Crohn's disease", cCD = "Colon-only Crohn's disease",
+                     UC = "Ulcerative colitis", CD = "Crohn's disease")
+ibd_sample_table <- data.frame(
+  Comparison = paste0(unname(ibd_group_names[ibd_samples$comparison]), " (", ibd_samples$comparison, ")"),
+  `Disease samples` = ibd_samples$n_disease, `Non-IBD controls` = ibd_samples$n_control,
+  check.names = FALSE)
+ibd_inflammation <- ibd_percentages[ibd_percentages$pathway == "HALLMARK_INFLAMMATORY_RESPONSE", ]
+ibd_inflammation <- ibd_inflammation[match(ibd_comparisons, ibd_inflammation$comparison), ]
 disco_taxa_table <- function(x) {
   x <- x[is.finite(x$q) & x$q < readme_results$settings$q_value, , drop = FALSE]
   x <- x[order(x$q, x$p, x$species), c("species", "p", "q", "num_corr")]
@@ -522,7 +538,7 @@ significance, while the colors retain the raw p-value magnitude.
 knitr::include_graphics("man/figures/README-qinj-DISCO-heatmap.png")
 ```
 
-### Rebuilding these examples
+### Run the microbiome examples
 
 Install DISCO as shown above, then clone this repository or download its GitHub
 ZIP to obtain the example scripts (they are not included in the installed package).
@@ -548,35 +564,26 @@ Rscript analysis/diabetes_microbiome/code/plot_qinj_disco_heatmap.R
 
 The analysis uses `library(DISCO)` and saves results in
 `analysis/diabetes_microbiome/results/`. Adjust `settings` in the analysis script as
-needed. Matching cached results are reused; set `DISCO_README_RECOMPUTE=true`
-to force recomputation. Each script also supports `source()` with its full path.
-
-To refresh the figures embedded in this README and regenerate `README.md`, run:
-
-```sh
-Rscript analysis/diabetes_microbiome/code/render_qinj_readme.R
-```
-
-This last step requires Pandoc and reads saved results without rerunning DISCO.
+needed. Each run replaces the previous results. Each script also supports
+`source()` with its full path.
 
 ## Transcriptomics example: gene correlations within IBD Hallmark pathways
 
 This example uses diagnostic **ileal biopsy RNA-seq** from
 [GSE57945 / SRP042228](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57945),
 reported by [Haberman et al. (2014)](https://doi.org/10.1172/JCI75436).
-Expression measurements come from recount3 with **GENCODE v26** annotation.
+Expression measurements come from [recount3](https://rna.recount.bio/) with **GENCODE v26** annotation.
 All samples are ileal biopsies, including those from patients with colon-only
-disease. The three independent-group comparisons reuse the same non-IBD controls:
+disease. The comparisons below reuse the same non-IBD controls:
 
-| Comparison | Disease samples | Non-IBD controls |
-|---|---:|---:|
-| Ileal Crohn's disease (`iCD`) | 163 | 42 |
-| Colon-only Crohn's disease (`cCD`) | 55 | 42 |
-| Ulcerative colitis (`UC`) | 62 | 42 |
+```{r ibd-sample-counts, echo=FALSE}
+knitr::kable(ibd_sample_table, row.names = FALSE)
+```
 
 Here, DISCO scores **genes within each pathway**, based on changes in their
 correlations with other genes in that pathway. It does not test differential
-expression or assign a pathway enrichment p-value.
+expression or assign a pathway enrichment p-value. The goal here is to identify
+pathways that have the highest percentage of disrupted genes (genes with DISCO q < `r ibd_q`).
 
 ### Preprocessing and analysis
 
@@ -597,8 +604,9 @@ Before running DISCO, the RNA-seq data are preprocessed as follows:
    and sex while preserving the four group effects. Keep genes with finite
    adjusted variance greater than `1e-10` in every group. No batch adjustment
    is applied because batch identifiers are unavailable.
-5. Select Hallmark sets from **MSigDB 2025.1.Hs** with at least **50 unique
-   database gene symbols before expression filtering** (43 sets). Map gene IDs
+5. Select Hallmark sets from **MSigDB `r paste(ibd_provenance$msigdb_version, collapse = ", ")`** with at least
+   **`r ibd_settings$min_pathway_genes` unique database gene symbols before expression filtering**
+   (`r ibd_n_pathways` sets). Map gene IDs
    to each set and run one-modality DISCO separately for each disease/control
    comparison and pathway, using the same jointly preprocessed expression.
 
@@ -620,7 +628,7 @@ result <- disco(
 ```
 
 BY adjustment is performed separately within each pathway and comparison;
-genes with **DISCO q < 0.05** are counted as significant. Pathways can share
+genes with **DISCO q < `r ibd_q`** are counted as significant. Pathways can share
 genes, and the comparisons share controls. These are exploratory results:
 the ordinary differential-correlation tests do not account fully for the
 estimated age/sex adjustment.
@@ -636,7 +644,12 @@ These files are not part of the installed R package.
 The scripts run in the following order, all under
 `analysis/ibd_transcriptomics/code/`:
 
-| Order | Script | Purpose | Needed with bundled metadata? |
+The repository already includes `sample_metadata.csv` and
+`raw/recount_metadata.rds` under
+`analysis/ibd_transcriptomics/results/inputs/`. The last column indicates
+whether each script is required when using these included metadata files.
+
+| Order | Script | Purpose | Required when using the included metadata files? |
 |---|---|---|---|
 | 1 | `fetch_srp042228_metadata.R` | Download GEO, recount3, and ENA sample metadata. | No |
 | 2 | `explore_srp042228_metadata.R` | Check sample/patient identifiers, disease labels, and GEO/recount3 agreement; write `sample_metadata.csv`. | No |
@@ -662,18 +675,18 @@ install.packages(c("BiocManager", "curl"))
 BiocManager::install(c("recount3", "edgeR", "limma"))
 ```
 
-**Steps 1–2 are optional** because their metadata outputs are bundled. To
-retrieve and check the metadata again, write to a separate directory:
+**Skip steps 1–2 when using the included metadata files.** To download and
+check fresh metadata instead, run these steps with a separate output directory:
 
 ```sh
 # 1. Download metadata
-Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_metadata.R analysis/ibd_transcriptomics/results/runs/metadata_refresh
+Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_metadata.R analysis/ibd_transcriptomics/results/metadata_refresh
 # 2. Check metadata and create sample_metadata.csv
-Rscript analysis/ibd_transcriptomics/code/explore_srp042228_metadata.R analysis/ibd_transcriptomics/results/runs/metadata_refresh
+Rscript analysis/ibd_transcriptomics/code/explore_srp042228_metadata.R analysis/ibd_transcriptomics/results/metadata_refresh
 ```
 
 If using this refreshed metadata, pass
-`analysis/ibd_transcriptomics/results/runs/metadata_refresh` to the count downloader
+`analysis/ibd_transcriptomics/results/metadata_refresh` to the count downloader
 in step 3 and use the same path for `ibd.exploration_dir` in step 4. Freshly
 retrieved data may differ from the snapshots used for the bundled figure.
 
@@ -684,13 +697,13 @@ Using the bundled metadata:
 Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R analysis/ibd_transcriptomics/results/inputs
 ```
 
-**Step 4.** Configure and run all 43 Hallmark pathways for the three comparisons:
+**Step 4.** Configure and run the Hallmark pathways for the disease/control comparisons:
 
 ```{r ibd-workflow, eval=FALSE}
 ```
 
-The runner saves a new timestamped directory under
-`analysis/ibd_transcriptomics/results/runs/`, including prepared expression matrices,
+The runner replaces the previous results in
+`analysis/ibd_transcriptomics/results/`, including prepared expression matrices,
 gene eligibility audits, DISCO tables, sample counts, and provenance. To try
 just one pathway, set
 `ibd.pathway_names = "HALLMARK_TNFA_SIGNALING_VIA_NFKB"` in the options above.
@@ -703,13 +716,12 @@ Fixed-threshold mode skips permutations, so `ibd.disco_workers` has no effect.
 ```{r ibd-plot, eval=FALSE}
 ```
 
-The bundled figure below uses the completed **November 2, 2026** run.
+The figure below uses the current saved results.
 Each cell shows **100 × significant genes / tested genes**, excluding genes
-without a finite within-pathway q-value. The same **23 pathways** are displayed
-in every column: those with at least 50% significant genes in any comparison.
+without a finite within-pathway q-value. The same **`r ibd_n_displayed` pathways** are displayed
+in every column: those with at least `r ibd_plot_settings$min_percent`% significant genes in any comparison.
 The display cutoff does not change the DISCO tests or their q-values.
-Rows are clustered using Euclidean distance and complete linkage on the
-unscaled percentages; columns retain the order iCD, cCD, UC. Right-hand counts
+`r if (isTRUE(ibd_plot_settings$cluster_rows)) "Rows are clustered using Euclidean distance and complete linkage on the unscaled percentages;" else "Rows are ordered alphabetically;"` columns retain the order `r paste(ibd_comparisons, collapse = ", ")`. Right-hand counts
 give tested genes in that same order.
 
 ```{r ibd-heatmap, echo=FALSE, out.width="100%"}
@@ -717,9 +729,16 @@ knitr::include_graphics("man/figures/README-ibd-hallmark-significance.png")
 ```
 
 The figure is a descriptive summary of gene-level correlation disruption,
-rather than a formal pathway significance test. For example, the inflammatory
-response pathway has 85.7%, 68.4%, and 0.0% significant tested genes in iCD,
-cCD, and UC, respectively.
+rather than a formal pathway significance test.
+
+```{r ibd-inflammatory-example, echo=FALSE, results='asis'}
+if (nrow(ibd_inflammation) && all(is.finite(ibd_inflammation$percent_significant))) {
+  cat("For example, the inflammatory response pathway has ",
+      paste(sprintf("%.1f%% in %s", ibd_inflammation$percent_significant,
+                    ibd_inflammation$comparison), collapse = ", "),
+      " significant tested genes.\n", sep = "")
+}
+```
 
 The bundled [gene scores](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/all_pathway_gene_scores.csv),
 [sample counts](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/comparison_sample_counts.csv),
@@ -730,28 +749,7 @@ these saved results, set
 `ibd_results_dir <- "analysis/ibd_transcriptomics/results"` before the plotting
 chunk. The saved [provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
 and [session information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
-describe the original run; its recorded paths refer to the original analysis
-location.
-
-## Building the documentation website
-
-The pkgdown website uses this README as its home page and generates a function
-reference from the package help files. To build it locally:
-
-```{r build-docs, eval=FALSE}
-install.packages("pkgdown") # If needed
-pkgdown::build_site(preview = FALSE)
-```
-
-Open `docs/index.html` to view the result. The build reads the rendered
-`README.md` and its saved figures; it does not rerun the example analyses or
-download their expression data. After editing `README.Rmd`, render it first
-with `Rscript analysis/diabetes_microbiome/code/render_qinj_readme.R`.
-
-The `Build documentation` GitHub Actions workflow builds the same site on
-pushes to `main`, pull requests, or manual runs, and saves it as the
-`documentation-site` artifact. Publishing to GitHub Pages can be configured
-after reviewing the site.
+record the analysis settings and software versions.
 
 ## Citation
 

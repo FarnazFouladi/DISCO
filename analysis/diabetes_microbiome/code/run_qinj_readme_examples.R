@@ -3,7 +3,7 @@
 # Or in R: source("/path/to/DISCO/analysis/diabetes_microbiome/code/run_qinj_readme_examples.R")
 # Both modalities use separate healthy/T2D gender/BMI models after robust CLR; zeros remain NA.
 # Both analyses use the installed DISCO package, loaded with library(DISCO).
-# Set DISCO_README_RECOMPUTE=true to recompute both examples.
+# Each run recomputes both examples and replaces the previous results.
 
 script_file <- local({
   files <- as.character(unlist(lapply(sys.frames(), function(frame) frame$ofile),
@@ -28,7 +28,7 @@ library(DISCO)
 expected <- c("workers", "empirically_derive_threshold", "global_p_cutoff")
 if (!all(expected %in% names(formals(DISCO::disco))))
   stop("Install an updated DISCO package before running this example.")
-recompute <- identical(tolower(Sys.getenv("DISCO_README_RECOMPUTE")), "true")
+recompute <- TRUE
 
 ## ---- readme-settings ----
 settings <- list(

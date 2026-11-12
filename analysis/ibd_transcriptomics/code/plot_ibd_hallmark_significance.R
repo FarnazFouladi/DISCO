@@ -7,14 +7,14 @@ script <- local({
 })
 root <- dirname(dirname(script))
 # Adapted from the corresponding BRCA plotting script; calculations and plot conventions preserved.
-# Run from the repository root; optionally supply a completed run directory.
+# Run from the repository root; optionally supply a results directory.
 # In RStudio: options(ibd.plot_input_dir = "/path/to/completed/results") before source().
-# Priority: command-line directory, ibd.plot_input_dir, newest completed run.
+# Priority: command-line directory, ibd.plot_input_dir, current results folder.
 # Percentages use tested genes with finite within-pathway q-values only.
 # Row clustering defaults to TRUE; set options(ibd.pathway_cluster_rows = FALSE)
 # before sourcing for alphabetical rows. Columns always retain comparison order.
 # options(ibd.pathway_min_percent = 50) keeps pathways with >=50% significant
-# genes in at least ONE comparison (default 0: no percentage restriction).
+# genes in at least ONE comparison (default 50).
 # options(ibd.pathway_label_max_chars = 60L) truncates display names.
 # Full names remain in CSVs; right-hand counts follow the comparison-column order.
 cluster_rows <- getOption("ibd.pathway_cluster_rows", TRUE)
@@ -22,7 +22,7 @@ stopifnot(is.logical(cluster_rows), length(cluster_rows) == 1L, !is.na(cluster_r
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("ggplot2 is required.")
 source(file.path(dirname(script), "ibd_pathway_file_helpers.R"))
 source(file.path(dirname(script), "ibd_heatmap_helpers.R"))
-min_percent <- getOption("ibd.pathway_min_percent", 0)
+min_percent <- getOption("ibd.pathway_min_percent", 50)
 label_max_chars <- getOption("ibd.pathway_label_max_chars", 60L)
 args <- commandArgs(trailingOnly = TRUE)
 if (length(args)) {
@@ -30,11 +30,7 @@ if (length(args)) {
 } else if (!is.null(getOption("ibd.plot_input_dir", NULL))) {
   input <- getOption("ibd.plot_input_dir")
 } else {
-  dirs <- list.dirs(file.path(root, "results", "runs"), recursive = FALSE)
-  dirs <- dirs[grepl("_disco_run_", basename(dirs), fixed = TRUE) &
-                 file.exists(file.path(dirs, "session_info.txt"))]
-  if (!length(dirs)) stop("No completed pathway DISCO run found.")
-  input <- dirs[order(file.info(file.path(dirs, "session_info.txt"))$mtime, decreasing = TRUE)[1]]
+  input <- file.path(root, "results")
 }
 if (!is.character(input) || length(input) != 1L || is.na(input) || !dir.exists(input))
   stop("Provide an existing results directory via ibd.plot_input_dir or the first command-line argument.")
@@ -75,9 +71,9 @@ stopifnot(all(summary$n_tested == panels$n_tested_genes),
 prepared <- ibd_prepare_heatmap_rows(summary, pathway_lookup, provenance$settings$comparisons,
   min_percent, label_max_chars)
 selected_pathways <- prepared$rows$pathway[prepared$rows$selected]
-output <- file.path(input, "plots", paste0("pathway_significance_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_", Sys.getpid()))
-if (dir.exists(output)) stop("Output directory already exists.")
-dir.create(output, recursive = TRUE)
+output <- file.path(input, "figure")
+dir.create(output, recursive = TRUE, showWarnings = FALSE)
+unlink(file.path(output, "pathway_row_clustering.rds"))
 utils::write.csv(pathway_lookup, file.path(output, "pathway_lookup.csv"), row.names = FALSE)
 utils::write.csv(summary, file.path(output, "pathway_significance_percentages.csv"), row.names = FALSE)
 utils::write.csv(prepared$rows, file.path(output, "heatmap_pathway_selection.csv"), row.names = FALSE)

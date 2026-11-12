@@ -744,7 +744,7 @@ the raw p-value magnitude.
 
 <img src="man/figures/README-qinj-DISCO-heatmap.png" alt="" width="100%" />
 
-### Rebuilding these examples
+### Run the microbiome examples
 
 Install DISCO as shown above, then clone this repository or download its
 GitHub ZIP to obtain the example scripts (they are not included in the
@@ -770,39 +770,30 @@ Rscript analysis/diabetes_microbiome/code/plot_qinj_disco_heatmap.R
 
 The analysis uses `library(DISCO)` and saves results in
 `analysis/diabetes_microbiome/results/`. Adjust `settings` in the
-analysis script as needed. Matching cached results are reused; set
-`DISCO_README_RECOMPUTE=true` to force recomputation. Each script also
-supports `source()` with its full path.
-
-To refresh the figures embedded in this README and regenerate
-`README.md`, run:
-
-``` sh
-Rscript analysis/diabetes_microbiome/code/render_qinj_readme.R
-```
-
-This last step requires Pandoc and reads saved results without rerunning
-DISCO.
+analysis script as needed. Each run replaces the previous results. Each
+script also supports `source()` with its full path.
 
 ## Transcriptomics example: gene correlations within IBD Hallmark pathways
 
 This example uses diagnostic **ileal biopsy RNA-seq** from [GSE57945 /
 SRP042228](https://www.ncbi.nlm.nih.gov/geo/query/acc.cgi?acc=GSE57945),
 reported by [Haberman et al. (2014)](https://doi.org/10.1172/JCI75436).
-Expression measurements come from recount3 with **GENCODE v26**
-annotation. All samples are ileal biopsies, including those from
-patients with colon-only disease. The three independent-group
-comparisons reuse the same non-IBD controls:
+Expression measurements come from [recount3](https://rna.recount.bio/)
+with **GENCODE v26** annotation. All samples are ileal biopsies,
+including those from patients with colon-only disease. The comparisons
+below reuse the same non-IBD controls:
 
-| Comparison                         | Disease samples | Non-IBD controls |
-|------------------------------------|----------------:|-----------------:|
-| Ileal Crohn’s disease (`iCD`)      |             163 |               42 |
-| Colon-only Crohn’s disease (`cCD`) |              55 |               42 |
-| Ulcerative colitis (`UC`)          |              62 |               42 |
+| Comparison                       | Disease samples | Non-IBD controls |
+|:---------------------------------|----------------:|-----------------:|
+| Ileal Crohn’s disease (iCD)      |             163 |               42 |
+| Colon-only Crohn’s disease (cCD) |              55 |               42 |
+| Ulcerative colitis (UC)          |              62 |               42 |
 
 Here, DISCO scores **genes within each pathway**, based on changes in
 their correlations with other genes in that pathway. It does not test
-differential expression or assign a pathway enrichment p-value.
+differential expression or assign a pathway enrichment p-value. The goal
+here is to identify pathways that have the highest percentage of
+disrupted genes (genes with DISCO q \< 0.05).
 
 ### Preprocessing and analysis
 
@@ -866,7 +857,13 @@ package.
 The scripts run in the following order, all under
 `analysis/ibd_transcriptomics/code/`:
 
-| Order | Script | Purpose | Needed with bundled metadata? |
+The repository already includes `sample_metadata.csv` and
+`raw/recount_metadata.rds` under
+`analysis/ibd_transcriptomics/results/inputs/`. The last column
+indicates whether each script is required when using these included
+metadata files.
+
+| Order | Script | Purpose | Required when using the included metadata files? |
 |----|----|----|----|
 | 1 | `fetch_srp042228_metadata.R` | Download GEO, recount3, and ENA sample metadata. | No |
 | 2 | `explore_srp042228_metadata.R` | Check sample/patient identifiers, disease labels, and GEO/recount3 agreement; write `sample_metadata.csv`. | No |
@@ -893,21 +890,22 @@ install.packages(c("BiocManager", "curl"))
 BiocManager::install(c("recount3", "edgeR", "limma"))
 ```
 
-**Steps 1–2 are optional** because their metadata outputs are bundled.
-To retrieve and check the metadata again, write to a separate directory:
+**Skip steps 1–2 when using the included metadata files.** To download
+and check fresh metadata instead, run these steps with a separate output
+directory:
 
 ``` sh
 # 1. Download metadata
-Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_metadata.R analysis/ibd_transcriptomics/results/runs/metadata_refresh
+Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_metadata.R analysis/ibd_transcriptomics/results/metadata_refresh
 # 2. Check metadata and create sample_metadata.csv
-Rscript analysis/ibd_transcriptomics/code/explore_srp042228_metadata.R analysis/ibd_transcriptomics/results/runs/metadata_refresh
+Rscript analysis/ibd_transcriptomics/code/explore_srp042228_metadata.R analysis/ibd_transcriptomics/results/metadata_refresh
 ```
 
 If using this refreshed metadata, pass
-`analysis/ibd_transcriptomics/results/runs/metadata_refresh` to the
-count downloader in step 3 and use the same path for
-`ibd.exploration_dir` in step 4. Freshly retrieved data may differ from
-the snapshots used for the bundled figure.
+`analysis/ibd_transcriptomics/results/metadata_refresh` to the count
+downloader in step 3 and use the same path for `ibd.exploration_dir` in
+step 4. Freshly retrieved data may differ from the snapshots used for
+the bundled figure.
 
 **Step 3.** Download the recount3 gene counts once (an existing download
 is reused). Using the bundled metadata:
@@ -916,8 +914,8 @@ is reused). Using the bundled metadata:
 Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R analysis/ibd_transcriptomics/results/inputs
 ```
 
-**Step 4.** Configure and run all 43 Hallmark pathways for the three
-comparisons:
+**Step 4.** Configure and run the Hallmark pathways for the
+disease/control comparisons:
 
 ``` r
 library(DISCO)
@@ -938,10 +936,10 @@ source("analysis/ibd_transcriptomics/code/run_ibd_hallmark_disco.R")
 ibd_results_dir <- output
 ```
 
-The runner saves a new timestamped directory under
-`analysis/ibd_transcriptomics/results/runs/`, including prepared
-expression matrices, gene eligibility audits, DISCO tables, sample
-counts, and provenance. To try just one pathway, set
+The runner replaces the previous results in
+`analysis/ibd_transcriptomics/results/`, including prepared expression
+matrices, gene eligibility audits, DISCO tables, sample counts, and
+provenance. To try just one pathway, set
 `ibd.pathway_names = "HALLMARK_TNFA_SIGNALING_VIA_NFKB"` in the options
 above. Fixed-threshold mode skips permutations, so `ibd.disco_workers`
 has no effect.
@@ -952,7 +950,7 @@ has no effect.
 `plot_ibd_hallmark_significance.R`:
 
 ``` r
-# To plot the bundled results without rerunning DISCO, use instead:
+# To plot existing results without rerunning DISCO, use instead:
 # ibd_results_dir <- "analysis/ibd_transcriptomics/results"
 options(
   ibd.plot_input_dir = ibd_results_dir,
@@ -963,21 +961,22 @@ options(
 source("analysis/ibd_transcriptomics/code/plot_ibd_hallmark_significance.R")
 ```
 
-The bundled figure below uses the completed **November 2, 2026** run.
-Each cell shows **100 × significant genes / tested genes**, excluding
-genes without a finite within-pathway q-value. The same **23 pathways**
-are displayed in every column: those with at least 50% significant genes
-in any comparison. The display cutoff does not change the DISCO tests or
-their q-values. Rows are clustered using Euclidean distance and complete
-linkage on the unscaled percentages; columns retain the order iCD, cCD,
-UC. Right-hand counts give tested genes in that same order.
+The figure below uses the current saved results. Each cell shows **100 ×
+significant genes / tested genes**, excluding genes without a finite
+within-pathway q-value. The same **23 pathways** are displayed in every
+column: those with at least 50% significant genes in any comparison. The
+display cutoff does not change the DISCO tests or their q-values. Rows
+are clustered using Euclidean distance and complete linkage on the
+unscaled percentages; columns retain the order iCD, cCD, UC. Right-hand
+counts give tested genes in that same order.
 
 <img src="man/figures/README-ibd-hallmark-significance.png" alt="" width="100%" />
 
 The figure is a descriptive summary of gene-level correlation
-disruption, rather than a formal pathway significance test. For example,
-the inflammatory response pathway has 85.7%, 68.4%, and 0.0% significant
-tested genes in iCD, cCD, and UC, respectively.
+disruption, rather than a formal pathway significance test.
+
+For example, the inflammatory response pathway has 85.7% in iCD, 68.4%
+in cCD, 0.0% in UC significant tested genes.
 
 The bundled [gene
 scores](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/all_pathway_gene_scores.csv),
@@ -994,29 +993,7 @@ plotting chunk. The saved
 [provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
 and [session
 information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
-describe the original run; its recorded paths refer to the original
-analysis location.
-
-## Building the documentation website
-
-The pkgdown website uses this README as its home page and generates a
-function reference from the package help files. To build it locally:
-
-``` r
-install.packages("pkgdown") # If needed
-pkgdown::build_site(preview = FALSE)
-```
-
-Open `docs/index.html` to view the result. The build reads the rendered
-`README.md` and its saved figures; it does not rerun the example
-analyses or download their expression data. After editing `README.Rmd`,
-render it first with
-`Rscript analysis/diabetes_microbiome/code/render_qinj_readme.R`.
-
-The `Build documentation` GitHub Actions workflow builds the same site
-on pushes to `main`, pull requests, or manual runs, and saves it as the
-`documentation-site` artifact. Publishing to GitHub Pages can be
-configured after reviewing the site.
+record the analysis settings and software versions.
 
 ## Citation
 

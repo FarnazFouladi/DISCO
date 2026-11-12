@@ -1,6 +1,7 @@
 # Run from the DISCO repository root after downloading the counts (see README).
 # Adapted from DISCO_Analysis's example_ibd_workflow.R; only the Hallmark
 # significance heatmap is generated here. This runs the full analysis.
+# Each run replaces the previous analysis in results/ and the heatmap in results/figure/.
 # Script order: (1) fetch_srp042228_metadata.R, (2) explore_srp042228_metadata.R,
 # (3) fetch_srp042228_counts.R, (4) run_ibd_hallmark_disco.R,
 # (5) plot_ibd_hallmark_significance.R. Steps 1-2 can be skipped with bundled
@@ -25,7 +26,7 @@ source("analysis/ibd_transcriptomics/code/run_ibd_hallmark_disco.R")
 ibd_results_dir <- output
 
 ## ---- ibd-plot
-# To plot the bundled results without rerunning DISCO, use instead:
+# To plot existing results without rerunning DISCO, use instead:
 # ibd_results_dir <- "analysis/ibd_transcriptomics/results"
 options(
   ibd.plot_input_dir = ibd_results_dir,

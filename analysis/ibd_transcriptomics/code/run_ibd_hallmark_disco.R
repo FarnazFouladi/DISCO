@@ -33,7 +33,8 @@ root <- dirname(dirname(script))
 for (p in c("DISCO", "recount3", "edgeR", "limma"))
   if (!requireNamespace(p, quietly = TRUE)) stop("Required package: ", p)
 library(DISCO)
-helpers <- file.path(dirname(script), c("ibd_hallmark_disco_helpers.R", "ibd_pathway_file_helpers.R"))
+helpers <- file.path(dirname(script), c("ibd_hallmark_disco_helpers.R", "ibd_pathway_file_helpers.R",
+                                      "ibd_result_files.R"))
 for (helper in helpers) source(helper)
 input <- getOption("ibd.exploration_dir", file.path(root, "results", "inputs"))
 reference <- getOption("ibd.pathway_reference", file.path(root, "results", "inputs", "reference"))
@@ -74,10 +75,9 @@ settings <- list(cooccur = 10L, q_value = 0.05, empirical = FALSE, filter_thresh
   min_pathway_genes = getOption("ibd.min_pathway_genes", 0L),
   pathway_size_basis = "unique native human gene symbols before expression filtering",
   pathway_file_layout = "msigdb_id_v1")
-output <- file.path(root, "results", "runs", paste0(prefix, "_disco_",
-  if (settings$preprocess_only) "prepare_" else "run_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_", Sys.getpid()))
-if (dir.exists(output)) stop("Output already exists.")
-dir.create(output, recursive = TRUE)
+output <- getOption("ibd.output_dir", file.path(root, "results"))
+if (settings$preprocess_only) output <- file.path(output, "preparation")
+ibd_reset_results(output)
 write_table <- function(x, file, directory = output) utils::write.csv(x, file.path(directory, paste0(file, ".csv")), row.names = FALSE)
 saveRDS(membership, file.path(output, "pathway_membership.rds"))
 write_table(selection$sizes, "pathway_size_selection")
