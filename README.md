@@ -7,12 +7,13 @@
 
 - [Installation](#installation)
 - [Inputs and arguments](#inputs-and-arguments)
-- [Outputs](#returned-results)
+- [Outputs](#outputs)
+- [Quick start](#quick-start)
+- [Examples of DISCO applications](#examples-of-disco-applications)
 - [Example 1: Microbiome, one
   modality](#example-of-one-data-modality-taxontaxon-correlations-in-type-2-diabetes)
 - [Example 2: Microbiome, two
   modalities](#example-of-two-data-modalities-taxonpathway-correlations)
-- [Combined microbiome results](#overall-microbiome-example-results)
 - [Example 3: IBD
   transcriptomics](#transcriptomics-example-gene-correlations-within-ibd-hallmark-pathways)
 - [Citation](#citation)
@@ -46,18 +47,6 @@ library(DISCO)
 ```
 
 ## Inputs and arguments
-
-The example files are organized by dataset under `analysis/`:
-
-```text
-analysis/
-  diabetes_microbiome/
-    code/       # QinJ preprocessing, DISCO, plotting, and README scripts
-    results/    # Saved analyses, tables, plot data, and figures
-  ibd_transcriptomics/
-    code/       # Metadata retrieval, preprocessing, DISCO, and plotting
-    results/    # Saved analyses and figures; input snapshots in inputs/
-```
 
 The main function, `disco()`, compares `data1` (group 1, such as
 controls) with `data2` (group 2, such as cases). Each input is a list
@@ -150,10 +139,14 @@ label in both modalities.
 
 To use a fixed threshold, set `empirically_derive_threshold = FALSE` and
 supply `filter_threshold` (default `1`). This skips permutations and
-diagnostic plots. Here is a self-contained toy example with 30 samples
-per group and five features. Feature 1 and feature 2 are correlated in
-controls but independent in cases. These simulated values represent
-preprocessed data.
+diagnostic plots.
+
+## Quick start
+
+Here is a self-contained toy example with 30 samples per group and five
+features to illustrate how to run DISCO. In this example, features 1 and
+2 are correlated in controls but independent in cases. These simulated
+values represent preprocessed data.
 
 ``` r
 # A toy example
@@ -182,7 +175,7 @@ result <- disco(
 )
 ```
 
-## Returned results
+## Outputs
 
 | Component | Contents |
 |----|----|
@@ -213,7 +206,23 @@ In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and
 Pair-level and feature-level tables are saved as `<prefix>_cor_diff.csv`
 and `<prefix>_disco.csv`.
 
-## Example of one data modality: taxon–taxon correlations in type 2 diabetes
+## Examples of DISCO applications
+
+Here we illustrate the application of DISCO to microbiome and
+transcriptomic data. The example files are organized by dataset under
+`analysis/`:
+
+```text
+analysis/
+  diabetes_microbiome/
+    code/       # QinJ preprocessing, DISCO, plotting, and README scripts
+    results/    # Saved analyses, tables, plot data, and figures
+  ibd_transcriptomics/
+    code/       # Metadata retrieval, preprocessing, DISCO, and plotting
+    results/    # Saved analyses and figures; input snapshots in inputs/
+```
+
+### Example of one data modality: taxon–taxon correlations in type 2 diabetes
 
 This example uses **QinJ_2012** from [Qin et
 al. (2012)](https://doi.org/10.1038/nature11450), comparing type 2
@@ -550,11 +559,12 @@ significant DISCO taxa have a low null discovery percentage (less than
 
 ### Taxon–taxon network
 
-For taxa with significant DISCO scores, the `cor_diff` output shows how
-their correlations with other taxa differ between groups. The network
-highlights the **top ten significant taxa**, ranked by DISCO q, then
-p. Edges are selected by **raw differential-correlation p \< 0.05** from
-the saved pair table after DISCO’s selected correlation filter. The
+For taxa with significant DISCO scores, we can extract their pairwise
+correlations from the `cor_diff` output to visualize how their
+correlations with other taxa differ between groups. For example, the
+network highlights the **top ten significant taxa**, ranked by DISCO q,
+then p. Edges are selected by **raw differential-correlation p \< 0.05**
+from the saved pair table after DISCO’s selected correlation filter. The
 panels share nodes, edges, and positions across the two groups; red/blue
 indicate positive/negative group correlations, and edge width shows
 \|Spearman r\|. Edge presence does not imply within-group correlation
@@ -857,18 +867,22 @@ result <- disco(
 
 BY adjustment is performed separately within each pathway and
 comparison; genes with **DISCO q \< 0.05** are counted as significant.
-Pathways can share genes, and the comparisons share controls. These are
-exploratory results: the ordinary differential-correlation tests do not
-account fully for the estimated age/sex adjustment.
+Pathways can share genes, and the comparisons share controls.
 
 The figure below uses the current saved results. Each bar shows **100 ×
 significant genes / tested genes**, excluding genes without a finite
 within-pathway q-value. The same **23 pathways** are displayed in every
-facet: those with at least 50% significant genes in any comparison. The
-display cutoff does not change the DISCO tests or their q-values.
+facet: those with at least 50% significant genes in any comparison.
 Pathways are ordered from highest to lowest percentage in **iCD**, with
 the same order in every facet. Facets show iCD, cCD, UC versus non-IBD
 controls. Alphabetical pathway names break ties in iCD percentages.
+
+The results show that gene correlations are most disrupted in iCD,
+followed by cCD, and least disrupted in UC. One potential explanation is
+that ileal biopsies were used for gene expression measurements across
+all disease groups, and genes in the ileum may not be affected in UC. In
+both iCD and cCD, the inflammatory response and epithelial–mesenchymal
+transition pathways have the highest percentages of disrupted genes.
 
 <img src="man/figures/README-ibd-hallmark-significance.png" alt="" width="100%" />
 
