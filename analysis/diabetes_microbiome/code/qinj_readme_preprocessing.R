@@ -147,8 +147,8 @@ residualize_abundance <- function(clr, metadata, group) {
 # Track example scripts and the installed package actually used for analysis.
 # Relative keys keep provenance independent of checkout/library locations.
 readme_source_hashes <- function(repo_dir) {
-  paths <- c("analysis/run_qinj_readme_examples.R",
-             "analysis/qinj_readme_preprocessing.R")
+  paths <- c("analysis/diabetes_microbiome/code/run_qinj_readme_examples.R",
+             "analysis/diabetes_microbiome/code/qinj_readme_preprocessing.R")
   example_hashes <- stats::setNames(
     unname(tools::md5sum(file.path(repo_dir, paths))), paths)
   package_dir <- find.package("DISCO")

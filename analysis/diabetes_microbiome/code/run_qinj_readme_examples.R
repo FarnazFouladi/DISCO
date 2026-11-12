@@ -1,6 +1,6 @@
 # Generate QinJ_2012 T2D/control results, following the Nielsen README workflow.
-# Run from any directory: Rscript /path/to/DISCO/analysis/run_qinj_readme_examples.R
-# Or in R: source("/path/to/DISCO/analysis/run_qinj_readme_examples.R")
+# Run from any directory: Rscript /path/to/DISCO/analysis/diabetes_microbiome/code/run_qinj_readme_examples.R
+# Or in R: source("/path/to/DISCO/analysis/diabetes_microbiome/code/run_qinj_readme_examples.R")
 # Both modalities use separate healthy/T2D gender/BMI models after robust CLR; zeros remain NA.
 # Both analyses use the installed DISCO package, loaded with library(DISCO).
 # Set DISCO_README_RECOMPUTE=true to recompute both examples.
@@ -16,7 +16,7 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
-repo_dir <- dirname(analysis_dir)
+repo_dir <- dirname(dirname(dirname(analysis_dir)))
 source(file.path(analysis_dir, "qinj_readme_preprocessing.R"))
 required <- c("DISCO", "curatedMetagenomicData", "SummarizedExperiment", "ggplot2")
 missing <- required[!vapply(required, requireNamespace, logical(1L), quietly = TRUE)]
@@ -39,7 +39,7 @@ settings <- list(
   prevalence_scope = "at least 50% in each of healthy and T2D",
   covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI"
 )
-results_dir <- file.path(analysis_dir, "qinj_readme_results")
+results_dir <- file.path(dirname(analysis_dir), "results")
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 source_md5 <- readme_source_hashes(repo_dir)
 

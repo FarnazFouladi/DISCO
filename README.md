@@ -33,6 +33,18 @@ library(DISCO)
 
 ## Inputs and arguments
 
+The example files are organized by dataset under `analysis/`:
+
+```text
+analysis/
+  diabetes_microbiome/
+    code/       # QinJ preprocessing, DISCO, plotting, and README scripts
+    results/    # Saved analyses, tables, plot data, and figures
+  ibd_transcriptomics/
+    code/       # Metadata retrieval, preprocessing, DISCO, and plotting
+    results/    # Saved analyses and figures; input snapshots in inputs/
+```
+
 The main function, `disco()`, compares `data1` (group 1, such as
 controls) with `data2` (group 2, such as cases). Each input is a list
 containing **one or two numeric matrices or data frames**, with
@@ -230,9 +242,9 @@ BiocManager::install(c("curatedMetagenomicData", "SummarizedExperiment"))
 ```
 
 The following blocks are imported directly from the [analysis
-script](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/run_qinj_readme_examples.R)
+script](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/code/run_qinj_readme_examples.R)
 and [preprocessing
-helpers](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_preprocessing.R).
+helpers](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/code/qinj_readme_preprocessing.R).
 
 Load the installed DISCO package (see Installation above):
 
@@ -249,7 +261,7 @@ settings <- list(
   prevalence_scope = "at least 50% in each of healthy and T2D",
   covariate_adjustment = "separate healthy and T2D models: ~ gender + BMI"
 )
-results_dir <- file.path(analysis_dir, "qinj_readme_results")
+results_dir <- file.path(dirname(analysis_dir), "results")
 dir.create(results_dir, recursive = TRUE, showWarnings = FALSE)
 source_md5 <- readme_source_hashes(repo_dir)
 ```
@@ -535,12 +547,12 @@ indicate positive/negative group correlations, and edge width shows
 significance.
 
 Correlation source:
-[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv).
+[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.csv).
 Its columns identify the pair (`t1`, `t2`), control/T2D Spearman
 correlations (`r1`, `r2`), complete-pair sample counts (`n1`, `n2`), and
 differential-correlation `p` and `q`. The exact subset drawn as edges is
 saved in
-[network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_networks/network_edges.csv).
+[network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_networks/network_edges.csv).
 
 <img src="man/figures/README-qinj-taxa-network.png" alt="" width="100%" />
 
@@ -555,13 +567,13 @@ and paired sample counts from `cor_diff`. Dashed linear fits are visual
 guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa/QinJ_2012_taxa_cor_diff.csv);
+[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.csv);
 the selected pairs and their annotations are exported in
-[top10_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_differential_scatterplots/top10_pairs.csv).
+[top10_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/differential_scatterplots/top10_pairs.csv).
 The plotted sample values are exported in
-[scatterplot_data.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_differential_scatterplots/scatterplot_data.csv),
+[scatterplot_data.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/differential_scatterplots/scatterplot_data.csv),
 extracted from the adjusted matrices in
-[disco_inputs.rds](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa/disco_inputs.rds).
+[disco_inputs.rds](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/disco_inputs.rds).
 
 <img src="man/figures/README-qinj-taxa-scatterplot.png" alt="" width="100%" />
 
@@ -677,17 +689,17 @@ taxa** to pathways with **raw differential-correlation p \< 0.05**,
 using the saved filtered pair table. Gold nodes are taxa and grey nodes
 are pathways. Pathways are labelled by their IDs; full names are
 exported in
-[network_nodes.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_networks/network_nodes.csv).
+[network_nodes.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_networks/network_nodes.csv).
 Both panels use identical nodes, edges, and positions. Edge colors and
 widths show the group-specific Spearman correlations, as in the
 taxa-only network.
 
 Correlation source:
-[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
 Here `t1` is the taxon and `t2` is the pathway; `r1`/`r2`, `n1`/`n2`,
 and `p`/`q` have the same meanings as in the taxa-only pair table. The
 exact plotted edge subset is exported in
-[network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_networks/network_edges.csv).
+[network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_networks/network_edges.csv).
 
 <img src="man/figures/README-qinj-taxa_pathways-network.png" alt="" width="100%" />
 
@@ -702,14 +714,14 @@ differential-correlation p-values and q-values are shown; dashed lines
 remain visual guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
 The selected example and its annotations are saved in
-[top1_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_scatterplots/top1_pairs.csv),
+[top1_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/top1_pairs.csv),
 and its sample values are exported in
-[scatterplot_data.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_taxa_pathway_scatterplots/scatterplot_data.csv).
+[scatterplot_data.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/scatterplot_data.csv).
 Those values are extracted from the adjusted taxon and pathway matrices
 in
-[disco_inputs.rds](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/qinj_readme_results/taxa_pathways/disco_inputs.rds).
+[disco_inputs.rds](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/disco_inputs.rds).
 
 <img src="man/figures/README-qinj-taxa_pathways-scatterplot.png" alt="" width="100%" />
 
@@ -748,17 +760,17 @@ BiocManager::install(c("curatedMetagenomicData", "SummarizedExperiment"))
 Rerun the analysis and generate the plots:
 
 ``` sh
-Rscript analysis/run_qinj_readme_examples.R
-Rscript analysis/plot_qinj_taxa_networks.R
-Rscript analysis/plot_qinj_top_differential_scatterplots.R
-Rscript analysis/plot_qinj_taxa_pathway_networks.R
-Rscript analysis/plot_qinj_top_taxa_pathway_scatterplots.R
-Rscript analysis/plot_qinj_disco_heatmap.R
+Rscript analysis/diabetes_microbiome/code/run_qinj_readme_examples.R
+Rscript analysis/diabetes_microbiome/code/plot_qinj_taxa_networks.R
+Rscript analysis/diabetes_microbiome/code/plot_qinj_top_differential_scatterplots.R
+Rscript analysis/diabetes_microbiome/code/plot_qinj_taxa_pathway_networks.R
+Rscript analysis/diabetes_microbiome/code/plot_qinj_top_taxa_pathway_scatterplots.R
+Rscript analysis/diabetes_microbiome/code/plot_qinj_disco_heatmap.R
 ```
 
 The analysis uses `library(DISCO)` and saves results in
-`analysis/qinj_readme_results/`. Adjust `settings` in the analysis
-script as needed. Matching cached results are reused; set
+`analysis/diabetes_microbiome/results/`. Adjust `settings` in the
+analysis script as needed. Matching cached results are reused; set
 `DISCO_README_RECOMPUTE=true` to force recomputation. Each script also
 supports `source()` with its full path.
 
@@ -766,7 +778,7 @@ To refresh the figures embedded in this README and regenerate
 `README.md`, run:
 
 ``` sh
-Rscript analysis/render_qinj_readme.R
+Rscript analysis/diabetes_microbiome/code/render_qinj_readme.R
 ```
 
 This last step requires Pandoc and reads saved results without rerunning
@@ -886,22 +898,22 @@ To retrieve and check the metadata again, write to a separate directory:
 
 ``` sh
 # 1. Download metadata
-Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_metadata.R analysis/ibd_transcriptomics/outputs/metadata_refresh
+Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_metadata.R analysis/ibd_transcriptomics/results/runs/metadata_refresh
 # 2. Check metadata and create sample_metadata.csv
-Rscript analysis/ibd_transcriptomics/code/explore_srp042228_metadata.R analysis/ibd_transcriptomics/outputs/metadata_refresh
+Rscript analysis/ibd_transcriptomics/code/explore_srp042228_metadata.R analysis/ibd_transcriptomics/results/runs/metadata_refresh
 ```
 
 If using this refreshed metadata, pass
-`analysis/ibd_transcriptomics/outputs/metadata_refresh` to the count
-downloader in step 3 and use the same path for `ibd.exploration_dir` in
-step 4. Freshly retrieved data may differ from the snapshots used for
-the bundled figure.
+`analysis/ibd_transcriptomics/results/runs/metadata_refresh` to the
+count downloader in step 3 and use the same path for
+`ibd.exploration_dir` in step 4. Freshly retrieved data may differ from
+the snapshots used for the bundled figure.
 
 **Step 3.** Download the recount3 gene counts once (an existing download
 is reused). Using the bundled metadata:
 
 ``` sh
-Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R analysis/ibd_transcriptomics/inputs
+Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R analysis/ibd_transcriptomics/results/inputs
 ```
 
 **Step 4.** Configure and run all 43 Hallmark pathways for the three
@@ -911,8 +923,8 @@ comparisons:
 library(DISCO)
 
 options(
-  ibd.exploration_dir = "analysis/ibd_transcriptomics/inputs",
-  ibd.pathway_reference = "analysis/ibd_transcriptomics/inputs/reference",
+  ibd.exploration_dir = "analysis/ibd_transcriptomics/results/inputs",
+  ibd.pathway_reference = "analysis/ibd_transcriptomics/results/inputs/reference",
   ibd.comparisons = c("iCD", "cCD", "UC"),
   ibd.preprocessing_mode = "joint_four_groups",
   ibd.msigdb_collection = "H",
@@ -927,9 +939,9 @@ ibd_results_dir <- output
 ```
 
 The runner saves a new timestamped directory under
-`analysis/ibd_transcriptomics/outputs/`, including prepared expression
-matrices, gene eligibility audits, DISCO tables, sample counts, and
-provenance. To try just one pathway, set
+`analysis/ibd_transcriptomics/results/runs/`, including prepared
+expression matrices, gene eligibility audits, DISCO tables, sample
+counts, and provenance. To try just one pathway, set
 `ibd.pathway_names = "HALLMARK_TNFA_SIGNALING_VIA_NFKB"` in the options
 above. Fixed-threshold mode skips permutations, so `ibd.disco_workers`
 has no effect.
@@ -998,7 +1010,8 @@ pkgdown::build_site(preview = FALSE)
 Open `docs/index.html` to view the result. The build reads the rendered
 `README.md` and its saved figures; it does not rerun the example
 analyses or download their expression data. After editing `README.Rmd`,
-render it first with `Rscript analysis/render_qinj_readme.R`.
+render it first with
+`Rscript analysis/diabetes_microbiome/code/render_qinj_readme.R`.
 
 The `Build documentation` GitHub Actions workflow builds the same site
 on pushes to `main`, pull requests, or manual runs, and saves it as the

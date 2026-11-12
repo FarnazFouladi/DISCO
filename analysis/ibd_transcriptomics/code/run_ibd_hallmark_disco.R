@@ -19,7 +19,7 @@
 # Default preprocessing: one complete-case four-group filter, TMM normalization,
 # age/sex correction preserving all four groups, and valid variance in every group.
 # options(ibd.preprocessing_mode="comparison_specific") restores the earlier workflow.
-# Bundled metadata and reference inputs live in ../inputs relative to this code directory.
+# Bundled metadata and reference inputs live in ../results/inputs relative to this code directory.
 # No automatic downloads or automatic plotting; run plotting scripts after completion.
 script <- local({
   paths <- as.character(unlist(lapply(sys.frames(), function(x) x$ofile), use.names = FALSE))
@@ -35,8 +35,8 @@ for (p in c("DISCO", "recount3", "edgeR", "limma"))
 library(DISCO)
 helpers <- file.path(dirname(script), c("ibd_hallmark_disco_helpers.R", "ibd_pathway_file_helpers.R"))
 for (helper in helpers) source(helper)
-input <- getOption("ibd.exploration_dir", file.path(root, "inputs"))
-reference <- getOption("ibd.pathway_reference", file.path(root, "inputs", "reference"))
+input <- getOption("ibd.exploration_dir", file.path(root, "results", "inputs"))
+reference <- getOption("ibd.pathway_reference", file.path(root, "results", "inputs", "reference"))
 comparisons <- ibd_validate_comparisons(getOption("ibd.comparisons", c("iCD", "cCD", "UC")))
 preprocessing_mode <- getOption("ibd.preprocessing_mode", "joint_four_groups")
 if (!is.character(preprocessing_mode) || length(preprocessing_mode) != 1L || is.na(preprocessing_mode) ||
@@ -74,7 +74,7 @@ settings <- list(cooccur = 10L, q_value = 0.05, empirical = FALSE, filter_thresh
   min_pathway_genes = getOption("ibd.min_pathway_genes", 0L),
   pathway_size_basis = "unique native human gene symbols before expression filtering",
   pathway_file_layout = "msigdb_id_v1")
-output <- file.path(root, "outputs", paste0(prefix, "_disco_",
+output <- file.path(root, "results", "runs", paste0(prefix, "_disco_",
   if (settings$preprocess_only) "prepare_" else "run_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_", Sys.getpid()))
 if (dir.exists(output)) stop("Output already exists.")
 dir.create(output, recursive = TRUE)

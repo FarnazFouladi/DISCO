@@ -1,8 +1,8 @@
 # Top retained taxon-pathway differential correlations: one PDF page per pair,
 # with separate Control and T2D panels using the exact matrices passed to DISCO.
-# Run: Rscript analysis/plot_qinj_top_taxa_pathway_scatterplots.R
+# Run: Rscript analysis/diabetes_microbiome/code/plot_qinj_top_taxa_pathway_scatterplots.R
 # Optional arguments: input_directory output_directory top_n
-# Also supports source("/path/to/DISCO/analysis/plot_qinj_top_taxa_pathway_scatterplots.R").
+# Also supports source("/path/to/DISCO/analysis/diabetes_microbiome/code/plot_qinj_top_taxa_pathway_scatterplots.R").
 # Ranks by differential q, then p, then feature names; no new tests are fitted.
 # The displayed linear trend is a visual guide, not the Spearman test model.
 
@@ -31,10 +31,10 @@ if (!is.numeric(top_n) || length(top_n) != 1L || !is.finite(top_n) ||
   stop("top_n must be a positive integer.")
 top_n <- as.integer(top_n)
 input_dir <- if (length(args) >= 1L) args[[1L]] else file.path(
-  analysis_dir, "qinj_readme_results", "taxa_pathways"
+  dirname(analysis_dir), "results", "taxa_pathways"
 )
 output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(
-  analysis_dir, "qinj_taxa_pathway_scatterplots"
+  dirname(analysis_dir), "results", "taxa_pathway_scatterplots"
 )
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2 first.")
 result <- readRDS(file.path(input_dir, "disco_analysis.rds"))

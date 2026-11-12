@@ -10,8 +10,8 @@
 library(DISCO)
 
 options(
-  ibd.exploration_dir = "analysis/ibd_transcriptomics/inputs",
-  ibd.pathway_reference = "analysis/ibd_transcriptomics/inputs/reference",
+  ibd.exploration_dir = "analysis/ibd_transcriptomics/results/inputs",
+  ibd.pathway_reference = "analysis/ibd_transcriptomics/results/inputs/reference",
   ibd.comparisons = c("iCD", "cCD", "UC"),
   ibd.preprocessing_mode = "joint_four_groups",
   ibd.msigdb_collection = "H",

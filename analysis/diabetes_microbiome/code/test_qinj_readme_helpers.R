@@ -1,5 +1,5 @@
 # Lightweight checks without downloading data or running permutations.
-# Run: Rscript analysis/test_qinj_readme_helpers.R
+# Run: Rscript analysis/diabetes_microbiome/code/test_qinj_readme_helpers.R
 file_argument <- grep("^--file=", commandArgs(FALSE), value = TRUE)
 if (length(file_argument) != 1L) stop("Run this file with Rscript.")
 analysis_dir <- dirname(normalizePath(sub("^--file=", "", file_argument[[1L]])))

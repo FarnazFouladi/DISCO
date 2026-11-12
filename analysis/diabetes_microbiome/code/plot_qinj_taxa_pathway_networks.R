@@ -1,8 +1,8 @@
 # Bipartite taxon-pathway network containing the top N significant DISCO taxa
 # and their significant differential-correlation partners, one panel per group.
-# Run: Rscript analysis/plot_qinj_taxa_pathway_networks.R
+# Run: Rscript analysis/diabetes_microbiome/code/plot_qinj_taxa_pathway_networks.R
 # Optional arguments: input_directory output_directory q_cutoff top_n
-# Also supports source("/path/to/DISCO/analysis/plot_qinj_taxa_pathway_networks.R").
+# Also supports source("/path/to/DISCO/analysis/diabetes_microbiome/code/plot_qinj_taxa_pathway_networks.R").
 # q_cutoff selects top DISCO taxa; the edge p cutoff is fixed at 0.05.
 # Uses existing DISCO outputs only. Group 1 is control; group 2 is T2D.
 # Both panels use the same undirected edges and deterministic node positions.
@@ -40,10 +40,10 @@ if (!is.numeric(top_n) || length(top_n) != 1L || !is.finite(top_n) ||
 top_n <- as.integer(top_n)
 top_role <- paste("Top", top_n, "DISCO taxon")
 input_dir <- if (length(args) >= 1L) args[[1L]] else file.path(
-  analysis_dir, "qinj_readme_results", "taxa_pathways"
+  dirname(analysis_dir), "results", "taxa_pathways"
 )
 output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(
-  analysis_dir, "qinj_taxa_pathway_networks"
+  dirname(analysis_dir), "results", "taxa_pathway_networks"
 )
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2 first.")
 result <- readRDS(file.path(input_dir, "disco_analysis.rds"))

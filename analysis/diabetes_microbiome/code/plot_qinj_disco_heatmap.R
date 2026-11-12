@@ -2,8 +2,8 @@
 # Rows: taxa; columns: taxa-taxa and taxon-pathway analyses.
 # Colors: -log10(raw feature-level DISCO p), with no row scaling.
 # Asterisks: feature-level DISCO q < q_cutoff (not raw p significance).
-# Rscript analysis/plot_qinj_disco_heatmap.R [input_dir] [output_dir] [cluster_rows] [row_clusters]
-# Also supports source("/path/to/DISCO/analysis/plot_qinj_disco_heatmap.R").
+# Rscript analysis/diabetes_microbiome/code/plot_qinj_disco_heatmap.R [input_dir] [output_dir] [cluster_rows] [row_clusters]
+# Also supports source("/path/to/DISCO/analysis/diabetes_microbiome/code/plot_qinj_disco_heatmap.R").
 
 q_cutoff <- 0.2
 cluster_rows <- TRUE
@@ -26,8 +26,8 @@ sourced <- any(vapply(sys.frames(), function(frame) {
 args <- if (sourced) character(0) else commandArgs(trailingOnly = TRUE)
 if (length(args) > 4L)
   stop("Usage: Rscript plot_qinj_disco_heatmap.R [input_dir] [output_dir] [cluster_rows] [row_clusters]")
-input_dir <- if (length(args) >= 1L) args[[1L]] else file.path(analysis_dir, "qinj_readme_results")
-output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(analysis_dir, "qinj_disco_heatmap")
+input_dir <- if (length(args) >= 1L) args[[1L]] else file.path(dirname(analysis_dir), "results")
+output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(dirname(analysis_dir), "results", "disco_heatmap")
 if (length(args) >= 3L) {
   flag <- tolower(args[[3L]])
   if (!flag %in% c("true", "false")) stop("cluster_rows must be TRUE or FALSE.")

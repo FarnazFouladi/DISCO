@@ -30,7 +30,7 @@ if (length(args)) {
 } else if (!is.null(getOption("ibd.plot_input_dir", NULL))) {
   input <- getOption("ibd.plot_input_dir")
 } else {
-  dirs <- list.dirs(file.path(root, "outputs"), recursive = FALSE)
+  dirs <- list.dirs(file.path(root, "results", "runs"), recursive = FALSE)
   dirs <- dirs[grepl("_disco_run_", basename(dirs), fixed = TRUE) &
                  file.exists(file.path(dirs, "session_info.txt"))]
   if (!length(dirs)) stop("No completed pathway DISCO run found.")

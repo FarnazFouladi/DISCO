@@ -13,7 +13,7 @@ script <- local({
 })
 root <- dirname(dirname(script))
 args <- commandArgs(trailingOnly = TRUE)
-output <- if (length(args)) args[1] else getOption("ibd.metadata_output", file.path(root, "outputs",
+output <- if (length(args)) args[1] else getOption("ibd.metadata_output", file.path(root, "results", "runs",
   paste0("exploration_", format(Sys.time(), "%Y%m%d_%H%M%S"), "_", Sys.getpid())))
 raw_dir <- file.path(output, "raw")
 dir.create(raw_dir, recursive = TRUE, showWarnings = FALSE)
