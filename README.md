@@ -795,6 +795,47 @@ differential expression or assign a pathway enrichment p-value. The goal
 here is to identify pathways that have the highest percentage of
 disrupted genes (genes with DISCO q \< 0.05).
 
+### Hallmark significance heatmap
+
+BY adjustment is performed separately within each pathway and
+comparison; genes with **DISCO q \< 0.05** are counted as significant.
+Pathways can share genes, and the comparisons share controls. These are
+exploratory results: the ordinary differential-correlation tests do not
+account fully for the estimated age/sex adjustment.
+
+The figure below uses the current saved results. Each cell shows **100 ×
+significant genes / tested genes**, excluding genes without a finite
+within-pathway q-value. The same **23 pathways** are displayed in every
+column: those with at least 50% significant genes in any comparison. The
+display cutoff does not change the DISCO tests or their q-values. Rows
+are clustered using Euclidean distance and complete linkage on the
+unscaled percentages; columns retain the order iCD, cCD, UC. Right-hand
+counts give tested genes in that same order.
+
+<img src="man/figures/README-ibd-hallmark-significance.png" alt="" width="100%" />
+
+The figure is a descriptive summary of gene-level correlation
+disruption, rather than a formal pathway significance test.
+
+For example, the inflammatory response pathway has 85.7% in iCD, 68.4%
+in cCD, 0.0% in UC significant tested genes.
+
+The bundled [gene
+scores](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/all_pathway_gene_scores.csv),
+[sample
+counts](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/comparison_sample_counts.csv),
+[heatmap
+percentages](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/pathway_significance_percentages.csv),
+and [row
+order](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/heatmap_row_order.csv)
+allow inspection without rerunning the analysis.
+
+The saved
+[provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
+and [session
+information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
+record the analysis settings and software versions.
+
 ### Preprocessing and analysis
 
 Before running DISCO, the RNA-seq data are preprocessed as follows:
@@ -838,12 +879,6 @@ result <- disco(
   prefix = "pathway"
 )
 ```
-
-BY adjustment is performed separately within each pathway and
-comparison; genes with **DISCO q \< 0.05** are counted as significant.
-Pathways can share genes, and the comparisons share controls. These are
-exploratory results: the ordinary differential-correlation tests do not
-account fully for the estimated age/sex adjustment.
 
 ### Run the workflow
 
@@ -944,8 +979,6 @@ provenance. To try just one pathway, set
 above. Fixed-threshold mode skips permutations, so `ibd.disco_workers`
 has no effect.
 
-### Hallmark significance heatmap
-
 **Step 5.** Generate the heatmap with
 `plot_ibd_hallmark_significance.R`:
 
@@ -961,39 +994,9 @@ options(
 source("analysis/ibd_transcriptomics/code/plot_ibd_hallmark_significance.R")
 ```
 
-The figure below uses the current saved results. Each cell shows **100 ×
-significant genes / tested genes**, excluding genes without a finite
-within-pathway q-value. The same **23 pathways** are displayed in every
-column: those with at least 50% significant genes in any comparison. The
-display cutoff does not change the DISCO tests or their q-values. Rows
-are clustered using Euclidean distance and complete linkage on the
-unscaled percentages; columns retain the order iCD, cCD, UC. Right-hand
-counts give tested genes in that same order.
-
-<img src="man/figures/README-ibd-hallmark-significance.png" alt="" width="100%" />
-
-The figure is a descriptive summary of gene-level correlation
-disruption, rather than a formal pathway significance test.
-
-For example, the inflammatory response pathway has 85.7% in iCD, 68.4%
-in cCD, 0.0% in UC significant tested genes.
-
-The bundled [gene
-scores](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/all_pathway_gene_scores.csv),
-[sample
-counts](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/comparison_sample_counts.csv),
-[heatmap
-percentages](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/pathway_significance_percentages.csv),
-and [row
-order](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/heatmap_row_order.csv)
-allow inspection without rerunning the analysis. To redraw the heatmap
-from these saved results, set
+To redraw the heatmap from these saved results, set
 `ibd_results_dir <- "analysis/ibd_transcriptomics/results"` before the
-plotting chunk. The saved
-[provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
-and [session
-information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
-record the analysis settings and software versions.
+plotting chunk.
 
 ## Citation
 
