@@ -795,47 +795,6 @@ differential expression or assign a pathway enrichment p-value. The goal
 here is to identify pathways that have the highest percentage of
 disrupted genes (genes with DISCO q \< 0.05).
 
-### Hallmark significance heatmap
-
-BY adjustment is performed separately within each pathway and
-comparison; genes with **DISCO q \< 0.05** are counted as significant.
-Pathways can share genes, and the comparisons share controls. These are
-exploratory results: the ordinary differential-correlation tests do not
-account fully for the estimated age/sex adjustment.
-
-The figure below uses the current saved results. Each cell shows **100 ×
-significant genes / tested genes**, excluding genes without a finite
-within-pathway q-value. The same **23 pathways** are displayed in every
-column: those with at least 50% significant genes in any comparison. The
-display cutoff does not change the DISCO tests or their q-values. Rows
-are clustered using Euclidean distance and complete linkage on the
-unscaled percentages; columns retain the order iCD, cCD, UC. Right-hand
-counts give tested genes in that same order.
-
-<img src="man/figures/README-ibd-hallmark-significance.png" alt="" width="100%" />
-
-The figure is a descriptive summary of gene-level correlation
-disruption, rather than a formal pathway significance test.
-
-For example, the inflammatory response pathway has 85.7% in iCD, 68.4%
-in cCD, 0.0% in UC significant tested genes.
-
-The bundled [gene
-scores](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/all_pathway_gene_scores.csv),
-[sample
-counts](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/comparison_sample_counts.csv),
-[heatmap
-percentages](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/pathway_significance_percentages.csv),
-and [row
-order](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/heatmap_row_order.csv)
-allow inspection without rerunning the analysis.
-
-The saved
-[provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
-and [session
-information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
-record the analysis settings and software versions.
-
 ### Preprocessing and analysis
 
 Before running DISCO, the RNA-seq data are preprocessed as follows:
@@ -880,6 +839,47 @@ result <- disco(
 )
 ```
 
+### Hallmark disrupted-gene percentages
+
+BY adjustment is performed separately within each pathway and
+comparison; genes with **DISCO q \< 0.05** are counted as significant.
+Pathways can share genes, and the comparisons share controls. These are
+exploratory results: the ordinary differential-correlation tests do not
+account fully for the estimated age/sex adjustment.
+
+The figure below uses the current saved results. Each bar shows **100 ×
+significant genes / tested genes**, excluding genes without a finite
+within-pathway q-value. The same **23 pathways** are displayed in every
+facet: those with at least 50% significant genes in any comparison. The
+display cutoff does not change the DISCO tests or their q-values.
+Pathways are ordered from highest to lowest percentage in **iCD**, with
+the same order in every facet. Facets show iCD, cCD, UC versus non-IBD
+controls. Alphabetical pathway names break ties in iCD percentages.
+
+<img src="man/figures/README-ibd-hallmark-significance.png" alt="" width="100%" />
+
+The figure is a descriptive summary of gene-level correlation
+disruption, rather than a formal pathway significance test.
+
+For example, the inflammatory response pathway has 85.7% in iCD, 68.4%
+in cCD, 0.0% in UC significant tested genes.
+
+The bundled [gene
+scores](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/all_pathway_gene_scores.csv),
+[sample
+counts](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/comparison_sample_counts.csv),
+[disrupted-gene
+percentages](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/pathway_significance_percentages.csv),
+and [pathway
+order](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/figure/pathway_order.csv)
+allow inspection without rerunning the analysis.
+
+The saved
+[provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
+and [session
+information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
+record the analysis settings and software versions.
+
 ### Run the workflow
 
 Clone or download this repository and run from its root. The [example
@@ -904,7 +904,7 @@ metadata files.
 | 2 | `explore_srp042228_metadata.R` | Check sample/patient identifiers, disease labels, and GEO/recount3 agreement; write `sample_metadata.csv`. | No |
 | 3 | `fetch_srp042228_counts.R` | Download the recount3 gene coverage sums. | Yes, once |
 | 4 | `run_ibd_hallmark_disco.R` | Match metadata to expression columns, preprocess expression, and run pathway DISCO. | Yes |
-| 5 | `plot_ibd_hallmark_significance.R` | Plot significant-gene percentages from the completed results. | Yes, to generate the heatmap |
+| 5 | `plot_ibd_hallmark_significance.R` | Plot significant-gene percentages from the completed results. | Yes, to generate the bar plot |
 
 `example_ibd_workflow.R` configures and runs **steps 4 and 5** together;
 it is an alternative to running those scripts separately. The
@@ -979,7 +979,7 @@ provenance. To try just one pathway, set
 above. Fixed-threshold mode skips permutations, so `ibd.disco_workers`
 has no effect.
 
-**Step 5.** Generate the heatmap with
+**Step 5.** Generate the bar plot with
 `plot_ibd_hallmark_significance.R`:
 
 ``` r
@@ -988,13 +988,12 @@ has no effect.
 options(
   ibd.plot_input_dir = ibd_results_dir,
   ibd.pathway_min_percent = 50,
-  ibd.pathway_label_max_chars = 60L,
-  ibd.pathway_cluster_rows = TRUE
+  ibd.pathway_label_max_chars = 60L
 )
 source("analysis/ibd_transcriptomics/code/plot_ibd_hallmark_significance.R")
 ```
 
-To redraw the heatmap from these saved results, set
+To redraw the bar plot from these saved results, set
 `ibd_results_dir <- "analysis/ibd_transcriptomics/results"` before the
 plotting chunk.
 

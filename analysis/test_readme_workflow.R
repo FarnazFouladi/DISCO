@@ -5,6 +5,19 @@ source('analysis/ibd_transcriptomics/code/ibd_result_files.R')
 work <- tempfile('disco-readme-tests-')
 dir.create(work)
 
+# A pathway qualifying only in UC must still appear, below larger iCD percentages.
+source('analysis/ibd_transcriptomics/code/ibd_pathway_plot_helpers.R')
+paths <- c('UC_only', 'iCD_high', 'tie_z', 'tie_a', 'below_cutoff')
+percentages <- rbind(c(10, 20, 50), c(90, 30, 10), c(80, 20, 0),
+  c(80, 10, 0), c(49, 49, 49))
+fixture_summary <- expand.grid(pathway = paths, comparison = c('iCD', 'cCD', 'UC'), stringsAsFactors = FALSE)
+fixture_summary$percent_significant <- as.vector(percentages)
+fixture_summary$n_tested <- 100L
+lookup <- data.frame(pathway = paths, pathway_id = paste0('M', seq_along(paths)))
+selected <- ibd_prepare_pathway_rows(fixture_summary, lookup, c('iCD', 'cCD', 'UC'), 50)
+stopifnot(identical(selected$selected_pathways, c('iCD_high', 'tie_a', 'tie_z', 'UC_only')))
+message('Pathway selection includes 50% in any comparison and orders by descending iCD, with deterministic ties.')
+
 # Exercise the actual IBD runner twice against a small synthetic cohort.
 output_dir <- file.path(work, 'runner')
 input_dir <- file.path(output_dir, 'inputs')
@@ -94,7 +107,7 @@ files <- c(files, list.files('analysis/diabetes_microbiome/results', pattern = '
 for (file in unique(files[file.exists(files) & !dir.exists(files)])) copy_file(file)
 ibd <- file.path(fixture, 'analysis/ibd_transcriptomics/results')
 scores <- read.csv(file.path(ibd, 'all_pathway_gene_scores.csv'))
-rows <- read.csv(file.path(ibd, 'figure/heatmap_row_order.csv'))
+rows <- read.csv(file.path(ibd, 'figure/pathway_order.csv'))
 extra <- setdiff(unique(scores$pathway), rows$pathway)[1]
 changed <- scores$comparison == 'UC' & scores$reason == 'tested' &
   scores$pathway %in% c(extra, 'HALLMARK_INFLAMMATORY_RESPONSE')
@@ -111,7 +124,7 @@ samples <- read.csv(file.path(ibd, 'comparison_sample_counts.csv'))
 samples$n_control <- 41L
 write.csv(samples, file.path(ibd, 'comparison_sample_counts.csv'), row.names = FALSE)
 # Corrupt the previous display to ensure rendering actually rebuilds it.
-writeLines('stale figure', file.path(ibd, 'figure/pathway_significance_heatmap.png'))
+writeLines('stale figure', file.path(ibd, 'figure/pathway_significance_bars.png'))
 log <- system2(file.path(R.home('bin'), 'Rscript'),
   c('--vanilla', shQuote(file.path(fixture, 'analysis/render_readme.R'))), stdout = TRUE, stderr = TRUE)
 if (!is.null(attr(log, 'status'))) stop(paste(log, collapse = '\n'))
@@ -122,4 +135,17 @@ stopifnot(grepl('24 pathways', markdown, fixed = TRUE),
   all(read.csv(file.path(ibd, 'comparison_sample_counts.csv'))$n_control == 41L),
   file.info(file.path(fixture, 'man/figures/README-ibd-hallmark-significance.png'))$size > 1000,
   !grepl('November 2, 2026', markdown, fixed = TRUE))
-message('Rendering rebuilds the IBD figure and reflects changed pathway counts and percentages in README.md.')
+ordering <- read.csv(file.path(ibd, 'figure/pathway_order.csv'))
+plot_data <- read.csv(file.path(ibd, 'figure/pathway_plot_data.csv'))
+stopifnot(all(diff(ordering$icd_percent_significant) <= 0))
+for (comparison in unique(plot_data$comparison))
+  stopifnot(identical(plot_data$pathway[plot_data$comparison == comparison], ordering$pathway))
+stopifnot(all(ordering$maximum_percent_significant >= 50),
+  ordering$icd_percent_significant[ordering$pathway == extra] < 50,
+  file.exists(file.path(ibd, 'figure/pathway_significance_bars.pdf')),
+  !file.exists(file.path(ibd, 'figure/pathway_significance_heatmap.png')))
+sections <- regexpr('### Preprocessing and analysis', markdown, fixed = TRUE)[1]
+results_section <- regexpr('### Hallmark disrupted-gene percentages', markdown, fixed = TRUE)[1]
+run_section <- regexpr('### Run the workflow', markdown, fixed = TRUE)[1]
+stopifnot(sections < results_section, results_section < run_section)
+message('Rendering refreshes the faceted bars, preserves descending iCD order in every comparison, and places results before workflow instructions.')

@@ -29,8 +29,7 @@ plot_code <- paste(
   "settings_file <- file.path(args[[1L]], 'figure', 'plot_settings.rds');",
   "if (file.exists(settings_file)) { settings <- readRDS(settings_file);",
   "options(ibd.pathway_min_percent = settings$min_percent,",
-  "ibd.pathway_label_max_chars = settings$label_max_chars,",
-  "ibd.pathway_cluster_rows = settings$cluster_rows) };",
+  "ibd.pathway_label_max_chars = settings$label_max_chars) };",
   "source(args[[2L]])"
 )
 status <- system2(file.path(R.home("bin"), "Rscript"),
@@ -50,7 +49,7 @@ assets <- c(assets,
   "README-qinj-taxa_pathways-network.png" = file.path(repo_dir, "analysis/diabetes_microbiome/results/taxa_pathway_networks/top5_taxa_pathways_control_T2D_networks.png"),
   "README-qinj-taxa_pathways-scatterplot.png" = file.path(repo_dir, "analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/top1_page01_preview.png"),
   "README-qinj-DISCO-heatmap.png" = file.path(repo_dir, "analysis/diabetes_microbiome/results/disco_heatmap/significant_taxa_DISCO_heatmap.png"),
-  "README-ibd-hallmark-significance.png" = file.path(repo_dir, "analysis/ibd_transcriptomics/results/figure/pathway_significance_heatmap.png"))
+  "README-ibd-hallmark-significance.png" = file.path(repo_dir, "analysis/ibd_transcriptomics/results/figure/pathway_significance_bars.png"))
 if (!all(file.exists(assets))) stop("Missing example figures; rerun the plotting scripts first.")
 copied <- file.copy(assets, file.path(repo_dir, "man", "figures", names(assets)), overwrite = TRUE)
 if (!all(copied)) stop("Could not refresh all README figures.")
