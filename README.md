@@ -9,7 +9,7 @@
 - [Inputs and arguments](#inputs-and-arguments)
 - [Outputs](#outputs)
 - [Quick start](#quick-start)
-- [Examples of DISCO application](#examples-of-disco-application)
+- [Examples of DISCO application](#Examples-of-DISCO-application)
 - [Example 1: Microbiome, one
   modality](#example-of-one-data-modality-taxontaxon-correlations-in-type-2-diabetes)
 - [Example 2: Microbiome, two
