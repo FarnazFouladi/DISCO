@@ -4,7 +4,8 @@
 # Each run replaces the previous analysis in results/ and the bar plot in results/figure/.
 # Script order: (1) fetch_srp042228_metadata.R, (2) explore_srp042228_metadata.R,
 # (3) fetch_srp042228_counts.R, (4) run_ibd_hallmark_disco.R,
-# (5) plot_ibd_hallmark_significance.R. Steps 1-2 can be skipped with bundled
+# (5) plot_ibd_hallmark_significance.R. Step 1 automatically performs the
+# metadata audit in step 2. Steps 1-2 can be skipped with bundled
 # metadata. This wrapper configures and runs steps 4-5; helpers load automatically.
 
 ## ---- ibd-workflow

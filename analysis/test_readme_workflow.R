@@ -60,9 +60,9 @@ first <- read.csv(file.path(output_dir, 'all_pathway_gene_scores.csv'))
 for (comparison in c('iCD', 'cCD', 'UC')) {
   directory <- file.path(output_dir, paste0('comparison_', comparison, '_vs_control'),
                          unique(membership$gs_id))
-  stopifnot(file.exists(file.path(directory, 'pathway_disco.xlsx')),
-            file.exists(file.path(directory, 'pathway_cor_diff.xlsx')))
-  feature_scores <- as.data.frame(readxl::read_xlsx(file.path(directory, 'pathway_disco.xlsx')))
+  stopifnot(file.exists(file.path(directory, 'pathway_disco.csv')),
+            file.exists(file.path(directory, 'pathway_cor_diff.csv')))
+  feature_scores <- read.csv(file.path(directory, 'pathway_disco.csv'))
   stopifnot(identical(names(feature_scores),
     c('Feature', 'Pairs', 'DISCO_score', 'DSICO_p', 'DISCO_q')),
     !is.unsorted(-feature_scores$DISCO_score))

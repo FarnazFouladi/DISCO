@@ -123,8 +123,8 @@ testthat::test_that("fixed-threshold mode skips empirical calculations", {
   testthat::expect_identical(result$selected_threshold, 0.05)
   testthat::expect_false(is.unsorted(result$cor_diff$q))
   testthat::expect_equal(
-    as.data.frame(readxl::read_xlsx(result$output_files[["cor_diff"]],
-      col_types = c("text", "text", rep("numeric", 6)))), result$cor_diff
+    utils::read.csv(result$output_files[["cor_diff"]],
+      colClasses = c("character", "character", rep("numeric", 6))), result$cor_diff
   )
   testthat::expect_null(result$threshold_summary)
   testthat::expect_null(result$global_test)
@@ -134,7 +134,7 @@ testthat::test_that("fixed-threshold mode skips empirical calculations", {
   testthat::expect_null(result$feature_null_plot)
   testthat::expect_identical(
     sort(list.files(output_dir)),
-    sort(c("fixed_cor_diff.xlsx", "fixed_disco.xlsx"))
+    sort(c("fixed_cor_diff.csv", "fixed_disco.csv"))
   )
 })
 
@@ -223,8 +223,8 @@ testthat::test_that("disco empirically selects a threshold and returns plots", {
   testthat::expect_equal(result$cor_diff, fixed$cor_diff)
   testthat::expect_false(is.unsorted(result$cor_diff$q))
   testthat::expect_equal(
-    as.data.frame(readxl::read_xlsx(result$output_files[["cor_diff"]],
-      col_types = c("text", "text", rep("numeric", 6)))), result$cor_diff
+    utils::read.csv(result$output_files[["cor_diff"]],
+      colClasses = c("character", "character", rep("numeric", 6))), result$cor_diff
   )
   testthat::expect_s3_class(result$discovery_plot, "ggplot")
   testthat::expect_s3_class(result$ratio_plot, "ggplot")
@@ -239,13 +239,13 @@ testthat::test_that("disco empirically selects a threshold and returns plots", {
   testthat::expect_identical(
     sort(list.files(output_dir)),
     sort(c(
-      "empirical_cor_diff.xlsx",
-      "empirical_disco.xlsx",
-      "empirical_threshold_summary.xlsx",
-      "empirical_global_test.xlsx",
+      "empirical_cor_diff.csv",
+      "empirical_disco.csv",
+      "empirical_threshold_summary.csv",
+      "empirical_global_test.csv",
       "empirical_real_vs_null_thresholds.png",
       "empirical_real_to_null_ratio.png",
-      "empirical_real_p_vs_null_discovery_by_threshold.xlsx",
+      "empirical_real_p_vs_null_discovery_by_threshold.csv",
       "empirical_real_p_vs_null_discovery_by_threshold.png"
     ))
   )
@@ -260,7 +260,7 @@ testthat::test_that("disco empirically selects a threshold and returns plots", {
     signal_result$selected_threshold,
     select_optimal_threshold(signal_result$threshold_summary)
   )
-  saved_global <- as.data.frame(readxl::read_xlsx(signal_result$output_files[["global_test"]]))
+  saved_global <- utils::read.csv(signal_result$output_files[["global_test"]])
   testthat::expect_equal(saved_global, signal_result$global_test)
 })
 

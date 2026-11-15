@@ -1,4 +1,4 @@
-# Refresh Excel exports from the saved examples without rerunning statistics.
+# Refresh CSV exports from the saved examples without rerunning statistics.
 # Run from the repository root, or source from analysis/render_readme.R.
 source("analysis/format_saved_results.R")
 source("R/output.R")
@@ -11,7 +11,7 @@ for (mode in c("taxa", "taxa_pathways")) {
                 "real_p_vs_null_discovery_by_threshold")
   for (i in seq_along(tables)) {
     if (!is.null(result[[tables[i]]]))
-      write_result_xlsx(result[[tables[i]]],
-                         file.path(directory, paste0(prefix, "_", suffixes[i], ".xlsx")))
+      write_result_csv(result[[tables[i]]],
+                         file.path(directory, paste0(prefix, "_", suffixes[i], ".csv")))
   }
 }

@@ -1,4 +1,4 @@
-"filter_threshold","species","real_disco_p","real_disco_q","q_less_than_0.2","neg_log10_real_disco_p","n_null_tested","n_null_discoveries","n_resamples","null_discovery_percentage"
+"filter_threshold","Feature","real_disco_p","real_disco_q","q_less_than_0.2","neg_log10_real_disco_p","n_null_tested","n_null_discoveries","n_resamples","null_discovery_percentage"
 0.001,"[Ruminococcus] gnavus",0.00118665233465165,0.0833006872709455,TRUE,2.92567650198776,1000,7,1000,0.7
 0.001,"Bilophila wadsworthia",0.00056815755048162,0.0833006872709455,TRUE,3.24553121742807,1000,20,1000,2
 0.001,"Butyricimonas virosa",0.000930334507778947,0.0833006872709455,TRUE,3.03136086998138,914,33,1000,3.3

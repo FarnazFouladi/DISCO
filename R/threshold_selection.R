@@ -500,13 +500,13 @@ run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
 
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
   output_files <- c(
-    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.xlsx")),
-    disco = file.path(output_dir, paste0(prefix, "_disco.xlsx")),
+    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.csv")),
+    disco = file.path(output_dir, paste0(prefix, "_disco.csv")),
     threshold_summary = file.path(
       output_dir,
-      paste0(prefix, "_threshold_summary.xlsx")
+      paste0(prefix, "_threshold_summary.csv")
     ),
-    global_test = file.path(output_dir, paste0(prefix, "_global_test.xlsx")),
+    global_test = file.path(output_dir, paste0(prefix, "_global_test.csv")),
     discovery_plot = file.path(
       output_dir,
       paste0(prefix, "_real_vs_null_thresholds.png")
@@ -516,27 +516,27 @@ run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
       paste0(prefix, "_real_to_null_ratio.png")
     ),
     feature_null_summary = file.path(
-      output_dir, paste0(prefix, "_real_p_vs_null_discovery_by_threshold.xlsx")
+      output_dir, paste0(prefix, "_real_p_vs_null_discovery_by_threshold.csv")
     ),
     feature_null_plot = file.path(
       output_dir, paste0(prefix, "_real_p_vs_null_discovery_by_threshold.png")
     )
   )
 
-  write_result_xlsx(
+  write_result_csv(
     selected_result$cor_diff,
     output_files[["cor_diff"]]
   )
-  write_result_xlsx(
+  write_result_csv(
     selected_result$disco,
     output_files[["disco"]]
   )
-  write_result_xlsx(
+  write_result_csv(
     threshold_summary,
     output_files[["threshold_summary"]]
   )
-  write_result_xlsx(global_test, output_files[["global_test"]])
-  write_result_xlsx(feature_null_summary, output_files[["feature_null_summary"]])
+  write_result_csv(global_test, output_files[["global_test"]])
+  write_result_csv(feature_null_summary, output_files[["feature_null_summary"]])
   ggplot2::ggsave(
     output_files[["discovery_plot"]],
     plots$discovery_plot,

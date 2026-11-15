@@ -37,7 +37,7 @@ ibd_pair_result_path <- function(input, comparison, pathway, lookup) {
   if (file.exists(file.path(input, "pathway_lookup.csv"))) {
     id <- lookup$pathway_id[match(pathway, lookup$pathway)]
     if (length(id) != 1L || is.na(id)) stop("Missing pathway in lookup: ", pathway)
-    return(file.path(comparison_dir, id, "pathway_cor_diff.xlsx"))
+    return(file.path(comparison_dir, id, "pathway_cor_diff.csv"))
   }
-  file.path(comparison_dir, pathway, paste0(pathway, "_cor_diff.xlsx"))
+  file.path(comparison_dir, pathway, paste0(pathway, "_cor_diff.csv"))
 }

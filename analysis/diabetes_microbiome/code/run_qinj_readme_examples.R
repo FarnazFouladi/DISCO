@@ -1,4 +1,4 @@
-# Generate QinJ_2012 T2D/control results, following the Nielsen README workflow.
+# Generate QinJ_2012 T2D/control results.
 # Run from any directory: Rscript /path/to/DISCO/analysis/diabetes_microbiome/code/run_qinj_readme_examples.R
 # Or in R: source("/path/to/DISCO/analysis/diabetes_microbiome/code/run_qinj_readme_examples.R")
 # Both modalities use separate healthy/T2D gender/BMI models after robust CLR; zeros remain NA.

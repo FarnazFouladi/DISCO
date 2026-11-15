@@ -40,7 +40,7 @@
 #' @param adj_method Multiple-testing adjustment method passed to
 #'   [stats::p.adjust()].
 #' @param output_dir Directory in which result files are written. Empirical mode
-#'   writes XLSX and PNG files; fixed mode writes only the result XLSX files. The
+#'   writes CSV and PNG files; fixed mode writes only the result CSV files. The
 #'   directory is created when it does not exist.
 #' @param prefix Character prefix used for result filenames.
 #' @param global_p_cutoff Significance cutoff for the global maximum-discovery
@@ -57,7 +57,7 @@
 #' @return The `disco` table contains `Feature`, `Pairs`, `DISCO_score`,
 #'   `DSICO_p`, and `DISCO_q`, ordered by decreasing `DISCO_score`. The
 #'   `cor_diff` table identifies pairs using `feature_1` and `feature_2`.
-#'   Tabular files are exported as Excel (`.xlsx`) workbooks.
+#'   Tabular files are exported as CSV (`.csv`) files.
 #'   A list containing `cor_diff`, `disco`, `selected_threshold`,
 #'   `threshold_summary`, `global_test`, `discovery_plot`, `ratio_plot`,
 #'   `feature_null_summary`, `feature_null_plot`, and `output_files`.
@@ -143,8 +143,8 @@ disco <- function(data1,
     prefix = prefix
   )
   output_files <- c(
-    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.xlsx")),
-    disco = file.path(output_dir, paste0(prefix, "_disco.xlsx"))
+    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.csv")),
+    disco = file.path(output_dir, paste0(prefix, "_disco.csv"))
   )
 
   list(

@@ -57,7 +57,7 @@ only when \code{empirically_derive_threshold = TRUE}.}
 \code{\link[stats:p.adjust]{stats::p.adjust()}}.}
 
 \item{output_dir}{Directory in which result files are written. Empirical mode
-writes XLSX and PNG files; fixed mode writes only the result XLSX files. The
+writes CSV and PNG files; fixed mode writes only the result CSV files. The
 directory is created when it does not exist.}
 
 \item{prefix}{Character prefix used for result filenames.}
@@ -78,7 +78,7 @@ not depend on worker count. Workers are stopped on completion or error.}
 The \code{disco} table contains \code{Feature}, \code{Pairs}, \code{DISCO_score},
 \code{DSICO_p}, and \code{DISCO_q}, ordered by decreasing \code{DISCO_score}. The
 \code{cor_diff} table identifies pairs using \code{feature_1} and \code{feature_2}.
-Tabular files are exported as Excel (\code{.xlsx}) workbooks.
+Tabular files are exported as CSV (\code{.csv}) files.
 A list containing \code{cor_diff}, \code{disco}, \code{selected_threshold},
 \code{threshold_summary}, \code{global_test}, \code{discovery_plot}, \code{ratio_plot},
 \code{feature_null_summary}, \code{feature_null_plot}, and \code{output_files}.

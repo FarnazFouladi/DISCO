@@ -13,7 +13,7 @@ script_file <- local({
 repo_dir <- dirname(dirname(script_file))
 if (!requireNamespace("rmarkdown", quietly = TRUE)) stop("Install rmarkdown first.")
 
-# Refresh Excel tables using cached analyses; preserve the original RDS and CSV archives.
+# Refresh CSV tables using cached analyses; preserve the original RDS snapshots.
 local({
   previous <- setwd(repo_dir)
   on.exit(setwd(previous))

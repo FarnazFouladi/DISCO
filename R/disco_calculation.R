@@ -196,13 +196,13 @@ calculate_fixed_threshold_disco <- function(data1, data2, cooccur = 20,
   )
 
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-  write_result_xlsx(
+  write_result_csv(
     result$cor_diff,
-    file.path(output_dir, paste0(prefix, "_cor_diff.xlsx"))
+    file.path(output_dir, paste0(prefix, "_cor_diff.csv"))
   )
-  write_result_xlsx(
+  write_result_csv(
     result$disco,
-    file.path(output_dir, paste0(prefix, "_disco.xlsx"))
+    file.path(output_dir, paste0(prefix, "_disco.csv"))
   )
 
   result

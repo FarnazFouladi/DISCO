@@ -1,4 +1,4 @@
-"filter_threshold","species","real_disco_p","real_disco_q","q_less_than_0.2","neg_log10_real_disco_p","n_null_tested","n_null_discoveries","n_resamples","null_discovery_percentage"
+"filter_threshold","Feature","real_disco_p","real_disco_q","q_less_than_0.2","neg_log10_real_disco_p","n_null_tested","n_null_discoveries","n_resamples","null_discovery_percentage"
 0.001,"Alistipes shahii",0.0040293930347873,0.173973373018593,TRUE,2.394760368622,1000,10,1000,1
 0.001,"Bacteroides intestinalis",0.00190449014183419,0.173973373018593,TRUE,2.72022127102514,1000,26,1000,2.6
 0.001,"Bacteroides thetaiotaomicron",0.00631680932407542,0.173973373018593,TRUE,2.19950223229539,1000,14,1000,1.4
