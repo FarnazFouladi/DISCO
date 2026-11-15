@@ -1,7 +1,16 @@
 # Rebuilding the README
 
 Run these commands from the repository root, with DISCO and the example
-dependencies installed.
+dependencies installed. After changing the package source, reinstall it before
+rebuilding the examples:
+
+```sh
+R CMD INSTALL .
+```
+
+The workflow loads the installed package through `library(DISCO)`. Updating the
+repository alone does not update that installation. A short output-format check
+now stops an incompatible installation before downloads or permutations begin.
 
 To rerun both analyses, replace their previous results, regenerate the plots,
 and render the README:

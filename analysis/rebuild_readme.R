@@ -3,6 +3,9 @@
 if (!file.exists("DESCRIPTION") || !dir.exists("analysis"))
   stop("Run this script from the DISCO repository root.")
 
+source("analysis/check_disco_installation.R")
+check_disco_installation()
+
 scripts <- c(
   "analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R",
   "analysis/diabetes_microbiome/code/run_qinj_readme_examples.R",

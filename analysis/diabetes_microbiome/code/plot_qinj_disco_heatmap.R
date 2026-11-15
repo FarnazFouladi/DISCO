@@ -20,7 +20,6 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
-source(file.path(dirname(dirname(analysis_dir)), "format_saved_results.R"))
 sourced <- any(vapply(sys.frames(), function(frame) {
   !is.null(frame$ofile) && identical(basename(frame$ofile), "plot_qinj_disco_heatmap.R")
 }, logical(1)))
@@ -44,7 +43,7 @@ if (!requireNamespace("pheatmap", quietly = TRUE)) stop("Install pheatmap first.
 modes <- c("taxa", "taxa_pathways")
 column_labels <- c("Taxa-taxa", "Taxon-pathway")
 scores <- lapply(modes, function(mode) {
-  x <- read_disco_result(file.path(input_dir, mode, "disco_analysis.rds"))$disco
+  x <- readRDS(file.path(input_dir, mode, "disco_analysis.rds"))$disco
   if (!all(c("Feature", "DSICO_p", "DISCO_q") %in% names(x)) ||
       anyNA(x$Feature) || anyDuplicated(x$Feature)) stop("Invalid feature scores in ", mode)
   if (any(!is.na(x$DSICO_p) & (!is.finite(x$DSICO_p) | x$DSICO_p < 0 | x$DSICO_p > 1)) ||

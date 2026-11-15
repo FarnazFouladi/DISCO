@@ -7,7 +7,6 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE)
-source("analysis/format_saved_results.R")
 readme_results <- readRDS("analysis/diabetes_microbiome/results/README-results.rds")
 knitr::read_chunk("analysis/diabetes_microbiome/code/run_qinj_readme_examples.R")
 knitr::read_chunk("analysis/diabetes_microbiome/code/qinj_readme_preprocessing.R")
@@ -22,7 +21,7 @@ for (label in example_chunks) {
 example_q <- format(readme_results$settings$q_value)
 example_prevalence <- 100 * readme_results$settings$prevalence_cutoff
 example_results <- lapply(c("taxa", "taxa_pathways"), function(mode) {
-  read_disco_result(file.path("analysis/diabetes_microbiome/results", mode, "disco_analysis.rds"))
+  readRDS(file.path("analysis/diabetes_microbiome/results", mode, "disco_analysis.rds"))
 })
 names(example_results) <- c("taxa", "taxa_pathways")
 example_significant <- lapply(example_results, function(result) {

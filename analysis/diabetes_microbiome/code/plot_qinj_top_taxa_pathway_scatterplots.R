@@ -19,7 +19,6 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
-source(file.path(dirname(dirname(analysis_dir)), "format_saved_results.R"))
 sourced <- any(vapply(sys.frames(), function(frame) {
   !is.null(frame$ofile) && identical(basename(frame$ofile), "plot_qinj_top_taxa_pathway_scatterplots.R")
 }, logical(1)))
@@ -38,7 +37,7 @@ output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(
   dirname(analysis_dir), "results", "taxa_pathway_scatterplots"
 )
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2 first.")
-result <- read_disco_result(file.path(input_dir, "disco_analysis.rds"))
+result <- readRDS(file.path(input_dir, "disco_analysis.rds"))
 inputs <- readRDS(file.path(input_dir, "disco_inputs.rds"))
 if (length(inputs$data1) != 2L || length(inputs$data2) != 2L) {
   stop("This script expects the QinJ taxon-pathway analysis (two modalities).")

@@ -1,6 +1,14 @@
 # Offline integration checks: Rscript analysis/test_readme_workflow.R
 # Uses temporary results and synthetic counts; does not run real-data permutations.
 repo <- normalizePath('.')
+source('analysis/check_disco_installation.R')
+stopifnot(check_disco_installation())
+legacy_result <- function(...) list(disco = data.frame(species='a', t=1, p=.1, num_corr=1, q=.1))
+legacy_error <- tryCatch(check_disco_installation(legacy_result), error=identity)
+stopifnot(inherits(legacy_error, 'error'),
+  grepl('R CMD INSTALL .', conditionMessage(legacy_error), fixed=TRUE))
+message('Installation check accepts current outputs and rejects the legacy schema before analysis.')
+
 source('analysis/ibd_transcriptomics/code/ibd_result_files.R')
 work <- tempfile('disco-readme-tests-')
 dir.create(work)
@@ -101,7 +109,7 @@ copy_file <- function(relative) {
   dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
   stopifnot(file.copy(relative, dest, overwrite = TRUE))
 }
-files <- c('README.Rmd', 'analysis/render_readme.R', 'analysis/format_saved_results.R', 'analysis/export_saved_example_tables.R', 'R/output.R',
+files <- c('README.Rmd', 'analysis/render_readme.R',
   list.files('analysis/diabetes_microbiome/code', full.names = TRUE),
   'analysis/diabetes_microbiome/results/README-results.rds',
   'analysis/diabetes_microbiome/results/taxa/disco_analysis.rds',

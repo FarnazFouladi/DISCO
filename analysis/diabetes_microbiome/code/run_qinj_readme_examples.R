@@ -25,9 +25,8 @@ if (length(missing)) stop("Install: ", paste(missing, collapse = ", "))
 library(DISCO)
 
 ## ---- internal-readme-startup ----
-expected <- c("workers", "empirically_derive_threshold", "global_p_cutoff")
-if (!all(expected %in% names(formals(DISCO::disco))))
-  stop("Install an updated DISCO package before running this example.")
+source(file.path(repo_dir, "analysis", "check_disco_installation.R"))
+check_disco_installation()
 recompute <- TRUE
 
 ## ---- readme-settings ----

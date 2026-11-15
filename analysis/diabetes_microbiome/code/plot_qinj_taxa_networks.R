@@ -25,7 +25,6 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
-source(file.path(dirname(dirname(analysis_dir)), "format_saved_results.R"))
 sourced <- any(vapply(sys.frames(), function(frame) {
   !is.null(frame$ofile) && identical(basename(frame$ofile), "plot_qinj_taxa_networks.R")
 }, logical(1)))
@@ -46,7 +45,7 @@ output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(
   dirname(analysis_dir), "results", "taxa_networks"
 )
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2 first.")
-result <- read_disco_result(file.path(input_dir, "disco_analysis.rds"))
+result <- readRDS(file.path(input_dir, "disco_analysis.rds"))
 q_cutoff <- if (length(args) >= 3L) {
   suppressWarnings(as.numeric(args[[3L]]))
 } else {

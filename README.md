@@ -124,7 +124,7 @@ the observed data and in each permutation. A global permutation test
 then compares the maximum observed discovery percentage across
 thresholds with the corresponding maximum from each valid permutation:
 
-```text
+``` text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -219,7 +219,7 @@ Here we illustrate the application of DISCO to microbiome and
 transcriptomic data. The example files are organized by dataset under
 `analysis/`:
 
-```text
+``` text
 analysis/
   diabetes_microbiome/
     code/       # QinJ preprocessing, DISCO, plotting, and README scripts
@@ -921,7 +921,7 @@ record the analysis settings and software versions.
 
 Each pathway has a separate directory within each comparison:
 
-```text
+``` text
 analysis/ibd_transcriptomics/results/
   comparison_iCD_vs_control/<pathway_id>/
     pathway_disco.csv
