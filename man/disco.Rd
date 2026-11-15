@@ -8,7 +8,7 @@ disco(
   data1,
   data2,
   cooccur = 20,
-  empirically_derive_threshold = TRUE,
+  empirically_derive_threshold = FALSE,
   filter_threshold = 1,
   q_value = 0.2,
   n_resamples = 100,
@@ -32,8 +32,8 @@ features.}
 tested only when both groups have at least this many pairwise non-missing
 observations.}
 
-\item{empirically_derive_threshold}{Logical. If \code{TRUE}, select the filtering
-threshold empirically by comparing observed discoveries with discoveries
+\item{empirically_derive_threshold}{Logical, default \code{FALSE}. If \code{TRUE},
+select the filtering threshold empirically by comparing observed discoveries with discoveries
 from size-matched random label permutations. If \code{FALSE}, use
 \code{filter_threshold} and do not generate null data or diagnostic plots.}
 
@@ -57,7 +57,7 @@ only when \code{empirically_derive_threshold = TRUE}.}
 \code{\link[stats:p.adjust]{stats::p.adjust()}}.}
 
 \item{output_dir}{Directory in which result files are written. Empirical mode
-writes CSV and PNG files; fixed mode writes only the result CSV files. The
+writes XLSX and PNG files; fixed mode writes only the result XLSX files. The
 directory is created when it does not exist.}
 
 \item{prefix}{Character prefix used for result filenames.}
@@ -75,6 +75,10 @@ workers on all platforms. For a given seed, permutations and results do
 not depend on worker count. Workers are stopped on completion or error.}
 }
 \value{
+The \code{disco} table contains \code{Feature}, \code{Pairs}, \code{DISCO_score},
+\code{DSICO_p}, and \code{DISCO_q}, ordered by decreasing \code{DISCO_score}. The
+\code{cor_diff} table identifies pairs using \code{feature_1} and \code{feature_2}.
+Tabular files are exported as Excel (\code{.xlsx}) workbooks.
 A list containing \code{cor_diff}, \code{disco}, \code{selected_threshold},
 \code{threshold_summary}, \code{global_test}, \code{discovery_plot}, \code{ratio_plot},
 \code{feature_null_summary}, \code{feature_null_plot}, and \code{output_files}.
@@ -121,13 +125,10 @@ p-value \verb{(1 + sum(null maxima >= real maximum)) / (1 + valid permutations)}
 Thresholds without a finite real discovery percentage are excluded from
 both maxima; permutations missing any remaining threshold are excluded from
 the global test. An error is raised if no thresholds or permutations remain.
-The test uses unfloored percentages. It accounts for the search across
-thresholds but does not adjust individual feature-level DISCO q-values for
-threshold selection. With 100 permutations the smallest possible global
-p-value is \code{1/101}.
+With 100 permutations the smallest possible global p-value is \code{1/101}.
 Feature null discovery frequencies use all \code{n_resamples} permutations as
 their denominator; features absent or untested in a permutation count as
 non-discoveries. These frequencies are not formal feature-level FDR
-estimates. In two-modality mode the diagnostic covers modality-1 features.
-For plotting only, real p-values below \code{1e-8} are displayed at \code{1e-8}.
+estimates.
+In two-modality mode the diagnostic covers modality-1 features.
 }

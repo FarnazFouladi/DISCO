@@ -19,6 +19,7 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
+source(file.path(dirname(dirname(analysis_dir)), "format_saved_results.R"))
 sourced <- any(vapply(sys.frames(), function(frame) {
   !is.null(frame$ofile) && identical(basename(frame$ofile), "plot_qinj_top_differential_scatterplots.R")
 }, logical(1)))
@@ -37,7 +38,7 @@ output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(
   dirname(analysis_dir), "results", "differential_scatterplots"
 )
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2 first.")
-result <- readRDS(file.path(input_dir, "disco_analysis.rds"))
+result <- read_disco_result(file.path(input_dir, "disco_analysis.rds"))
 inputs <- readRDS(file.path(input_dir, "disco_inputs.rds"))
 if (length(inputs$data1) != 1L || length(inputs$data2) != 1L) {
   stop("This script expects the QinJ taxa-only analysis (one modality).")
@@ -45,11 +46,11 @@ if (length(inputs$data1) != 1L || length(inputs$data2) != 1L) {
 matrices <- list(Control = as.matrix(inputs$data1[[1L]]),
                  T2D = as.matrix(inputs$data2[[1L]]))
 pairs <- result$cor_diff
-required <- c("t1", "t2", "r1", "r2", "n1", "n2", "p", "q")
+required <- c("feature_1", "feature_2", "r1", "r2", "n1", "n2", "p", "q")
 if (!all(required %in% names(pairs))) stop("Missing columns in cor_diff.")
 pairs <- pairs[is.finite(pairs$p) & is.finite(pairs$q) &
                  is.finite(pairs$r1) & is.finite(pairs$r2), , drop = FALSE]
-pairs <- pairs[order(pairs$q, pairs$p, pairs$t1, pairs$t2), , drop = FALSE]
+pairs <- pairs[order(pairs$q, pairs$p, pairs$feature_1, pairs$feature_2), , drop = FALSE]
 if (nrow(pairs) < top_n) stop("Requested ", top_n, " pairs, but only ", nrow(pairs), " valid pairs are available.")
 pairs <- head(pairs, top_n)
 pairs$page <- seq_len(nrow(pairs))
@@ -60,8 +61,8 @@ for (i in seq_len(nrow(pairs))) {
   pair <- pairs[i, ]
   group_data <- lapply(seq_along(matrices), function(j) {
     m <- matrices[[j]]
-    if (!all(c(pair$t1, pair$t2) %in% colnames(m))) stop("Feature missing from saved inputs.")
-    values <- m[, c(pair$t1, pair$t2), drop = FALSE]
+    if (!all(c(pair$feature_1, pair$feature_2) %in% colnames(m))) stop("Feature missing from saved inputs.")
+    values <- m[, c(pair$feature_1, pair$feature_2), drop = FALSE]
     # Match DISCO's pairwise complete observations and validate saved outputs.
     if (any(is.infinite(values))) stop("Infinite measurement in saved inputs.")
     complete <- stats::complete.cases(values)
@@ -73,7 +74,7 @@ for (i in seq_len(nrow(pairs))) {
       stop("Saved inputs and correlation outputs do not agree on page ", i, ".")
     }
     data.frame(
-      page = i, t1 = pair$t1, t2 = pair$t2,
+      page = i, feature_1 = pair$feature_1, feature_2 = pair$feature_2,
       sample_id = rownames(m)[complete], group = names(matrices)[j],
       x = values[, 1], y = values[, 2], stringsAsFactors = FALSE
     )
@@ -94,10 +95,10 @@ for (i in seq_len(nrow(pairs))) {
     ggplot2::scale_color_manual(values = c(Control = "#2563EB", T2D = "#DC2626"), guide = "none") +
     ggplot2::labs(
       title = paste0("Differential correlation ", i, " of ", top_n),
-      subtitle = paste0(pair$t1, "  vs  ", pair$t2, "\nDifferential p = ",
+      subtitle = paste0(pair$feature_1, "  vs  ", pair$feature_2, "\nDifferential p = ",
                          format_p(pair$p), " | adjusted q = ", format_p(pair$q)),
-      x = paste0(pair$t1, "\nCovariate-adjusted robust CLR abundance"),
-      y = paste0(pair$t2, "\nCovariate-adjusted robust CLR abundance"),
+      x = paste0(pair$feature_1, "\nCovariate-adjusted robust CLR abundance"),
+      y = paste0(pair$feature_2, "\nCovariate-adjusted robust CLR abundance"),
       caption = paste0(
         "Each point is one sample. Identical axis scales across groups within each page.\n",
         "Inputs are robust CLR abundances residualized against gender and BMI separately within each group.\n",

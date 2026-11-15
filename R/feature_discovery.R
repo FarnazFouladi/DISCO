@@ -1,9 +1,9 @@
 # Match by feature name; absent or untested features are not discoveries.
 null_feature_indicators <- function(result, feature_names, q_value) {
   scores <- result$disco
-  index <- match(feature_names, scores$species)
-  tested <- is.finite(scores$p[index]) & is.finite(scores$q[index])
-  list(tested = tested, discovered = tested & scores$q[index] < q_value)
+  index <- match(feature_names, scores$Feature)
+  tested <- is.finite(scores$DSICO_p[index]) & is.finite(scores$DISCO_q[index])
+  list(tested = tested, discovered = tested & scores$DISCO_q[index] < q_value)
 }
 
 feature_q_column <- function(q_value) {
@@ -17,17 +17,17 @@ build_feature_null_summary <- function(real_results, null_discoveries,
   rows <- lapply(seq_along(filter_thresholds), function(i) {
     scores <- real_results[[i]]$disco
     scores <- scores[
-      is.finite(scores$p) & scores$p >= 0 & scores$p <= 1 &
-        is.finite(scores$q), , drop = FALSE
+      is.finite(scores$DSICO_p) & scores$DSICO_p >= 0 & scores$DSICO_p <= 1 &
+        is.finite(scores$DISCO_q), , drop = FALSE
     ]
-    index <- match(scores$species, rownames(null_discoveries))
+    index <- match(scores$Feature, rownames(null_discoveries))
     data.frame(
       filter_threshold = rep(filter_thresholds[[i]], nrow(scores)),
-      species = scores$species,
-      real_disco_p = scores$p,
-      real_disco_q = scores$q,
-      real_significant = scores$q < q_value,
-      neg_log10_real_disco_p = -log10(pmax(scores$p, 1e-8)),
+      Feature = scores$Feature,
+      real_disco_p = scores$DSICO_p,
+      real_disco_q = scores$DISCO_q,
+      real_significant = scores$DISCO_q < q_value,
+      neg_log10_real_disco_p = -log10(pmax(scores$DSICO_p, 1e-8)),
       n_null_tested = null_tested[index, i],
       n_null_discoveries = null_discoveries[index, i],
       n_resamples = rep(n_resamples, nrow(scores)),

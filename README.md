@@ -87,7 +87,7 @@ them as `NA` before running DISCO.
 | Argument | Default | Meaning |
 |----|---:|----|
 | `cooccur` | `20` | Minimum number of pairwise nonmissing observations in **each** group; integer ≥10. |
-| `empirically_derive_threshold` | `TRUE` | Select the correlation filtering threshold using label permutations. |
+| `empirically_derive_threshold` | `FALSE` | Select the correlation filtering threshold using label permutations. |
 | `filter_threshold` | `1` | Fixed correlation p-value threshold when empirical selection is disabled. |
 | `q_value` | `0.2` | Feature-level q-value cutoff used to count discoveries in empirical mode. |
 | `global_p_cutoff` | `0.05` | Select a threshold by the real-to-null ratio only when the global permutation p-value is below this cutoff; otherwise use `1`. |
@@ -98,6 +98,11 @@ them as `NA` before running DISCO.
 | `output_dir`, `prefix` | Required | Results directory and filename prefix. |
 
 ### Correlation filtering and threshold selection
+
+The default is fixed-threshold mode
+(`empirically_derive_threshold = FALSE`), with `filter_threshold = 1`.
+The saved microbiome examples below explicitly opt into empirical
+selection to retain their original analysis settings.
 
 DISCO estimates a Spearman correlation for each eligible pair in each
 group, tests whether the correlations differ, and combines the raw
@@ -114,16 +119,15 @@ p-value is below the threshold in **at least one group**. For example,
 setting.
 
 To choose a threshold empirically, DISCO
-(`empirically_derive_threshold = TRUE`, the default) compares the
-observed data with size-matched random label permutations at filtering
-thresholds `c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1)`. At each
-threshold, it calculates the percentage of tested features with DISCO
-`q < q_value` in the observed data and in each permutation. A global
-permutation test then compares the maximum observed discovery percentage
-across thresholds with the corresponding maximum from each valid
-permutation:
+(`empirically_derive_threshold = TRUE`, opt-in) compares the observed
+data with size-matched random label permutations at filtering thresholds
+`c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1)`. At each threshold, it
+calculates the percentage of tested features with DISCO `q < q_value` in
+the observed data and in each permutation. A global permutation test
+then compares the maximum observed discovery percentage across
+thresholds with the corresponding maximum from each valid permutation:
 
-``` text
+```text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -177,16 +181,24 @@ result <- disco(
 
 ## Outputs
 
+The feature table uses the exact headings **Feature**, **Pairs**,
+**DISCO_score**, **DSICO_p**, and **DISCO_q**. `Pairs` counts the
+retained pairwise tests contributing to the Cauchy statistic
+(`DISCO_score`); `DSICO_p` is its raw p-value and `DISCO_q` is the
+adjusted p-value. Rows are ordered by decreasing score. These names and
+Excel exports replace the earlier headings and CSV exports; downstream
+code using the old headings must be updated.
+
 | Component | Contents |
 |----|----|
-| `cor_diff` | Feature pairs, correlations `r1`/`r2`, counts `n1`/`n2`, and differential-correlation `p`/`q`, sorted by increasing `q`. |
-| `disco` | Feature-level scores (`t`), p-values, q-values, and comparison counts (`num_corr`), sorted by increasing `q`. |
+| `cor_diff` | Feature pairs (`feature_1`, `feature_2`), correlations `r1`/`r2`, counts `n1`/`n2`, and differential-correlation `p`/`q`, sorted by increasing `q`. |
+| `disco` | Columns `Feature`, `Pairs`, `DISCO_score`, `DSICO_p`, and `DISCO_q`, in that order, sorted by decreasing `DISCO_score`. |
 | `selected_threshold` | Selected empirical threshold or supplied fixed threshold. |
 | `global_test` | Global p-value, cutoff, signal decision, permutation counts, and selected threshold. |
 | `threshold_summary` | Real/null discovery percentages, null SD, floored percentages, and ratios across thresholds. |
 | `discovery_plot`, `ratio_plot` | Real versus null discovery curves and their ratio. |
 | `feature_null_summary`, `feature_null_plot` | Per-feature null discovery frequencies versus real p-values, across thresholds. |
-| `output_files` | Paths to saved CSV tables and PNG figures. |
+| `output_files` | Paths to saved Excel (`.xlsx`) tables and PNG figures. |
 
 In `feature_null_summary`, a column such as `q_less_than_0.2` indicates
 whether the real-data feature q-value is below `0.2`. The column name
@@ -203,8 +215,9 @@ but are not formal feature-level FDR estimates.
 
 In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and
 `output_files` are returned; the diagnostic components are `NULL`.
-Pair-level and feature-level tables are saved as `<prefix>_cor_diff.csv`
-and `<prefix>_disco.csv`.
+Pair-level and feature-level tables are saved as
+`<prefix>_cor_diff.xlsx` and `<prefix>_disco.xlsx`. Large tables are
+split across worksheets to respect Excel’s row limit.
 
 ## Examples of DISCO application
 
@@ -212,7 +225,7 @@ Here we illustrate the application of DISCO to microbiome and
 transcriptomic data. The example files are organized by dataset under
 `analysis/`:
 
-``` text
+```text
 analysis/
   diabetes_microbiome/
     code/       # QinJ preprocessing, DISCO, plotting, and README scripts
@@ -487,6 +500,7 @@ single <- readme_cached_result(single_dir, single_input, recompute)
 if (is.null(single)) {
   single <- DISCO::disco(
     data1 = single_input$data1, data2 = single_input$data2,
+    empirically_derive_threshold = TRUE,
     workers = settings$workers,
     n_resamples = settings$n_resamples, random_seed = settings$random_seed,
     q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
@@ -508,29 +522,29 @@ The saved analysis excluded **19** samples with incomplete covariates.
 |--------:|----:|--------------:|
 |     174 | 170 |            62 |
 
-**16 taxa have DISCO q \< 0.2.** The table lists these taxa. “Pairs”
-counts the feature pairs contributing to each taxon’s DISCO score. These
-taxa show evidence of altered correlation patterns between controls and
-T2D cases.
+**16 taxa have DISCO q \< 0.2.** The table lists these taxa in
+decreasing order of `DISCO_score`. “Pairs” counts the feature pairs
+contributing to each taxon’s DISCO score. These taxa show evidence of
+altered correlation patterns between controls and T2D cases.
 
-| Taxon                            | DISCO p  | DISCO q  | Pairs |
-|:---------------------------------|:---------|:---------|------:|
-| Lachnospira eligens              | 1.08e-03 | 1.78e-01 |     8 |
-| Bacteroides intestinalis         | 1.78e-03 | 1.78e-01 |     6 |
-| Collinsella aerofaciens          | 2.57e-03 | 1.78e-01 |     7 |
-| Prevotella copri                 | 4.24e-03 | 1.78e-01 |     6 |
-| Anaerostipes hadrus              | 4.68e-03 | 1.78e-01 |    24 |
-| Alistipes shahii                 | 5.85e-03 | 1.78e-01 |    12 |
-| Bifidobacterium longum           | 6.63e-03 | 1.78e-01 |    11 |
-| Bacteroides uniformis            | 7.03e-03 | 1.78e-01 |    28 |
-| Bilophila wadsworthia            | 7.66e-03 | 1.78e-01 |    17 |
-| Agathobaculum butyriciproducens  | 8.40e-03 | 1.78e-01 |    23 |
-| Fusicatenibacter saccharivorans  | 8.61e-03 | 1.78e-01 |    15 |
-| Butyricimonas virosa             | 8.66e-03 | 1.78e-01 |    14 |
-| Bacteroides thetaiotaomicron     | 8.98e-03 | 1.78e-01 |    30 |
-| Blautia wexlerae                 | 9.46e-03 | 1.78e-01 |    10 |
-| Parasutterella excrementihominis | 9.50e-03 | 1.78e-01 |     3 |
-| Streptococcus salivarius         | 1.13e-02 | 1.98e-01 |     7 |
+| Feature                          | Pairs | DISCO_score | DSICO_p  | DISCO_q  |
+|:---------------------------------|------:|------------:|:---------|:---------|
+| Lachnospira eligens              |     8 |      293.90 | 1.08e-03 | 1.78e-01 |
+| Bacteroides intestinalis         |     6 |      178.70 | 1.78e-03 | 1.78e-01 |
+| Collinsella aerofaciens          |     7 |      123.80 | 2.57e-03 | 1.78e-01 |
+| Prevotella copri                 |     6 |       75.03 | 4.24e-03 | 1.78e-01 |
+| Anaerostipes hadrus              |    24 |       68.07 | 4.68e-03 | 1.78e-01 |
+| Alistipes shahii                 |    12 |       54.36 | 5.85e-03 | 1.78e-01 |
+| Bifidobacterium longum           |    11 |       47.97 | 6.63e-03 | 1.78e-01 |
+| Bacteroides uniformis            |    28 |       45.26 | 7.03e-03 | 1.78e-01 |
+| Bilophila wadsworthia            |    17 |       41.55 | 7.66e-03 | 1.78e-01 |
+| Agathobaculum butyriciproducens  |    23 |       37.88 | 8.40e-03 | 1.78e-01 |
+| Fusicatenibacter saccharivorans  |    15 |       36.97 | 8.61e-03 | 1.78e-01 |
+| Butyricimonas virosa             |    14 |       36.75 | 8.66e-03 | 1.78e-01 |
+| Bacteroides thetaiotaomicron     |    30 |       35.42 | 8.98e-03 | 1.78e-01 |
+| Blautia wexlerae                 |    10 |       33.65 | 9.46e-03 | 1.78e-01 |
+| Parasutterella excrementihominis |     3 |       33.50 | 9.50e-03 | 1.78e-01 |
+| Streptococcus salivarius         |     7 |       28.15 | 1.13e-02 | 1.98e-01 |
 
 ### Diagnostics for threshold selection
 
@@ -571,11 +585,11 @@ indicate positive/negative group correlations, and edge width shows
 significance.
 
 Correlation source:
-[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.csv).
-Its columns identify the pair (`t1`, `t2`), control/T2D Spearman
-correlations (`r1`, `r2`), complete-pair sample counts (`n1`, `n2`), and
-differential-correlation `p` and `q`. The exact subset drawn as edges is
-saved in
+[QinJ_2012_taxa_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.xlsx).
+Its columns identify the pair (`feature_1`, `feature_2`), control/T2D
+Spearman correlations (`r1`, `r2`), complete-pair sample counts (`n1`,
+`n2`), and differential-correlation `p` and `q`. The exact subset drawn
+as edges is saved in
 [network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_networks/network_edges.csv).
 
 <img src="man/figures/README-qinj-taxa-network.png" alt="" width="100%" />
@@ -591,7 +605,7 @@ and paired sample counts from `cor_diff`. Dashed linear fits are visual
 guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.csv);
+[QinJ_2012_taxa_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.xlsx);
 the selected pairs and their annotations are exported in
 [top10_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/differential_scatterplots/top10_pairs.csv).
 The plotted sample values are exported in
@@ -651,6 +665,7 @@ if (is.null(two)) {
           sum(two_group == "healthy"), "; T2D n = ", sum(two_group == "T2D"), ".")
   two <- DISCO::disco(
     data1 = two_input$data1, data2 = two_input$data2,
+    empirically_derive_threshold = TRUE,
     workers = settings$workers,
     n_resamples = settings$n_resamples, random_seed = settings$random_seed,
     q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
@@ -672,26 +687,26 @@ if (is.null(two)) {
 using the same columns and ordering as the one-modality analysis. Here,
 “Pairs” counts contributing taxon–pathway pairs.
 
-| Taxon                           | DISCO p  | DISCO q  | Pairs |
-|:--------------------------------|:---------|:---------|------:|
-| Bilophila wadsworthia           | 9.30e-04 | 1.21e-01 |    40 |
-| Collinsella aerofaciens         | 1.47e-03 | 1.21e-01 |    43 |
-| Agathobaculum butyriciproducens | 1.54e-03 | 1.21e-01 |    60 |
-| \[Ruminococcus\] gnavus         | 1.65e-03 | 1.21e-01 |    92 |
-| Butyricimonas virosa            | 2.15e-03 | 1.26e-01 |    27 |
-| Blautia wexlerae                | 2.88e-03 | 1.40e-01 |    47 |
-| Bacteroides caccae              | 5.29e-03 | 1.69e-01 |    31 |
-| Ruminococcus bromii             | 5.35e-03 | 1.69e-01 |     2 |
-| Bifidobacterium longum          | 5.49e-03 | 1.69e-01 |    62 |
-| Bacteroides uniformis           | 6.40e-03 | 1.69e-01 |   115 |
-| Lachnospira pectinoschiza       | 6.81e-03 | 1.69e-01 |     9 |
-| Prevotella copri                | 6.93e-03 | 1.69e-01 |   116 |
-| Gordonibacter pamelaeae         | 7.90e-03 | 1.78e-01 |    11 |
-| Flavonifractor plautii          | 8.51e-03 | 1.78e-01 |    84 |
-| Phocaeicola plebeius            | 1.03e-02 | 1.85e-01 |    41 |
-| Oscillibacter sp. 57_20         | 1.04e-02 | 1.85e-01 |    12 |
-| Alistipes shahii                | 1.08e-02 | 1.85e-01 |    17 |
-| Eggerthella lenta               | 1.20e-02 | 1.95e-01 |    29 |
+| Feature                         | Pairs | DISCO_score | DSICO_p  | DISCO_q  |
+|:--------------------------------|------:|------------:|:---------|:---------|
+| Bilophila wadsworthia           |    40 |      342.20 | 9.30e-04 | 1.21e-01 |
+| Collinsella aerofaciens         |    43 |      216.50 | 1.47e-03 | 1.21e-01 |
+| Agathobaculum butyriciproducens |    60 |      206.40 | 1.54e-03 | 1.21e-01 |
+| \[Ruminococcus\] gnavus         |    92 |      192.60 | 1.65e-03 | 1.21e-01 |
+| Butyricimonas virosa            |    27 |      147.90 | 2.15e-03 | 1.26e-01 |
+| Blautia wexlerae                |    47 |      110.40 | 2.88e-03 | 1.40e-01 |
+| Bacteroides caccae              |    31 |       60.11 | 5.29e-03 | 1.69e-01 |
+| Ruminococcus bromii             |     2 |       59.53 | 5.35e-03 | 1.69e-01 |
+| Bifidobacterium longum          |    62 |       57.97 | 5.49e-03 | 1.69e-01 |
+| Bacteroides uniformis           |   115 |       49.76 | 6.40e-03 | 1.69e-01 |
+| Lachnospira pectinoschiza       |     9 |       46.75 | 6.81e-03 | 1.69e-01 |
+| Prevotella copri                |   116 |       45.94 | 6.93e-03 | 1.69e-01 |
+| Gordonibacter pamelaeae         |    11 |       40.28 | 7.90e-03 | 1.78e-01 |
+| Flavonifractor plautii          |    84 |       37.39 | 8.51e-03 | 1.78e-01 |
+| Phocaeicola plebeius            |    41 |       30.87 | 1.03e-02 | 1.85e-01 |
+| Oscillibacter sp. 57_20         |    12 |       30.63 | 1.04e-02 | 1.85e-01 |
+| Alistipes shahii                |    17 |       29.49 | 1.08e-02 | 1.85e-01 |
+| Eggerthella lenta               |    29 |       26.43 | 1.20e-02 | 1.95e-01 |
 
 ### Diagnostics for threshold selection
 
@@ -719,10 +734,10 @@ widths show the group-specific Spearman correlations, as in the
 taxa-only network.
 
 Correlation source:
-[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
-Here `t1` is the taxon and `t2` is the pathway; `r1`/`r2`, `n1`/`n2`,
-and `p`/`q` have the same meanings as in the taxa-only pair table. The
-exact plotted edge subset is exported in
+[QinJ_2012_taxa_pathways_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.xlsx).
+Here `feature_1` is the taxon and `feature_2` is the pathway; `r1`/`r2`,
+`n1`/`n2`, and `p`/`q` have the same meanings as in the taxa-only pair
+table. The exact plotted edge subset is exported in
 [network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_networks/network_edges.csv).
 
 <img src="man/figures/README-qinj-taxa_pathways-network.png" alt="" width="100%" />
@@ -738,7 +753,7 @@ differential-correlation p-values and q-values are shown; dashed lines
 remain visual guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+[QinJ_2012_taxa_pathways_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.xlsx).
 The selected example and its annotations are saved in
 [top1_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/top1_pairs.csv),
 and its sample values are exported in
@@ -907,6 +922,29 @@ The saved
 and [session
 information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
 record the analysis settings and software versions.
+
+### Per-pathway DISCO outputs
+
+Each pathway has a separate directory within each comparison:
+
+```text
+analysis/ibd_transcriptomics/results/
+  comparison_iCD_vs_control/<pathway_id>/
+    pathway_disco.xlsx
+    pathway_cor_diff.xlsx
+    disco_result.rds
+  comparison_cCD_vs_control/<pathway_id>/
+  comparison_UC_vs_control/<pathway_id>/
+```
+
+`pathway_lookup.csv` maps the directory IDs to full pathway names. Each
+`pathway_disco.xlsx` uses the same five headings and decreasing-score
+order as the main DISCO output. Empirical mode also saves its diagnostic
+workbooks and plots in that pathway directory. Preprocessing audits and
+combined IBD summary tables remain separate analysis files. These
+per-pathway workbooks are generated when the workflow is run; the
+bundled aggregate summaries can be viewed without the expression
+download.
 
 ### Run the workflow
 

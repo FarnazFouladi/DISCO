@@ -148,9 +148,9 @@ permute_null_groups <- function(pooled, assignment = draw_null_assignment(pooled
 # Percentage of tested modality-1 features declared significant
 disco_discovery_percentage <- function(result, q_value) {
   scores <- result$disco
-  tested <- !is.na(scores$p) & !is.na(scores$q)
+  tested <- !is.na(scores$DSICO_p) & !is.na(scores$DISCO_q)
   n_tested <- sum(tested)
-  n_significant <- sum(tested & scores$q < q_value)
+  n_significant <- sum(tested & scores$DISCO_q < q_value)
 
   data.frame(
     n_tested = n_tested,
@@ -500,13 +500,13 @@ run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
 
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
   output_files <- c(
-    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.csv")),
-    disco = file.path(output_dir, paste0(prefix, "_disco.csv")),
+    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.xlsx")),
+    disco = file.path(output_dir, paste0(prefix, "_disco.xlsx")),
     threshold_summary = file.path(
       output_dir,
-      paste0(prefix, "_threshold_summary.csv")
+      paste0(prefix, "_threshold_summary.xlsx")
     ),
-    global_test = file.path(output_dir, paste0(prefix, "_global_test.csv")),
+    global_test = file.path(output_dir, paste0(prefix, "_global_test.xlsx")),
     discovery_plot = file.path(
       output_dir,
       paste0(prefix, "_real_vs_null_thresholds.png")
@@ -516,34 +516,27 @@ run_empirical_disco <- function(data1, data2, cooccur, filter_thresholds,
       paste0(prefix, "_real_to_null_ratio.png")
     ),
     feature_null_summary = file.path(
-      output_dir, paste0(prefix, "_real_p_vs_null_discovery_by_threshold.csv")
+      output_dir, paste0(prefix, "_real_p_vs_null_discovery_by_threshold.xlsx")
     ),
     feature_null_plot = file.path(
       output_dir, paste0(prefix, "_real_p_vs_null_discovery_by_threshold.png")
     )
   )
 
-  utils::write.csv(
+  write_result_xlsx(
     selected_result$cor_diff,
-    output_files[["cor_diff"]],
-    quote = TRUE,
-    row.names = FALSE
+    output_files[["cor_diff"]]
   )
-  utils::write.csv(
+  write_result_xlsx(
     selected_result$disco,
-    output_files[["disco"]],
-    quote = TRUE,
-    row.names = FALSE
+    output_files[["disco"]]
   )
-  utils::write.csv(
+  write_result_xlsx(
     threshold_summary,
-    output_files[["threshold_summary"]],
-    quote = TRUE,
-    row.names = FALSE
+    output_files[["threshold_summary"]]
   )
-  utils::write.csv(global_test, output_files[["global_test"]], row.names = FALSE)
-  utils::write.csv(feature_null_summary, output_files[["feature_null_summary"]],
-                   row.names = FALSE)
+  write_result_xlsx(global_test, output_files[["global_test"]])
+  write_result_xlsx(feature_null_summary, output_files[["feature_null_summary"]])
   ggplot2::ggsave(
     output_files[["discovery_plot"]],
     plots$discovery_plot,

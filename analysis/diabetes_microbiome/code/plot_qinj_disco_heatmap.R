@@ -20,6 +20,7 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
+source(file.path(dirname(dirname(analysis_dir)), "format_saved_results.R"))
 sourced <- any(vapply(sys.frames(), function(frame) {
   !is.null(frame$ofile) && identical(basename(frame$ofile), "plot_qinj_disco_heatmap.R")
 }, logical(1)))
@@ -43,25 +44,25 @@ if (!requireNamespace("pheatmap", quietly = TRUE)) stop("Install pheatmap first.
 modes <- c("taxa", "taxa_pathways")
 column_labels <- c("Taxa-taxa", "Taxon-pathway")
 scores <- lapply(modes, function(mode) {
-  x <- readRDS(file.path(input_dir, mode, "disco_analysis.rds"))$disco
-  if (!all(c("species", "p", "q") %in% names(x)) ||
-      anyNA(x$species) || anyDuplicated(x$species)) stop("Invalid feature scores in ", mode)
-  if (any(!is.na(x$p) & (!is.finite(x$p) | x$p < 0 | x$p > 1)) ||
-      any(!is.na(x$q) & (!is.finite(x$q) | x$q < 0 | x$q > 1)))
+  x <- read_disco_result(file.path(input_dir, mode, "disco_analysis.rds"))$disco
+  if (!all(c("Feature", "DSICO_p", "DISCO_q") %in% names(x)) ||
+      anyNA(x$Feature) || anyDuplicated(x$Feature)) stop("Invalid feature scores in ", mode)
+  if (any(!is.na(x$DSICO_p) & (!is.finite(x$DSICO_p) | x$DSICO_p < 0 | x$DSICO_p > 1)) ||
+      any(!is.na(x$DISCO_q) & (!is.finite(x$DISCO_q) | x$DISCO_q < 0 | x$DISCO_q > 1)))
     stop("Invalid p or q values in ", mode)
-  if (any(is.finite(x$q) & x$q < q_cutoff & !is.finite(x$p)))
+  if (any(is.finite(x$DISCO_q) & x$DISCO_q < q_cutoff & !is.finite(x$DSICO_p)))
     stop("Significant feature has no valid raw p-value in ", mode)
   x
 })
 names(scores) <- column_labels
-taxa <- sort(unique(unlist(lapply(scores, function(x) x$species[is.finite(x$q) & x$q < q_cutoff]))))
+taxa <- sort(unique(unlist(lapply(scores, function(x) x$Feature[is.finite(x$DISCO_q) & x$DISCO_q < q_cutoff]))))
 if (!length(taxa)) stop("No taxa have DISCO q < ", q_cutoff, " in either analysis.")
 p_values <- q_values <- matrix(NA_real_, length(taxa), length(scores),
   dimnames = list(taxa, column_labels))
 for (j in seq_along(scores)) {
-  idx <- match(taxa, scores[[j]]$species)
-  p_values[, j] <- scores[[j]]$p[idx]
-  q_values[, j] <- scores[[j]]$q[idx]
+  idx <- match(taxa, scores[[j]]$Feature)
+  p_values[, j] <- scores[[j]]$DSICO_p[idx]
+  q_values[, j] <- scores[[j]]$DISCO_q[idx]
 }
 # Guard against numerical p=0 only for the log transform; export original values.
 heatmap_values <- -log10(pmax(p_values, .Machine$double.xmin))

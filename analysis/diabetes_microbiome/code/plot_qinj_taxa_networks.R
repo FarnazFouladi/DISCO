@@ -25,6 +25,7 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
+source(file.path(dirname(dirname(analysis_dir)), "format_saved_results.R"))
 sourced <- any(vapply(sys.frames(), function(frame) {
   !is.null(frame$ofile) && identical(basename(frame$ofile), "plot_qinj_taxa_networks.R")
 }, logical(1)))
@@ -45,7 +46,7 @@ output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(
   dirname(analysis_dir), "results", "taxa_networks"
 )
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2 first.")
-result <- readRDS(file.path(input_dir, "disco_analysis.rds"))
+result <- read_disco_result(file.path(input_dir, "disco_analysis.rds"))
 q_cutoff <- if (length(args) >= 3L) {
   suppressWarnings(as.numeric(args[[3L]]))
 } else {
@@ -53,21 +54,21 @@ q_cutoff <- if (length(args) >= 3L) {
 }
 if (!is.numeric(q_cutoff) || length(q_cutoff) != 1L || !is.finite(q_cutoff) ||
     q_cutoff <= 0 || q_cutoff >= 1) stop("q_cutoff must be between 0 and 1.")
-if (!all(c("species", "p", "q") %in% names(result$disco)) ||
-    !all(c("t1", "t2", "r1", "r2", "p", "q") %in% names(result$cor_diff))) {
+if (!all(c("Feature", "DSICO_p", "DISCO_q") %in% names(result$disco)) ||
+    !all(c("feature_1", "feature_2", "r1", "r2", "p", "q") %in% names(result$cor_diff))) {
   stop("Input must contain DISCO feature scores and a pairwise cor_diff table.")
 }
 # This script expects the saved QinJ taxa-only analysis: r1 is control,
 # r2 is T2D, as defined by run_qinj_readme_examples.R.
 scores <- result$disco
-scores <- scores[is.finite(scores$p) & is.finite(scores$q) & scores$q < q_cutoff, ]
-scores <- scores[order(scores$q, scores$p, scores$species), , drop = FALSE]
+scores <- scores[is.finite(scores$DSICO_p) & is.finite(scores$DISCO_q) & scores$DISCO_q < q_cutoff, ]
+scores <- scores[order(scores$DISCO_q, scores$DSICO_p, scores$Feature), , drop = FALSE]
 if (nrow(scores) < top_n) stop("Requested ", top_n, " taxa, but only ", nrow(scores),
   " have DISCO q < ", q_cutoff, ". Reduce top_n or change q_cutoff.")
 top <- head(scores, top_n)
 top$rank <- seq_len(nrow(top))
-top$panel <- paste0(top$rank, ". ", top$species, "\nDISCO q = ",
-                    formatC(top$q, format = "g", digits = 3))
+top$panel <- paste0(top$rank, ". ", top$Feature, "\nDISCO q = ",
+                    formatC(top$DISCO_q, format = "g", digits = 3))
 
 pairs <- result$cor_diff
 edge_p_cutoff <- 0.05
@@ -76,23 +77,23 @@ pairs <- pairs[is.finite(pairs$p) & pairs$p < edge_p_cutoff &
 for (package in c("igraph", "ggrepel")) {
   if (!requireNamespace(package, quietly = TRUE)) stop("Install ", package, " first.")
 }
-edges <- pairs[pairs$t1 %in% top$species | pairs$t2 %in% top$species, , drop = FALSE]
+edges <- pairs[pairs$feature_1 %in% top$Feature | pairs$feature_2 %in% top$Feature, , drop = FALSE]
 if (!nrow(edges)) stop("No top-taxon pairs pass differential-correlation p < 0.05.")
 # Each row in cor_diff is one undirected pair. Deduplicate defensively.
-key <- paste(pmin(edges$t1, edges$t2), pmax(edges$t1, edges$t2), sep = "\r")
+key <- paste(pmin(edges$feature_1, edges$feature_2), pmax(edges$feature_1, edges$feature_2), sep = "\r")
 edges <- edges[!duplicated(key), , drop = FALSE]
-species <- sort(unique(c(top$species, edges$t1, edges$t2)))
-graph <- igraph::graph_from_data_frame(edges[, c("t1", "t2")], directed = FALSE,
-                                       vertices = data.frame(name = species))
+Feature <- sort(unique(c(top$Feature, edges$feature_1, edges$feature_2)))
+graph <- igraph::graph_from_data_frame(edges[, c("feature_1", "feature_2")], directed = FALSE,
+                                       vertices = data.frame(name = Feature))
 set.seed(2026)
 layout <- igraph::layout_with_fr(graph, niter = 4000, grid = "nogrid")
 layout <- igraph::norm_coords(layout, xmin = -1, xmax = 1, ymin = -1, ymax = 1)
-nodes <- data.frame(species = igraph::V(graph)$name, x = layout[, 1], y = layout[, 2])
-nodes$role <- ifelse(nodes$species %in% top$species, top_role, "Partner taxon")
-nodes$label <- vapply(nodes$species, function(x) paste(strwrap(x, width = 22), collapse = "\n"), "")
-nodes$fontface <- ifelse(nodes$species %in% top$species, "bold", "plain")
-start <- match(edges$t1, nodes$species)
-end <- match(edges$t2, nodes$species)
+nodes <- data.frame(Feature = igraph::V(graph)$name, x = layout[, 1], y = layout[, 2])
+nodes$role <- ifelse(nodes$Feature %in% top$Feature, top_role, "Partner taxon")
+nodes$label <- vapply(nodes$Feature, function(x) paste(strwrap(x, width = 22), collapse = "\n"), "")
+nodes$fontface <- ifelse(nodes$Feature %in% top$Feature, "bold", "plain")
+start <- match(edges$feature_1, nodes$Feature)
+end <- match(edges$feature_2, nodes$Feature)
 edges$x <- nodes$x[start]
 edges$y <- nodes$y[start]
 edges$xend <- nodes$x[end]

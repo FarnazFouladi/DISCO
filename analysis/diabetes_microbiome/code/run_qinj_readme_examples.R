@@ -81,6 +81,7 @@ single <- readme_cached_result(single_dir, single_input, recompute)
 if (is.null(single)) {
   single <- DISCO::disco(
     data1 = single_input$data1, data2 = single_input$data2,
+    empirically_derive_threshold = TRUE,
     workers = settings$workers,
     n_resamples = settings$n_resamples, random_seed = settings$random_seed,
     q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
@@ -129,6 +130,7 @@ if (is.null(two)) {
           sum(two_group == "healthy"), "; T2D n = ", sum(two_group == "T2D"), ".")
   two <- DISCO::disco(
     data1 = two_input$data1, data2 = two_input$data2,
+    empirically_derive_threshold = TRUE,
     workers = settings$workers,
     n_resamples = settings$n_resamples, random_seed = settings$random_seed,
     q_value = settings$q_value, global_p_cutoff = settings$global_p_cutoff,
@@ -154,14 +156,14 @@ utils::write.csv(selection$excluded_subjects, file.path(results_dir, "excluded_s
 utils::write.csv(excluded_covariates, file.path(results_dir, "excluded_covariate_samples.csv"),
                  row.names = FALSE)
 summarize_example <- function(result, group, taxa, n_pathways = NA_integer_) {
-  scores <- result$disco[order(result$disco$q, result$disco$p), , drop = FALSE]
+  scores <- result$disco[order(-result$disco$DISCO_score, result$disco$Feature), , drop = FALSE]
   list(
     cohort = data.frame(control = sum(group == "healthy"), T2D = sum(group == "T2D"),
                          retained_taxa = ncol(taxa), retained_pathways = n_pathways),
     global_test = result$global_test,
     selected_threshold = result$selected_threshold,
-    significant_taxa = sum(result$disco$q < settings$q_value, na.rm = TRUE),
-    top_taxa = utils::head(scores[, c("species", "p", "q", "num_corr")], 10L)
+    significant_taxa = sum(result$disco$DISCO_q < settings$q_value, na.rm = TRUE),
+    top_taxa = utils::head(scores[, c("Feature", "Pairs", "DISCO_score", "DSICO_p", "DISCO_q")], 10L)
   )
 }
 bundle <- list(

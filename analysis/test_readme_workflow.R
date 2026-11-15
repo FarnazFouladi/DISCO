@@ -57,6 +57,17 @@ runner$source <- function(file, ...) {
 run_ibd <- function() suppressWarnings(sys.source('analysis/ibd_transcriptomics/code/run_ibd_hallmark_disco.R', runner))
 run_ibd()
 first <- read.csv(file.path(output_dir, 'all_pathway_gene_scores.csv'))
+for (comparison in c('iCD', 'cCD', 'UC')) {
+  directory <- file.path(output_dir, paste0('comparison_', comparison, '_vs_control'),
+                         unique(membership$gs_id))
+  stopifnot(file.exists(file.path(directory, 'pathway_disco.xlsx')),
+            file.exists(file.path(directory, 'pathway_cor_diff.xlsx')))
+  feature_scores <- as.data.frame(readxl::read_xlsx(file.path(directory, 'pathway_disco.xlsx')))
+  stopifnot(identical(names(feature_scores),
+    c('Feature', 'Pairs', 'DISCO_score', 'DSICO_p', 'DISCO_q')),
+    !is.unsorted(-feature_scores$DISCO_score))
+}
+
 stopifnot(all(first$reason == 'tested'), readRDS(file.path(output_dir, 'completion.rds'))$n_failed == 0)
 dir.create(file.path(output_dir, 'comparison_CD_vs_control'))
 writeLines('old result', file.path(output_dir, 'comparison_CD_vs_control/stale.txt'))
@@ -90,7 +101,7 @@ copy_file <- function(relative) {
   dir.create(dirname(dest), recursive = TRUE, showWarnings = FALSE)
   stopifnot(file.copy(relative, dest, overwrite = TRUE))
 }
-files <- c('README.Rmd', 'analysis/render_readme.R',
+files <- c('README.Rmd', 'analysis/render_readme.R', 'analysis/format_saved_results.R', 'analysis/export_saved_example_tables.R', 'R/output.R',
   list.files('analysis/diabetes_microbiome/code', full.names = TRUE),
   'analysis/diabetes_microbiome/results/README-results.rds',
   'analysis/diabetes_microbiome/results/taxa/disco_analysis.rds',

@@ -13,6 +13,13 @@ script_file <- local({
 repo_dir <- dirname(dirname(script_file))
 if (!requireNamespace("rmarkdown", quietly = TRUE)) stop("Install rmarkdown first.")
 
+# Refresh Excel tables using cached analyses; preserve the original RDS and CSV archives.
+local({
+  previous <- setwd(repo_dir)
+  on.exit(setwd(previous))
+  source("analysis/export_saved_example_tables.R", local = TRUE)
+})
+
 # Refresh microbiome plots and their tables from the current saved analyses.
 for (name in c("plot_qinj_taxa_networks.R", "plot_qinj_top_differential_scatterplots.R",
                "plot_qinj_taxa_pathway_networks.R", "plot_qinj_top_taxa_pathway_scatterplots.R",

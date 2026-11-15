@@ -110,31 +110,33 @@ calculate_disco_at_threshold <- function(base, filt_threshold, adj_method,
 
     statistic <- safe_tan_cauchy(p_vect)
     data.frame(
-      species = colnames(pvals_tmp)[i],
-      t = statistic,
-      p = stats::pcauchy(
+      Feature = colnames(pvals_tmp)[i],
+      DISCO_score = statistic,
+      DSICO_p = stats::pcauchy(
         statistic,
         location = 0,
         scale = 1,
         lower.tail = FALSE
       ),
-      num_corr = length(p_vect),
+      Pairs = length(p_vect),
       stringsAsFactors = FALSE
     )
   })
 
   disco_results <- dplyr::bind_rows(
     data.frame(
-      species = character(),
-      t = numeric(),
-      p = numeric(),
-      num_corr = integer(),
+      Feature = character(),
+      DISCO_score = numeric(),
+      DSICO_p = numeric(),
+      Pairs = integer(),
       stringsAsFactors = FALSE
     ),
     disco_rows
   )
-  disco_results$q <- stats::p.adjust(disco_results$p, method = adj_method)
-  disco_results <- disco_results[order(disco_results$q), , drop = FALSE]
+  disco_results$DISCO_q <- stats::p.adjust(disco_results$DSICO_p, method = adj_method)
+  disco_results <- disco_results[order(-disco_results$DISCO_score, disco_results$Feature),
+    c("Feature", "Pairs", "DISCO_score", "DSICO_p", "DISCO_q"), drop = FALSE]
+  rownames(disco_results) <- NULL
 
   list(cor_diff = cor_diff, disco = disco_results)
 }
@@ -153,8 +155,8 @@ build_cor_diff_table <- function(base, pvals_tmp, adj_method) {
   adjp <- stats::p.adjust(pvals_filtered, method = adj_method)
 
   cor_diff <- data.frame(
-    t1 = t1,
-    t2 = t2,
+    feature_1 = t1,
+    feature_2 = t2,
     r1 = r1,
     r2 = r2,
     n1 = n1,
@@ -194,17 +196,13 @@ calculate_fixed_threshold_disco <- function(data1, data2, cooccur = 20,
   )
 
   dir.create(output_dir, showWarnings = FALSE, recursive = TRUE)
-  utils::write.csv(
+  write_result_xlsx(
     result$cor_diff,
-    file.path(output_dir, paste0(prefix, "_cor_diff.csv")),
-    quote = TRUE,
-    row.names = FALSE
+    file.path(output_dir, paste0(prefix, "_cor_diff.xlsx"))
   )
-  utils::write.csv(
+  write_result_xlsx(
     result$disco,
-    file.path(output_dir, paste0(prefix, "_disco.csv")),
-    quote = TRUE,
-    row.names = FALSE
+    file.path(output_dir, paste0(prefix, "_disco.xlsx"))
   )
 
   result

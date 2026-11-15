@@ -21,8 +21,8 @@
 #' @param cooccur A single integer greater than or equal to 10. A feature pair is
 #'   tested only when both groups have at least this many pairwise non-missing
 #'   observations.
-#' @param empirically_derive_threshold Logical. If `TRUE`, select the filtering
-#'   threshold empirically by comparing observed discoveries with discoveries
+#' @param empirically_derive_threshold Logical, default `FALSE`. If `TRUE`,
+#'   select the filtering threshold empirically by comparing observed discoveries with discoveries
 #'   from size-matched random label permutations. If `FALSE`, use
 #'   `filter_threshold` and do not generate null data or diagnostic plots.
 #' @param filter_threshold Single-group correlation p-value threshold used when
@@ -40,7 +40,7 @@
 #' @param adj_method Multiple-testing adjustment method passed to
 #'   [stats::p.adjust()].
 #' @param output_dir Directory in which result files are written. Empirical mode
-#'   writes CSV and PNG files; fixed mode writes only the result CSV files. The
+#'   writes XLSX and PNG files; fixed mode writes only the result XLSX files. The
 #'   directory is created when it does not exist.
 #' @param prefix Character prefix used for result filenames.
 #' @param global_p_cutoff Significance cutoff for the global maximum-discovery
@@ -54,7 +54,11 @@
 #'   workers on all platforms. For a given seed, permutations and results do
 #'   not depend on worker count. Workers are stopped on completion or error.
 #'
-#' @return A list containing `cor_diff`, `disco`, `selected_threshold`,
+#' @return The `disco` table contains `Feature`, `Pairs`, `DISCO_score`,
+#'   `DSICO_p`, and `DISCO_q`, ordered by decreasing `DISCO_score`. The
+#'   `cor_diff` table identifies pairs using `feature_1` and `feature_2`.
+#'   Tabular files are exported as Excel (`.xlsx`) workbooks.
+#'   A list containing `cor_diff`, `disco`, `selected_threshold`,
 #'   `threshold_summary`, `global_test`, `discovery_plot`, `ratio_plot`,
 #'   `feature_null_summary`, `feature_null_plot`, and `output_files`.
 #'   The `cor_diff` table is sorted by ascending adjusted p-value (`q`).
@@ -96,7 +100,7 @@
 disco <- function(data1,
                   data2,
                   cooccur = 20,
-                  empirically_derive_threshold = TRUE,
+                  empirically_derive_threshold = FALSE,
                   filter_threshold = 1,
                   q_value = 0.2,
                   n_resamples = 100,
@@ -139,8 +143,8 @@ disco <- function(data1,
     prefix = prefix
   )
   output_files <- c(
-    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.csv")),
-    disco = file.path(output_dir, paste0(prefix, "_disco.csv"))
+    cor_diff = file.path(output_dir, paste0(prefix, "_cor_diff.xlsx")),
+    disco = file.path(output_dir, paste0(prefix, "_disco.xlsx"))
   )
 
   list(

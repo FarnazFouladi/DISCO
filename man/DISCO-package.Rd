@@ -9,8 +9,22 @@
 DISCO quantifies feature-specific changes in correlation patterns between
 two groups, including changes in relationships across data modalities.
 }
+\seealso{
+Useful links:
+\itemize{
+  \item \url{https://farnazfouladi.github.io/DISCO/}
+  \item \url{https://github.com/FarnazFouladi/DISCO}
+  \item Report bugs at \url{https://github.com/FarnazFouladi/DISCO/issues}
+}
+
+}
 \author{
 \strong{Maintainer}: Farnaz Fouladi \email{farnaz.fouladi@nih.gov}
+
+Authors:
+\itemize{
+  \item Farnaz Fouladi \email{farnaz.fouladi@nih.gov}
+}
 
 }
 \keyword{internal}

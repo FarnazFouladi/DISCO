@@ -321,10 +321,10 @@ ibd_run_pathway_panel <- function(prepared, audit, comparison, pathway, settings
   score$p <- score$q_within_pathway <- NA_real_
   score$n_partner_tests <- NA_integer_
   if (!is.null(result)) {
-    idx <- match(score$gene_id, result$disco$species)
-    score$p <- result$disco$p[idx]
-    score$q_within_pathway <- result$disco$q[idx]
-    score$n_partner_tests <- result$disco$num_corr[idx]
+    idx <- match(score$gene_id, result$disco$Feature)
+    score$p <- result$disco$DSICO_p[idx]
+    score$q_within_pathway <- result$disco$DISCO_q[idx]
+    score$n_partner_tests <- result$disco$Pairs[idx]
     score$reason[score$reason == "eligible"] <- ifelse(
       is.finite(score$p[score$reason == "eligible"]), "tested", "no_valid_partner_tests")
     if (!any(is.finite(score$p))) status <- "completed_no_testable_genes"

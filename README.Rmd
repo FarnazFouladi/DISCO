@@ -7,6 +7,7 @@ output:
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(collapse = TRUE, comment = "#>", message = FALSE, warning = FALSE)
+source("analysis/format_saved_results.R")
 readme_results <- readRDS("analysis/diabetes_microbiome/results/README-results.rds")
 knitr::read_chunk("analysis/diabetes_microbiome/code/run_qinj_readme_examples.R")
 knitr::read_chunk("analysis/diabetes_microbiome/code/qinj_readme_preprocessing.R")
@@ -21,17 +22,23 @@ for (label in example_chunks) {
 example_q <- format(readme_results$settings$q_value)
 example_prevalence <- 100 * readme_results$settings$prevalence_cutoff
 example_results <- lapply(c("taxa", "taxa_pathways"), function(mode) {
-  readRDS(file.path("analysis/diabetes_microbiome/results", mode, "disco_analysis.rds"))
+  read_disco_result(file.path("analysis/diabetes_microbiome/results", mode, "disco_analysis.rds"))
 })
 names(example_results) <- c("taxa", "taxa_pathways")
 example_significant <- lapply(example_results, function(result) {
-  result$disco$species[is.finite(result$disco$q) & result$disco$q < readme_results$settings$q_value]
+  result$disco$Feature[is.finite(result$disco$DISCO_q) & result$disco$DISCO_q < readme_results$settings$q_value]
 })
 example_union <- length(Reduce(union, example_significant))
 example_overlap <- length(Reduce(intersect, example_significant))
+read_example_pairs <- function(path) {
+  x <- read.csv(path)
+  names(x)[names(x) == "t1"] <- "feature_1"
+  names(x)[names(x) == "t2"] <- "feature_2"
+  x
+}
 example_pairs <- list(
-  taxa = read.csv("analysis/diabetes_microbiome/results/differential_scatterplots/top10_pairs.csv"),
-  taxa_pathways = read.csv("analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/top1_pairs.csv"))
+  taxa = read_example_pairs("analysis/diabetes_microbiome/results/differential_scatterplots/top10_pairs.csv"),
+  taxa_pathways = read_example_pairs("analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/top1_pairs.csv"))
 ibd_dir <- "analysis/ibd_transcriptomics/results"
 ibd_provenance <- readRDS(file.path(ibd_dir, "provenance.rds"))
 ibd_settings <- ibd_provenance$settings
@@ -53,12 +60,13 @@ ibd_sample_table <- data.frame(
 ibd_inflammation <- ibd_percentages[ibd_percentages$pathway == "HALLMARK_INFLAMMATORY_RESPONSE", ]
 ibd_inflammation <- ibd_inflammation[match(ibd_comparisons, ibd_inflammation$comparison), ]
 disco_taxa_table <- function(x) {
-  x <- x[is.finite(x$q) & x$q < readme_results$settings$q_value, , drop = FALSE]
-  x <- x[order(x$q, x$p, x$species), c("species", "p", "q", "num_corr")]
-  x$p <- format(x$p, digits = 3, scientific = TRUE)
-  x$q <- format(x$q, digits = 3, scientific = TRUE)
-  knitr::kable(x, row.names = FALSE,
-    col.names = c("Taxon", "DISCO p", "DISCO q", "Pairs"))
+  x <- x[is.finite(x$DISCO_q) & x$DISCO_q < readme_results$settings$q_value, , drop = FALSE]
+  x <- x[order(-x$DISCO_score, x$Feature),
+         c("Feature", "Pairs", "DISCO_score", "DSICO_p", "DISCO_q")]
+  x$DISCO_score <- signif(x$DISCO_score, 4)
+  x$DSICO_p <- format(x$DSICO_p, digits = 3, scientific = TRUE)
+  x$DISCO_q <- format(x$DISCO_q, digits = 3, scientific = TRUE)
+  knitr::kable(x, row.names = FALSE)
 }
 
 ```
@@ -143,7 +151,7 @@ running DISCO.
 | Argument | Default | Meaning |
 |---|---:|---|
 | `cooccur` | `20` | Minimum number of pairwise nonmissing observations in **each** group; integer ≥10. |
-| `empirically_derive_threshold` | `TRUE` | Select the correlation filtering threshold using label permutations. |
+| `empirically_derive_threshold` | `FALSE` | Select the correlation filtering threshold using label permutations. |
 | `filter_threshold` | `1` | Fixed correlation p-value threshold when empirical selection is disabled. |
 | `q_value` | `0.2` | Feature-level q-value cutoff used to count discoveries in empirical mode. |
 | `global_p_cutoff` | `0.05` | Select a threshold by the real-to-null ratio only when the global permutation p-value is below this cutoff; otherwise use `1`. |
@@ -154,6 +162,11 @@ running DISCO.
 | `output_dir`, `prefix` | Required | Results directory and filename prefix. |
 
 ### Correlation filtering and threshold selection
+
+The default is fixed-threshold mode (`empirically_derive_threshold = FALSE`),
+with `filter_threshold = 1`. The saved microbiome examples below explicitly opt
+into empirical selection to retain their original analysis settings.
+
 
 DISCO estimates a Spearman correlation for each eligible pair in each group,
 tests whether the correlations differ, and combines the raw differential-test
@@ -168,7 +181,7 @@ example, `filter_threshold = 0.05` excludes pairs whose correlation p-values are
 ≥0.05 in both groups. A threshold of `1` is the least restrictive setting.
 
 To choose a threshold empirically, DISCO
-(`empirically_derive_threshold = TRUE`, the default) compares the observed
+(`empirically_derive_threshold = TRUE`, opt-in) compares the observed
 data with size-matched random label permutations at filtering thresholds
 `c(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1)`. At each threshold, it calculates
 the percentage of tested features with DISCO `q < q_value` in the observed data
@@ -229,16 +242,24 @@ result <- disco(
 
 ## Outputs
 
+The feature table uses the exact headings **Feature**, **Pairs**, **DISCO_score**,
+**DSICO_p**, and **DISCO_q**. `Pairs` counts the retained pairwise tests contributing
+to the Cauchy statistic (`DISCO_score`); `DSICO_p` is its raw p-value and `DISCO_q`
+is the adjusted p-value. Rows are ordered by decreasing score. These names and
+Excel exports replace the earlier headings and CSV exports; downstream code
+using the old headings must be updated.
+
+
 | Component | Contents |
 |---|---|
-| `cor_diff` | Feature pairs, correlations `r1`/`r2`, counts `n1`/`n2`, and differential-correlation `p`/`q`, sorted by increasing `q`. |
-| `disco` | Feature-level scores (`t`), p-values, q-values, and comparison counts (`num_corr`), sorted by increasing `q`. |
+| `cor_diff` | Feature pairs (`feature_1`, `feature_2`), correlations `r1`/`r2`, counts `n1`/`n2`, and differential-correlation `p`/`q`, sorted by increasing `q`. |
+| `disco` | Columns `Feature`, `Pairs`, `DISCO_score`, `DSICO_p`, and `DISCO_q`, in that order, sorted by decreasing `DISCO_score`. |
 | `selected_threshold` | Selected empirical threshold or supplied fixed threshold. |
 | `global_test` | Global p-value, cutoff, signal decision, permutation counts, and selected threshold. |
 | `threshold_summary` | Real/null discovery percentages, null SD, floored percentages, and ratios across thresholds. |
 | `discovery_plot`, `ratio_plot` | Real versus null discovery curves and their ratio. |
 | `feature_null_summary`, `feature_null_plot` | Per-feature null discovery frequencies versus real p-values, across thresholds. |
-| `output_files` | Paths to saved CSV tables and PNG figures. |
+| `output_files` | Paths to saved Excel (`.xlsx`) tables and PNG figures. |
 
 In `feature_null_summary`, a column such as `q_less_than_0.2` indicates whether
 the real-data feature q-value is below `0.2`. The column name reflects the
@@ -255,7 +276,8 @@ estimates.
 
 In fixed mode, `cor_diff`, `disco`, `selected_threshold`, and `output_files` are
 returned; the diagnostic components are `NULL`. Pair-level and feature-level tables are
-saved as `<prefix>_cor_diff.csv` and `<prefix>_disco.csv`.
+saved as `<prefix>_cor_diff.xlsx` and `<prefix>_disco.xlsx`. Large tables
+are split across worksheets to respect Excel’s row limit.
 
 
 ## Examples of DISCO application
@@ -363,7 +385,7 @@ knitr::kable(readme_results$taxa$cohort[, c("control", "T2D", "retained_taxa")],
 ```
 
 **`r readme_results$taxa$significant_taxa` taxa have DISCO q < `r example_q`.**
-The table lists these taxa. “Pairs” counts the feature pairs contributing to each
+The table lists these taxa in decreasing order of `DISCO_score`. “Pairs” counts the feature pairs contributing to each
 taxon's DISCO score. These taxa show evidence of altered correlation patterns
 between controls and T2D cases.
 
@@ -414,8 +436,8 @@ and edge width shows |Spearman r|. Edge presence does not imply within-group
 correlation significance.
 
 Correlation source:
-[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.csv).
-Its columns identify the pair (`t1`, `t2`), control/T2D Spearman correlations
+[QinJ_2012_taxa_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.xlsx).
+Its columns identify the pair (`feature_1`, `feature_2`), control/T2D Spearman correlations
 (`r1`, `r2`), complete-pair sample counts (`n1`, `n2`), and differential-correlation
 `p` and `q`. The exact subset drawn as edges is saved in
 [network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_networks/network_edges.csv).
@@ -427,14 +449,14 @@ knitr::include_graphics("man/figures/README-qinj-taxa-network.png")
 ### Example pairwise scatterplot
 
 Scatterplots show the group-specific relationship for an individual feature
-pair. The highest-ranked retained pair is **`r example_pairs$taxa$t1[1]` versus
-`r example_pairs$taxa$t2[1]`**, ranked by differential-correlation q, then p. The plot
+pair. The highest-ranked retained pair is **`r example_pairs$taxa$feature_1[1]` versus
+`r example_pairs$taxa$feature_2[1]`**, ranked by differential-correlation q, then p. The plot
 uses the exact adjusted inputs passed to DISCO and only complete pairs. Its
 annotations report the saved Spearman correlations and paired sample counts
 from `cor_diff`. Dashed linear fits are visual guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.csv);
+[QinJ_2012_taxa_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa/QinJ_2012_taxa_cor_diff.xlsx);
 the selected pairs and their annotations are exported in
 [top10_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/differential_scatterplots/top10_pairs.csv).
 The plotted sample values are exported in
@@ -507,8 +529,8 @@ Both panels use identical nodes, edges, and positions. Edge colors and widths
 show the group-specific Spearman correlations, as in the taxa-only network.
 
 Correlation source:
-[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
-Here `t1` is the taxon and `t2` is the pathway; `r1`/`r2`, `n1`/`n2`, and
+[QinJ_2012_taxa_pathways_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.xlsx).
+Here `feature_1` is the taxon and `feature_2` is the pathway; `r1`/`r2`, `n1`/`n2`, and
 `p`/`q` have the same meanings as in the taxa-only pair table. The exact plotted
 edge subset is exported in
 [network_edges.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_networks/network_edges.csv).
@@ -519,16 +541,16 @@ knitr::include_graphics("man/figures/README-qinj-taxa_pathways-network.png")
 
 ### Example pairwise scatterplot
 
-The highest-ranked retained pair is **`r example_pairs$taxa_pathways$t1[1]` versus
-`r sub(":.*$", "", example_pairs$taxa_pathways$t2[1])`**
-(`r sub("^[^:]+: *", "", example_pairs$taxa_pathways$t2[1])`). The plotted values
+The highest-ranked retained pair is **`r example_pairs$taxa_pathways$feature_1[1]` versus
+`r sub(":.*$", "", example_pairs$taxa_pathways$feature_2[1])`**
+(`r sub("^[^:]+: *", "", example_pairs$taxa_pathways$feature_2[1])`). The plotted values
 are the separately adjusted robust CLR taxon and pathway measurements, with
 complete pairs only. Saved group-specific Spearman correlations, sample counts,
 and pair-level differential-correlation p-values and q-values are shown;
 dashed lines remain visual guides.
 
 Pair statistics come from
-[QinJ_2012_taxa_pathways_cor_diff.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.csv).
+[QinJ_2012_taxa_pathways_cor_diff.xlsx](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathways/QinJ_2012_taxa_pathways_cor_diff.xlsx).
 The selected example and its annotations are saved in
 [top1_pairs.csv](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/diabetes_microbiome/results/taxa_pathway_scatterplots/top1_pairs.csv), and its
 sample values are exported in
@@ -695,6 +717,28 @@ allow inspection without rerunning the analysis.
 The saved [provenance](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/provenance.rds)
 and [session information](https://github.com/FarnazFouladi/DISCO/blob/main/analysis/ibd_transcriptomics/results/session_info.txt)
 record the analysis settings and software versions.
+
+### Per-pathway DISCO outputs
+
+Each pathway has a separate directory within each comparison:
+
+```text
+analysis/ibd_transcriptomics/results/
+  comparison_iCD_vs_control/<pathway_id>/
+    pathway_disco.xlsx
+    pathway_cor_diff.xlsx
+    disco_result.rds
+  comparison_cCD_vs_control/<pathway_id>/
+  comparison_UC_vs_control/<pathway_id>/
+```
+
+`pathway_lookup.csv` maps the directory IDs to full pathway names. Each
+`pathway_disco.xlsx` uses the same five headings and decreasing-score order as
+the main DISCO output. Empirical mode also saves its diagnostic workbooks and
+plots in that pathway directory. Preprocessing audits and combined IBD summary
+tables remain separate analysis files. These per-pathway workbooks are generated
+when the workflow is run; the bundled aggregate summaries can be viewed without
+the expression download.
 
 ### Run the workflow
 

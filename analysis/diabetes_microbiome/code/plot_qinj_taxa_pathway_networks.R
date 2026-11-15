@@ -26,6 +26,7 @@ script_file <- local({
   stop("Use Rscript or source() with the full path to this script.")
 })
 analysis_dir <- dirname(script_file)
+source(file.path(dirname(dirname(analysis_dir)), "format_saved_results.R"))
 sourced <- any(vapply(sys.frames(), function(frame) {
   !is.null(frame$ofile) && identical(basename(frame$ofile), "plot_qinj_taxa_pathway_networks.R")
 }, logical(1)))
@@ -46,7 +47,7 @@ output_dir <- if (length(args) >= 2L) args[[2L]] else file.path(
   dirname(analysis_dir), "results", "taxa_pathway_networks"
 )
 if (!requireNamespace("ggplot2", quietly = TRUE)) stop("Install ggplot2 first.")
-result <- readRDS(file.path(input_dir, "disco_analysis.rds"))
+result <- read_disco_result(file.path(input_dir, "disco_analysis.rds"))
 q_cutoff <- if (length(args) >= 3L) {
   suppressWarnings(as.numeric(args[[3L]]))
 } else {
@@ -54,21 +55,21 @@ q_cutoff <- if (length(args) >= 3L) {
 }
 if (!is.numeric(q_cutoff) || length(q_cutoff) != 1L || !is.finite(q_cutoff) ||
     q_cutoff <= 0 || q_cutoff >= 1) stop("q_cutoff must be between 0 and 1.")
-if (!all(c("species", "p", "q") %in% names(result$disco)) ||
-    !all(c("t1", "t2", "r1", "r2", "p", "q") %in% names(result$cor_diff))) {
+if (!all(c("Feature", "DSICO_p", "DISCO_q") %in% names(result$disco)) ||
+    !all(c("feature_1", "feature_2", "r1", "r2", "p", "q") %in% names(result$cor_diff))) {
   stop("Input must contain DISCO feature scores and a pairwise cor_diff table.")
 }
 # This script expects the saved QinJ taxon-pathway analysis: r1 is control,
 # r2 is T2D, as defined by run_qinj_readme_examples.R.
 scores <- result$disco
-scores <- scores[is.finite(scores$p) & is.finite(scores$q) & scores$q < q_cutoff, ]
-scores <- scores[order(scores$q, scores$p, scores$species), , drop = FALSE]
+scores <- scores[is.finite(scores$DSICO_p) & is.finite(scores$DISCO_q) & scores$DISCO_q < q_cutoff, ]
+scores <- scores[order(scores$DISCO_q, scores$DSICO_p, scores$Feature), , drop = FALSE]
 if (nrow(scores) < top_n) stop("Requested ", top_n, " taxa, but only ", nrow(scores),
   " have DISCO q < ", q_cutoff, ". Reduce top_n or change q_cutoff.")
 top <- head(scores, top_n)
 top$rank <- seq_len(nrow(top))
-top$panel <- paste0(top$rank, ". ", top$species, "\nDISCO q = ",
-                    formatC(top$q, format = "g", digits = 3))
+top$panel <- paste0(top$rank, ". ", top$Feature, "\nDISCO q = ",
+                    formatC(top$DISCO_q, format = "g", digits = 3))
 
 pairs <- result$cor_diff
 edge_p_cutoff <- 0.05
@@ -77,29 +78,29 @@ pairs <- pairs[is.finite(pairs$p) & pairs$p < edge_p_cutoff &
 inputs <- readRDS(file.path(input_dir, "disco_inputs.rds"))
 if (length(inputs$data1) != 2L || length(inputs$data2) != 2L)
   stop("Expected a two-modality taxa/pathway analysis.")
-if (!all(result$cor_diff$t1 %in% colnames(inputs$data1[[1L]])) ||
-    !all(result$cor_diff$t2 %in% colnames(inputs$data1[[2L]])))
-  stop("Expected t1 to identify taxa and t2 to identify pathways.")
-edges <- pairs[pairs$t1 %in% top$species, , drop = FALSE]
+if (!all(result$cor_diff$feature_1 %in% colnames(inputs$data1[[1L]])) ||
+    !all(result$cor_diff$feature_2 %in% colnames(inputs$data1[[2L]])))
+  stop("Expected feature_1 to identify taxa and feature_2 to identify pathways.")
+edges <- pairs[pairs$feature_1 %in% top$Feature, , drop = FALSE]
 if (!nrow(edges)) stop("No top-taxon pairs pass differential-correlation p < 0.05.")
 # Each row is one taxon-pathway pair; use typed node IDs to avoid collisions.
-key <- paste(edges$t1, edges$t2, sep = "\r")
+key <- paste(edges$feature_1, edges$feature_2, sep = "\r")
 edges <- edges[!duplicated(key), , drop = FALSE]
-pathways <- unique(edges$t2)
+pathways <- unique(edges$feature_2)
 # Arrange pathways by their first connected top taxon, then their full name.
-first_taxon <- vapply(pathways, function(p) min(match(edges$t1[edges$t2 == p], top$species)), integer(1))
+first_taxon <- vapply(pathways, function(p) min(match(edges$feature_1[edges$feature_2 == p], top$Feature)), integer(1))
 pathways <- pathways[order(first_taxon, pathways)]
 spread <- function(n) if (n == 1L) 0 else seq(1, -1, length.out = n)
-taxon_nodes <- data.frame(node_id = paste0("taxon::", top$species),
-  feature = top$species, modality = "Taxon", role = top_role,
+taxon_nodes <- data.frame(node_id = paste0("taxon::", top$Feature),
+  feature = top$Feature, modality = "Taxon", role = top_role,
   x = -0.65, y = spread(nrow(top)) * 0.9,
-  label = vapply(top$species, function(x) paste(strwrap(x, width = 24), collapse = "\n"), ""))
+  label = vapply(top$Feature, function(x) paste(strwrap(x, width = 24), collapse = "\n"), ""))
 pathway_nodes <- data.frame(node_id = paste0("pathway::", pathways),
   feature = pathways, modality = "Pathway", role = "Pathway",
   x = 0.65, y = spread(length(pathways)), label = sub(":.*$", "", pathways))
 nodes <- rbind(taxon_nodes, pathway_nodes)
-edges$from <- paste0("taxon::", edges$t1)
-edges$to <- paste0("pathway::", edges$t2)
+edges$from <- paste0("taxon::", edges$feature_1)
+edges$to <- paste0("pathway::", edges$feature_2)
 start <- match(edges$from, nodes$node_id)
 end <- match(edges$to, nodes$node_id)
 edges$x <- nodes$x[start]; edges$y <- nodes$y[start]
