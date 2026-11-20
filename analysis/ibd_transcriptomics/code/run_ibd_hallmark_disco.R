@@ -1,4 +1,3 @@
-# Adapted for the DISCO README from DISCO_Analysis; scientific calculations unchanged.
 # Rscript analysis/ibd_transcriptomics/code/run_ibd_hallmark_disco.R
 # options(ibd.pathway_preprocess_only=TRUE) validates all inputs without DISCO.
 # options(ibd.pathway_names="HALLMARK_TNFA_SIGNALING_VIA_NFKB") runs one pathway.
@@ -14,7 +13,7 @@
 # options(ibd.comparisons=c("CD", "iCD", "cCD", "UC")) adds pooled Crohn's disease.
 # options(ibd.exploration_dir="...") selects the audited metadata and downloaded counts.
 # Complete age-at-diagnosis and sex required. No batch IDs available; no batch matching.
-# Reuses the established GENCODE v26 redundancy audit and Hallmark snapshot.
+# Requires the standalone IBD GENCODE v26 redundancy audit and saved Hallmark snapshot.
 # Controls are reused across comparisons; pooled CD overlaps iCD/cCD.
 # Default preprocessing: one complete-case four-group filter, TMM normalization,
 # age/sex correction preserving all four groups, and valid variance in every group.
@@ -46,7 +45,15 @@ if (!is.character(preprocessing_mode) || length(preprocessing_mode) != 1L || is.
 count_input_files <- file.path(input, c("sample_metadata.csv", "raw/recount_metadata.rds",
   "raw/sra.gene_sums.SRP042228.G026.gz"))
 redundancy_file <- file.path(reference, "redundancy_candidates_all_genes.csv")
-files <- c(count_input_files, redundancy_file)
+annotation_provenance <- file.path(reference, "annotation_audit", "provenance.rds")
+if (!file.exists(annotation_provenance))
+  stop("Run audit_ibd_annotation_redundancy.R first to generate the IBD-specific reference.")
+annotation_audit <- readRDS(annotation_provenance)
+if (!identical(annotation_audit$project, "SRP042228") ||
+    !identical(annotation_audit$counts_md5, unname(tools::md5sum(count_input_files[3]))) ||
+    !identical(annotation_audit$candidate_md5, unname(tools::md5sum(redundancy_file))))
+  stop("Annotation audit does not match current IBD counts/candidates. Rerun audit_ibd_annotation_redundancy.R.")
+files <- c(count_input_files, redundancy_file, annotation_provenance)
 if (!all(file.exists(files))) stop("Missing input files: ", paste(files[!file.exists(files)], collapse = ", "))
 collection <- getOption("ibd.msigdb_collection", "H")
 subcollection <- getOption("ibd.msigdb_subcollection", NULL)
@@ -61,7 +68,7 @@ hashes <- tools::md5sum(files)
 database_label <- if (collection == "H") "Hallmark" else paste(c(collection, subcollection), collapse = ":")
 prefix <- if (collection == "H" && is.null(subcollection)) "hallmark" else
   tolower(gsub("[^A-Za-z0-9]+", "_", paste(c(collection, subcollection), collapse = "_")))
-settings <- list(cooccur = 10L, q_value = 0.05, empirical = FALSE, filter_threshold = 1,
+settings <- list(cooccur = 20L, q_value = 0.05, empirical = FALSE, filter_threshold = 1,
   n_resamples = 100L, seed = 2026L, workers = getOption("ibd.disco_workers", 6L),
   preprocess_only = isTRUE(getOption("ibd.pathway_preprocess_only", FALSE)),
   comparisons = comparisons, batch = NULL, covariates = c("age_at_diagnosis", "sex"),

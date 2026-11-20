@@ -1,12 +1,12 @@
 # Run from the DISCO repository root after downloading the counts (see README).
-# Adapted from DISCO_Analysis's example_ibd_workflow.R; only the Hallmark
-# significance bar plot is generated here. This runs the full analysis.
+# Significance bar plot is generated here. This runs the full analysis.
 # Each run replaces the previous analysis in results/ and the bar plot in results/figure/.
 # Script order: (1) fetch_srp042228_metadata.R, (2) explore_srp042228_metadata.R,
-# (3) fetch_srp042228_counts.R, (4) run_ibd_hallmark_disco.R,
-# (5) plot_ibd_hallmark_significance.R. Step 1 automatically performs the
+# (3) fetch_srp042228_counts.R, (4) audit_ibd_annotation_redundancy.R,
+# (5) run_ibd_hallmark_disco.R, (6) plot_ibd_hallmark_significance.R.
+# Step 1 automatically performs the
 # metadata audit in step 2. Steps 1-2 can be skipped with bundled
-# metadata. This wrapper configures and runs steps 4-5; helpers load automatically.
+# metadata. This wrapper configures and runs steps 4-6; helpers load automatically.
 
 ## ---- ibd-workflow
 library(DISCO)
@@ -23,6 +23,7 @@ options(
   ibd.pathway_preprocess_only = FALSE,
   ibd.disco_workers = 1L
 )
+source("analysis/ibd_transcriptomics/code/audit_ibd_annotation_redundancy.R")
 source("analysis/ibd_transcriptomics/code/run_ibd_hallmark_disco.R")
 ibd_results_dir <- output
 

@@ -124,7 +124,7 @@ the observed data and in each permutation. A global permutation test
 then compares the maximum observed discovery percentage across
 thresholds with the corresponding maximum from each valid permutation:
 
-``` text
+```text
 global p = (1 + number of null maxima >= real maximum) / (1 + valid permutations)
 ```
 
@@ -219,7 +219,7 @@ Here we illustrate the application of DISCO to microbiome and
 transcriptomic data. The example files are organized by dataset under
 `analysis/`:
 
-``` text
+```text
 analysis/
   diabetes_microbiome/
     code/       # QinJ preprocessing, DISCO, plotting, and README scripts
@@ -837,9 +837,9 @@ Before running DISCO, the RNA-seq data are preprocessed as follows:
     information, and require unique patient identifiers.
 2.  Convert recount3 coverage sums to rounded read counts by dividing
     each sample by its average mapped read length. Resolve
-    annotation-redundant gene pairs using the saved GENCODE exon-overlap
-    audit: prefer the sole Hallmark member, otherwise the longer exon
-    union, breaking ties by gene ID.
+    annotation-redundant gene pairs using the IBD-specific GENCODE
+    exon-overlap audit: prefer the sole Hallmark member, otherwise the
+    longer exon union, breaking ties by gene ID.
 3.  Filter expression once across all four groups with
     `edgeR::filterByExpr()` (`min.count = 10`, `min.total.count = 15`,
     `large.n = 10`, `min.prop = 0.7`). Apply TMM normalization and
@@ -863,7 +863,7 @@ comparison’s samples in columns, and `group` labels those columns:
 result <- disco(
   data1 = list(t(expr[, group == "Control", drop = FALSE])),
   data2 = list(t(expr[, group == "Disease", drop = FALSE])),
-  cooccur = 10L,
+  cooccur = 20L,
   empirically_derive_threshold = FALSE,
   filter_threshold = 1,
   adj_method = "BY",
@@ -921,7 +921,7 @@ record the analysis settings and software versions.
 
 Each pathway has a separate directory within each comparison:
 
-``` text
+```text
 analysis/ibd_transcriptomics/results/
   comparison_iCD_vs_control/<pathway_id>/
     pathway_disco.csv
@@ -963,15 +963,16 @@ metadata files.
 | 1 | `fetch_srp042228_metadata.R` | Download recount3, GEO and ENA metadata and automatically create a fresh audited `sample_metadata.csv`. | No |
 | 2 | `explore_srp042228_metadata.R` | Audit GEO/ENA/recount3 metadata; called automatically by the fetch script, or run separately to repeat the audit. | No |
 | 3 | `fetch_srp042228_counts.R` | Download the recount3 gene coverage sums. | Yes, once |
-| 4 | `run_ibd_hallmark_disco.R` | Match metadata to expression columns, preprocess expression, and run pathway DISCO. | Yes |
-| 5 | `plot_ibd_hallmark_significance.R` | Plot significant-gene percentages from the completed results. | Yes, to generate the bar plot |
+| 4 | `audit_ibd_annotation_redundancy.R` | Audit the genes in the IBD count file against GENCODE v26 exon unions and replace the candidate table; save overlap tables and provenance. | Yes; the wrapper runs it automatically |
+| 5 | `run_ibd_hallmark_disco.R` | Match metadata to expression columns, preprocess expression, and run pathway DISCO. | Yes |
+| 6 | `plot_ibd_hallmark_significance.R` | Plot significant-gene percentages from the completed results. | Yes, to generate the bar plot |
 
-`example_ibd_workflow.R` configures and runs **steps 4 and 5** together;
-it is an alternative to running those scripts separately. The
+`example_ibd_workflow.R` configures and runs **steps 4–6** together; it
+is an alternative to running those scripts separately. The
 `ibd_*_helpers.R` files are loaded automatically and do not need to be
 run separately.
 
-The metadata-to-expression matching in step 4 is performed by
+The metadata-to-expression matching in step 5 is performed by
 `ibd_load_count_inputs()` in `ibd_hallmark_disco_helpers.R`. It matches
 GEO accessions (`gsm`) to recount3’s `sra.sample_name`, assigns the
 corresponding run identifiers (`external_id`), and checks that
@@ -982,8 +983,8 @@ download, step 1 automatically performs the audit in step 2.
 Install the example dependencies:
 
 ``` r
-install.packages(c("BiocManager", "curl"))
-BiocManager::install(c("recount3", "edgeR", "limma"))
+install.packages(c("BiocManager", "curl", "data.table"))
+BiocManager::install(c("recount3", "edgeR", "limma", "GenomicRanges", "rtracklayer"))
 ```
 
 **To start from scratch**, download metadata into a new directory:
@@ -1005,10 +1006,10 @@ companion tables are not downloaded.
 
 There is no need to run step 2 separately unless you want to repeat the
 audit. Use the same new directory for the count downloader in step 3 and
-for `ibd.exploration_dir` in step 4. Newly retrieved metadata can differ
-from the snapshots used for the bundled figure. Alternatively, **skip
-steps 1–2** when intentionally using the included, previously audited
-metadata files.
+for `ibd.exploration_dir` in steps 4–5. Newly retrieved metadata can
+differ from the snapshots used for the bundled figure. Alternatively,
+**skip steps 1–2** when intentionally using the included, previously
+audited metadata files.
 
 **Step 3.** Download the recount3 gene counts once (an existing download
 is reused). Using the bundled metadata:
@@ -1017,7 +1018,29 @@ is reused). Using the bundled metadata:
 Rscript analysis/ibd_transcriptomics/code/fetch_srp042228_counts.R analysis/ibd_transcriptomics/results/inputs
 ```
 
-**Step 4.** Configure and run the Hallmark pathways for the
+**Step 4.** Generate the IBD-specific annotation redundancy audit:
+
+``` sh
+Rscript analysis/ibd_transcriptomics/code/audit_ibd_annotation_redundancy.R
+```
+
+The audit reads gene IDs directly from the SRP042228 GENCODE v26
+coverage-sum file and downloads the matching public GENCODE v26 ALL GTF
+if it is absent. It merges exons across transcripts of each gene,
+calculates reciprocal exon-union overlap, and flags same-strand pairs
+with at least 95% overlap in both directions. It replaces
+`results/inputs/reference/redundancy_candidates_all_genes.csv` and saves
+all overlapping pairs, per-gene annotation coverage, classification
+counts, source checksums, and provenance under
+`results/inputs/reference/annotation_audit/`. No other study’s
+expression object or feature panel is used. An existing GTF can be
+supplied with
+`options(ibd.annotation_gtf = "/path/to/annotation.gtf.gz")`. For a
+different input directory, set `ibd.exploration_dir` before sourcing the
+audit. The analysis runner verifies that the audit matches the current
+counts and candidate CSV.
+
+**Step 5.** Configure and run the Hallmark pathways for the
 disease/control comparisons:
 
 ``` r
@@ -1035,6 +1058,7 @@ options(
   ibd.pathway_preprocess_only = FALSE,
   ibd.disco_workers = 1L
 )
+source("analysis/ibd_transcriptomics/code/audit_ibd_annotation_redundancy.R")
 source("analysis/ibd_transcriptomics/code/run_ibd_hallmark_disco.R")
 ibd_results_dir <- output
 ```
@@ -1047,7 +1071,7 @@ provenance. To try just one pathway, set
 above. Fixed-threshold mode skips permutations, so `ibd.disco_workers`
 has no effect.
 
-**Step 5.** Generate the bar plot with
+**Step 6.** Generate the bar plot with
 `plot_ibd_hallmark_significance.R`:
 
 ``` r

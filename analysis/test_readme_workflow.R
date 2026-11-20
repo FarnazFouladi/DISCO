@@ -43,12 +43,17 @@ membership <- membership[!duplicated(membership$ensembl_gene), ][1:5, ]
 saveRDS(membership, file.path(reference_dir, 'hallmark_membership.rds'))
 redundancy <- read.csv(file.path(reference, 'redundancy_candidates_all_genes.csv'))
 write.csv(redundancy[FALSE, ], file.path(reference_dir, 'redundancy_candidates_all_genes.csv'), row.names = FALSE)
+dir.create(file.path(reference_dir, 'annotation_audit'))
+saveRDS(list(project = 'SRP042228',
+  counts_md5 = unname(tools::md5sum(file.path(input_dir, 'raw/sra.gene_sums.SRP042228.G026.gz'))),
+  candidate_md5 = unname(tools::md5sum(file.path(reference_dir, 'redundancy_candidates_all_genes.csv')))),
+  file.path(reference_dir, 'annotation_audit/provenance.rds'))
 set.seed(207)
-metadata <- data.frame(sample_id = paste0('sample', 1:48), patient_id = paste0('patient', 1:48),
-  subtype = rep(c('Non-IBD control', 'iCD', 'cCD', 'UC'), each = 12),
-  diagnosis = rep(c('Non-IBD control', 'CD', 'CD', 'UC'), each = 12),
-  age_at_diagnosis = runif(48, 5, 16), sex = rep(c('female', 'male'), 24))
-counts <- matrix(rnbinom(5 * 48, mu = 100, size = 3), 5,
+metadata <- data.frame(sample_id = paste0('sample', 1:96), patient_id = paste0('patient', 1:96),
+  subtype = rep(c('Non-IBD control', 'iCD', 'cCD', 'UC'), each = 24),
+  diagnosis = rep(c('Non-IBD control', 'CD', 'CD', 'UC'), each = 24),
+  age_at_diagnosis = runif(96, 5, 16), sex = rep(c('female', 'male'), 48))
+counts <- matrix(rnbinom(5 * 96, mu = 100, size = 3), 5,
   dimnames = list(paste0(membership$ensembl_gene, '.1'), metadata$sample_id))
 input_hashes <- tools::md5sum(list.files(input_dir, recursive = TRUE, full.names = TRUE))
 old_options <- options(ibd.exploration_dir = input_dir, ibd.pathway_reference = reference_dir,
@@ -86,6 +91,17 @@ stopifnot(identical(first, read.csv(file.path(output_dir, 'all_pathway_gene_scor
   !dir.exists(file.path(output_dir, 'comparison_CD_vs_control')),
   !dir.exists(file.path(output_dir, 'figure')),
   identical(input_hashes, tools::md5sum(names(input_hashes))))
+# Reject a stale or foreign audit before the runner can reset existing outputs.
+audit_file <- file.path(reference_dir, 'annotation_audit/provenance.rds')
+saved_audit <- readRDS(audit_file)
+bad_audit <- saved_audit
+bad_audit$project <- 'other_project'
+saveRDS(bad_audit, audit_file)
+audit_error <- tryCatch(run_ibd(), error = identity)
+stopifnot(inherits(audit_error, 'error'),
+  grepl('Annotation audit does not match', conditionMessage(audit_error), fixed = TRUE),
+  identical(first, read.csv(file.path(output_dir, 'all_pathway_gene_scores.csv'))))
+saveRDS(saved_audit, audit_file)
 options(old_options)
 message('Repeated IBD runs replace generated results, preserve inputs, and retain identical numerical results.')
 

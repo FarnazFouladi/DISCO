@@ -183,7 +183,7 @@ ibd_comparison_cohort <- function(metadata, comparison) {
   list(metadata = m, audit = audit)
 }
 
-ibd_prepare_pathway_comparison <- function(counts, metadata, comparison, cooccur = 10L) {
+ibd_prepare_pathway_comparison <- function(counts, metadata, comparison, cooccur = 20L) {
   stopifnot(!anyDuplicated(metadata$sample_id), !anyDuplicated(metadata$patient_id),
     all(metadata$sample_id %in% colnames(counts)))
   cohort <- ibd_comparison_cohort(metadata, comparison)
@@ -215,7 +215,7 @@ ibd_joint_gene_variation <- function(expression, groups, threshold = 1e-10) {
   list(variances = variances, valid = apply(variances, 1, function(x) all(is.finite(x) & x > threshold)))
 }
 
-ibd_prepare_joint_cohort <- function(counts, metadata, cooccur = 10L) {
+ibd_prepare_joint_cohort <- function(counts, metadata, cooccur = 20L) {
   groups <- c("Non-IBD control", "iCD", "cCD", "UC")
   stopifnot(!anyDuplicated(metadata$sample_id), !anyDuplicated(metadata$patient_id),
     all(metadata$sample_id %in% colnames(counts)))
@@ -253,7 +253,7 @@ ibd_prepare_joint_cohort <- function(counts, metadata, cooccur = 10L) {
     libraries = data.frame(sample_id = colnames(y), y$samples))
 }
 
-ibd_subset_joint_comparison <- function(joint, comparison, cooccur = 10L) {
+ibd_subset_joint_comparison <- function(joint, comparison, cooccur = 20L) {
   stopifnot(identical(joint$preprocessing_mode, "joint_four_groups"))
   cohort <- ibd_comparison_cohort(joint$metadata, comparison)
   m <- cohort$metadata
